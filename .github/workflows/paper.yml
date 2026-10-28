@@ -58,6 +58,11 @@ jobs:
       - name: PyMuPDF for the skim
         continue-on-error: true
         run: pip install --break-system-packages --root-user-action=ignore --quiet pymupdf
+      - name: template / review evidence and default skim criteria
+        if: always() && github.repository == 'BlackLight54/TDK-template'
+        run: |
+          python3 -m unittest scripts/review/test_review.py scripts/skim/test_skim.py
+          python3 scripts/lint/tests/execution.py
       - name: template / the lint's skeleton copy matches content/ (the template's repository only)
         if: github.repository == 'BlackLight54/TDK-template'
         run: for f in content/0[1-7]-*.tex; do cmp "$f" "scripts/lint/skeleton/${f#content/}" || exit 1; done
@@ -67,9 +72,6 @@ jobs:
       - name: template / each chapter role's criteria are the ones its guide section names (the template's repository only)
         if: github.repository == 'BlackLight54/TDK-template'
         run: texlua scripts/lint.lua criteria
-      - name: template / review.py passes its tests (the template's repository only)
-        if: always() && github.repository == 'BlackLight54/TDK-template'
-        run: make test-review
       # both builds run whatever the template checks above said, so a failed check still leaves
       # the build evidence; the job is red from the failed step either way
       - name: Build the draft
@@ -248,14 +250,19 @@ jobs:
       - name: Lint as JSON, for the skim and the review bundle
         id: lintjson
         if: always()
-        run: rc=0; texlua scripts/lint.lua all --doc reviewer --json > lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; [ -s lint.json ]
+        run: |
+          rc=0
+          texlua scripts/lint.lua all --doc reviewer --json > lint.json 2> lint.stderr || rc=$?
+          cat lint.stderr >&2
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          [ -s lint.json ]
       - name: Skim view of the reviewer PDF
         id: skim
         if: always() && hashFiles('reviewer.pdf') != ''
         run: rc=0; python3 scripts/skim/skim.py build . -o skim --lint lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"
       # the bundle is assembled even when a build failed or never ran, or the lint wrote no JSON:
       # the logs and the recorded exits are the evidence of that commit (review.py bundle refuses
-      # only a claimed success without a PDF, and a run with no log at all). The github.* values
+      # claimed-success missing outputs and a run with no log at all). The github.* values
       # reach the script through the environment, never pasted into it: a branch name is text
       # someone chose, not shell
       - name: Review bundle
@@ -270,7 +277,7 @@ jobs:
           RC_LINT: ${{ steps.lintjson.outputs.rc || 2 }}
           RC_SKIM: ${{ steps.skim.outputs.rc || 1 }}
         run: |
-          python3 scripts/review/review.py bundle --built . --lint lint.json --skim skim --out review-bundle --by ci \
+          python3 scripts/review/review.py bundle --built . --lint lint.json --lint-stderr lint.stderr --skim skim --out review-bundle --by ci \
             --sha "$SHA" --ref "$REF" --image-ref danteev/texlive:latest --image-digest "$IMAGE_DIGEST" \
             --exit "thesis=$RC_THESIS" --exit "reviewer=$RC_REVIEWER" --exit "lint=$RC_LINT" --exit "skim=$RC_SKIM"
           echo "name=review-${SHA::7}" >> "$GITHUB_OUTPUT"
