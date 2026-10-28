@@ -245,12 +245,17 @@ def cmd_bundle(a):
         raise Fail(f"--image-digest must look like sha256:<hex>, not {a.image_digest!r}")
     if not built.is_dir():
         raise Fail(f"--built {built} is not a directory")
+    lint_error = None
     try:
         lint_doc = json.loads(lint.read_text(encoding="utf-8"))
+        if not isinstance(lint_doc, dict):
+            raise ValueError("expected a JSON object")
     except (OSError, ValueError) as e:
-        raise Fail(f"--lint {lint} is not readable JSON ({e}): pass the output of texlua scripts/lint.lua all --doc reviewer --json")
-    if not isinstance(lint_doc, dict):
-        raise Fail(f"--lint {lint} is not a JSON object")
+        if not exits.get("lint"):
+            raise Fail(f"--lint {lint} is not readable JSON ({e}): pass the output of texlua scripts/lint.lua all --doc reviewer --json")
+        lint_error = str(e)
+        lint_doc = {}
+        print(f"review.py: warning: lint exited {exits['lint']} without readable JSON; keeping build diagnostics", file=sys.stderr)
     repo, sha, ref, built_info = source_identity(a)
     if not HEX40.fullmatch(sha):
         raise Fail(f"the commit SHA must be 40 lowercase hex digits, not {sha!r}")
@@ -279,12 +284,18 @@ def cmd_bundle(a):
         raise Fail("neither build left a log: there is no evidence to bundle")
 
     (out / "logs").mkdir(parents=True, exist_ok=True)
-    for doc in DOCS:
+    for build in builds:
+        doc = build["doc"]
+        if not build["started"]:
+            continue  # a PDF without this build's log is not evidence from this run
         if (built / f"{doc}.pdf").is_file():
             shutil.copy2(built / f"{doc}.pdf", out / f"{doc}.pdf")
         if (built / f"{doc}.log").is_file():
             shutil.copy2(built / f"{doc}.log", out / "logs" / f"{doc}.log")
-    shutil.copy2(lint, out / "lint.json")
+    if lint_error is None:
+        shutil.copy2(lint, out / "lint.json")
+    elif lint.is_file():
+        shutil.copy2(lint, out / "logs" / "lint-output.txt")
     if skim_ok:
         shutil.copytree(skim, out / "skim")
     else:
@@ -298,6 +309,8 @@ def cmd_bundle(a):
         "builds": builds, "lint": {"exit": exits.get("lint")}, "skim": {"exit": exits.get("skim")},
         "files": hash_tree(out),
     }
+    if lint_error is not None:
+        manifest["lint"].update(status="unavailable", error=lint_error)
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"{out} (review-{sha[:7]}, {len(manifest['files'])} files)")
 
@@ -566,9 +579,12 @@ def cmd_record(a):
     f = load_json(a.findings, "findings")
     inputs = f.get("inputs") if isinstance(f, dict) else None
     versions = {}
-    if inputs is None and a.inputs:
+    saved_files = None
+    if a.inputs:
         saved = load_json(a.inputs, "--inputs")
-        inputs = {p: v.get("files") for p, v in saved.items() if isinstance(v, dict)} if isinstance(saved, dict) else {}
+        saved_files = {p: v.get("files") for p, v in saved.items() if isinstance(v, dict)} if isinstance(saved, dict) else {}
+        if inputs is None:
+            inputs = saved_files
         versions = {p: v.get("persona") for p, v in saved.items() if isinstance(v, dict)} if isinstance(saved, dict) else {}
     if inputs is None:
         raise Fail("findings.json has no inputs: pass --inputs with the output saved from `review.py inputs`")
@@ -582,6 +598,8 @@ def cmd_record(a):
         raise Fail("the bundle was built from a dirty tree (built.dirty is true): an ad hoc run, not evidence of "
                    f"{f['sha'][:7]}; record a CI bundle, or a local bundle of a clean tree")
     for p in f["panel"]:
+        if saved_files is not None and inputs[p] != saved_files.get(p):
+            raise Fail(f"inputs: {p} differs between findings.json and --inputs; persona versions must describe the same review inputs")
         for name, h in inputs[p].items():
             src = bundle_name(name)
             if src and manifest["files"].get(src) != h:

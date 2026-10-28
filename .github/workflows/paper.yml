@@ -49,6 +49,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: PyMuPDF for the skim
         run: pip install --break-system-packages --root-user-action=ignore --quiet pymupdf
+      - name: template / review evidence and default skim criteria
+        if: github.repository == 'BlackLight54/TDK-template'
+        run: python3 -m unittest scripts/review/test_review.py scripts/skim/test_skim.py
       - name: template / the lint's skeleton copy matches content/ (the template's repository only)
         if: github.repository == 'BlackLight54/TDK-template'
         run: for f in content/0[1-7]-*.tex; do cmp "$f" "scripts/lint/skeleton/${f#content/}" || exit 1; done
@@ -240,8 +243,8 @@ jobs:
         if: always() && hashFiles('reviewer.pdf') != ''
         run: rc=0; python3 scripts/skim/skim.py build . -o skim --lint lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"
       # the bundle is assembled even when a build failed or never ran: the logs and the recorded
-      # exits are the evidence of that commit (review.py bundle refuses only a claimed success
-      # without a PDF, and a run with no log at all)
+      # exits are the evidence of that commit. Unreadable lint output is retained as diagnostics
+      # when lint failed; successful steps must supply their claimed output.
       - name: Review bundle
         id: bundle
         if: always()
