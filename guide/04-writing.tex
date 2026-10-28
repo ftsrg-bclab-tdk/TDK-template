@@ -27,6 +27,7 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
       [{\textbf{1 Introduction}}
         [{Digital credentials are checked offline, so a revocation must reach the verifier another way \textit{[incident report, cited]}}]
         [{Running example: a revoked diploma that an employer still accepts, because its status copy is stale}]
+        [{Research rationale: can local evidence bound staleness despite clock error and delayed messages? \textit{[unresolved question]}}]
         [{REQ1 timely revocation (within $\delta$), REQ2 offline checks, REQ3 holder privacy \textit{[Tab. 6.1]}}]
         [{Gap: no existing approach meets REQ1--REQ3 together \textit{[approaches, cited]}}]
         [{C1 model, C2 registry, C3 evaluation; RQ1 correctness, RQ2 scalability, RQ3 robustness \textit{[Fig. 1.1]}}]
@@ -42,7 +43,7 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
         [{Model: registry state, revocation, staleness of a verifier's copy \textit{[Def. 3.1]}}]
         [{Check: one witness, offline (REQ2), credential not named (REQ3) \textit{[Alg. 3.1]}}]
         [{Adversary: ADV1 a malicious holder replaying an old status proof, ADV2 a Dolev--Yao network adversary \textit{[ADV1--ADV2]}}]
-        [{Assumptions: AS1 sound signatures and accumulator, AS2 clock drift at most $\delta$, AS3 honest-but-curious operator \textit{[AS1--AS3]}}]
+        [{Assumptions: AS1 sound signatures and accumulator, AS2 clock error at most $\epsilon/2$, AS3 honest-but-curious operator \textit{[AS1--AS3]}}]
         [{Out of scope: denial of service, compromised holder devices}]
         [{Lemma 3.1: status proofs are fresh \textit{[Tamarin model; AS1, AS2]}}]
         [{Theorem 3.1 = SG1: under AS1--AS3, against ADV1 and ADV2, a verifier rejects every credential revoked more than $\delta$ before the check \textit{[Tamarin proof]}}]
@@ -51,10 +52,11 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
       [{\textbf{4 Implementation}}
         [{Architecture: registry service, verifier library, reused ledger \textit{[Fig. 3.1]}}]
         [{Design: signed accumulator values, not ledger reads \textit{[alternative rejected]}}]
-        [{The verifier's check: signed and younger than $\delta$ \textit{[listing, tests]}}]
+        [{The verifier's check: authentic, measured age at most $\delta-\epsilon$ \textit{[listing, tests]}}]
         [{Code and scripts archived on Zenodo, with the rerun command \textit{[archived code]}}]
       ]
       [{\textbf{5 Evaluation}}
+        [{Target: 10\,000 issuers, 3\,000 checks/s, mean latency at most 5\,ms \textit{[consortium brief]}}]
         [{Setup: one 8-core cloud VM, 10 runs, fresh issuer sets \textit{[rerun command]}}]
         [{RQ1 correctness: proofs per guarantee, tests per requirement \textit{[Tab. 5.1]}}]
         [{The scenario before and after, as a sequence chart \textit{[Fig. 5.1]}}]
@@ -67,7 +69,7 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
         [{Family A: how it works, which of REQ1--REQ3 it gives up \textit{[approaches, cited]}}]
         [{Family B: how it works, which of REQ1--REQ3 it gives up \textit{[approaches, cited]}}]
         [{Family C: how it works, which of REQ1--REQ3 it gives up \textit{[approaches, cited]}}]
-        [{Gap matrix: no family meets REQ1--REQ3 together \textit{[Tab. 6.1, Fig. 6.1]}}]
+        [{Gap matrix: REQ1--REQ3 coverage and trade-offs, each claim backed \textit{[Tab. 6.1, Fig. 6.1]}}]
       ]
       [{\textbf{7 Conclusion}}
         [{C1--C3 restated with their evidence \textit{[Thm 3.1, Fig. 5.2, Tab. 5.1]}}]
@@ -97,8 +99,9 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
       [{\textbf{1 Introduction}}
         [{Context: why the field matters now \textit{[a trend, a regulation or an incident, cited]}}]
         [{Problem: the concrete problem, ending in a one-sentence statement \textit{[the running example]}}]
+        [{Research rationale: why scientific investigation is necessary \textit{[unresolved question; limits of established methods]}}]
         [{Requirements: what a solution must do \textit{[one requirement per failure of the example; the rows of the gap matrix]}}]
-        [{Gap: no existing approach meets them together \textit{[the closest approaches, cited]}}]
+        [{Gap: what remains unresolved and what this work adds \textit{[the closest approaches, cited]}}]
         [{Contributions: what this work claims, as checkable items \textit{[the chapters behind each]}}]
       ]
       [{\textbf{2 Background}}
@@ -116,6 +119,7 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
         [{The part that did not exist before \textit{[the key listing and the tests that cover it]}}]
       ]
       [{\textbf{5 Evaluation}}
+        [{Target: intended use, scale, workload and acceptance thresholds \textit{[justification tied to requirements]}}]
         [{Setup: how the measurements were made \textit{[hardware, versions, workloads, repetitions, the rerun command]}}]
         [{Correctness on the example and on every requirement case \textit{[test, proof or model-checking results]}}]
         [{How the cost grows with the input \textit{[the scalability figure]}}]
@@ -136,7 +140,7 @@ Plan the argument before writing prose. Work through the Research and Plan rows 
 \end{figure}
 
 \section{The essentials}\label{app:writing:essentials}
-The list below defines the two dozen elements expected in every paper of this kind, including the problem, requirements, leading figure, threat model, research questions, gap matrix and summary with evidence. These are the named items in \cref{fig:template-skeleton} that reviewers look for. Each row gives the review-sheet criterion that scores it.
+The list below defines the elements expected in every paper of this kind, including the problem, research rationale, requirements, leading figure, threat model, evaluation target, research questions, gap matrix and summary with evidence. These are the named items in \cref{fig:template-skeleton} that reviewers look for. Each row gives the review-sheet criterion that scores it.
 
 The lint calls these items the \emph{essentials}. Their status appears on the draft PDF's Checks page and at the start of the CI job summary. The list is defined in \texttt{scripts/lint/essentials.lua}; \texttt{make essentials} generates this section from it. The requirements still apply if you delete the skeleton chapters. Each row links to a worked example in \cref{app:chapters}.
 

@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------
 \chapter{Getting started}\label{app:start}
 %----------------------------------------------------------------------------
-Work through these steps in order during your first week. Each step names its owner.
+Start these steps in your first week, alongside the research. Each step names its owner. By the first consultation, send your identifiers, create the notes and code repositories, and verify your paper access and both advisors' access as described below. Bring a problem paragraph and initial sources to that consultation. Finish the VM and bibliography integration alongside early research; optional editor and operating-system tooling must not delay the work.
 
 %----------------------------------------------------------------------------
 \section{Share your identifiers}\label{app:start:ids}
@@ -18,6 +18,8 @@ Work through these steps in order during your first week. Each step names its ow
   \item \textbf{\texttt{code/}}, the code repository. \emph{You} create it from \href{https://github.com/BlackLight54/tdk-code-template}{tdk-code-template}, which supplies recipes, CI and the files needed for Zenodo archiving (\cref{app:code:github}, \cref{app:zenodo}).
 \end{itemize}
 Add both advisors to all three repositories. Add \texttt{paper/} and \texttt{code/} as submodules of the notes repository, then clone it with \texttt{git clone --recurse-submodules}; see the Git book's chapter on \href{https://git-scm.com/book/en/v2/Git-Tools-Submodules}{submodules}. This gives you one workspace for local paper builds, GitHub features and AI agents working across notes, paper and code (\cref{app:code:ai}).
+
+By the first consultation, verify that you can edit the Overleaf project and push to the paper repository, and that both advisors can open the project and all three repositories. Create the code repository now, even if it only contains the template, so the implementation has a home from the start.
 
 \paragraph{Zotero group.} \emph{We} add you to \href{https://www.zotero.org/groups/6715800/ftsrg_blockchain_lab}{ftsrg\_blockchain\_lab}, our shared literature library. \emph{You} install \href{https://www.zotero.org/}{Zotero} and its \href{https://www.zotero.org/download/connectors}{browser connector}, then save every source you read to the group. Allow ten minutes for the \href{https://www.zotero.org/support/quick_start_guide}{quick start guide}. \Cref{app:latex:cite} explains how to cite the library's sources.
 
@@ -57,7 +59,7 @@ Import the library through Overleaf's Zotero integration, included in our Pro su
 
 \paragraph{Notetaking and task management.} Keep notes in plain Markdown and commit them to GitHub. Obsidian, Tana and Emacs Org mode are options. Track tasks in GitHub issues or Todoist.
 
-\paragraph{Virtual machine and remote work.} In the message with your identifiers, ask us to request a VM in the BME cloud. We can provide 8 cores and 16\,GB of memory in the \href{https://cloud.bme.hu/}{BME cloud}, usually in its \href{https://fured.cloud.bme.hu/}{Füred} environment. Host your editor and repositories there, or run AI agents while your laptop is closed. Connect through SSH, RDP, VS Code Remote or Tailscale. Agents and their harnesses (\cref{app:code:ai}) can run on the VM directly or through remote access.
+\paragraph{Virtual machine and remote work.} In the message with your identifiers, ask us to request a VM in the BME cloud. Verify SSH access alongside early research; start reading and writing while provisioning is in progress. We can provide 8 cores and 16\,GB of memory in the \href{https://cloud.bme.hu/}{BME cloud}, usually in its \href{https://fured.cloud.bme.hu/}{Füred} environment. Host your editor and repositories there, or run AI agents while your laptop is closed. Connect through SSH, RDP, VS Code Remote or Tailscale. Agents and their harnesses (\cref{app:code:ai}) can run on the VM directly or through remote access.
 
 \paragraph{Workspace layout.} Keep the clone of the notes repository (\cref{app:start:access}) on your machine or VM. We recommend opening it in one VS Code window, with the \LaTeX{} build and AI agent in the same folder. This gives the agent the paper's claims and consultation decisions while it edits code or prose, which helps avoid mistakes. Commit each submodule separately. After a consultation, commit the submodule pointers in the notes repository so we can check out the state we discussed.
 

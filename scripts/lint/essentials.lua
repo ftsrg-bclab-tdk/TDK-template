@@ -40,6 +40,11 @@ return {
     used = "an example box in every main chapter",
     add = "add a running-example box to the introduction and name the example with \\exname in thesis.tex" },
 
+  { id = "rationale", role = "intro", kind = "text", title = "Research rationale", criterion = "C", example = "app:chapters:rationale", key = "rationale", label = "sec:rationale",
+    headings = { "research rationale", "rationale" }, words = 100,
+    why = "what prompted the investigation, which scientific question remains unresolved, and why established methods do not settle it",
+    add = "add a section \\section{Research rationale}\\label{sec:rationale} to the introduction" },
+
   { id = "requirements", role = "intro", kind = "tags", title = "Requirements", criterion = "D/1", example = "app:chapters:requirements", prefix = "req",
     why = "what a solution must do, one checkable item each; they are the rows of the gap matrix and the yardstick of the evaluation",
     used = "each requirement is referenced in the related work and in the evaluation, and each derived requirement (dr:) in the evaluation",
@@ -47,7 +52,7 @@ return {
 
   { id = "introgap", role = "intro", kind = "text", title = "Gap, in brief", criterion = "D/1", example = "app:chapters:introgap", key = "gap", label = "par:gap",
     headings = { "gap" }, words = 40,
-    why = "that no existing approach meets the requirements together; the novelty claim, made before the full comparison",
+    why = "what remains unresolved by the closest approaches and what this work adds; the novelty claim, made before the full comparison",
     used = "it points to the full comparison: the related-work chapter, the gap matrix or the positioning figure",
     add = "add a paragraph \\paragraph{Gap.}\\label{par:gap} to the introduction" },
 
@@ -80,6 +85,11 @@ return {
     why = "what the approach guarantees under the assumptions, against the threats; each is what the evaluation checks",
     used = "each guarantee is referenced in the evaluation, as a row of the correctness table",
     add = "add a guarantees list (\\begin{guarantees}, items labelled g:)" },
+
+  { id = "evaltarget", role = "evaluation", kind = "text", title = "Evaluation target", criterion = "E", example = "app:chapters:eval-target", key = "eval-target", label = "sec:eval-target",
+    headings = { "evaluation target" }, words = 100,
+    why = "the intended use, justified scale and workload, and acceptance thresholds against which the results establish practical relevance",
+    add = "add a section \\section{Evaluation target}\\label{sec:eval-target} to the evaluation" },
 
   { id = "rqs", role = "evaluation", kind = "tags", title = "Research questions", criterion = "E", example = "app:chapters:research-questions", prefix = "rq",
     why = "the questions the evaluation answers: correctness, scale and robustness at least",
@@ -120,8 +130,8 @@ return {
     add = "add the positioning figure, \\label{fig:positioning}, to the related work" },
 
   { id = "gapmatrix", role = "related", kind = "float", title = "Gap matrix", criterion = "D/1", example = "tab:guide:related", label = "tab:related",
-    why = "each requirement against the closest approaches: every other approach misses something, this work meets all",
-    used = "each requirement has exactly one row, this work meets every one with a pointer to a result, and every other approach misses one",
+    why = "each requirement against the closest approaches, reporting achievements, trade-offs and limits honestly",
+    used = "each requirement has exactly one row; this work's met, partial or unmet cells point to evidence, and not-applicable cells give an explicit scope justification",
     add = "add the gap matrix, \\label{tab:related}, to the related work" },
 
   { id = "gap", role = "related", kind = "text", title = "The gap", criterion = "D/1", example = "app:chapters:gap", key = "gap", label = "sec:gap",

@@ -6,8 +6,10 @@ description: Score the TDK paper's reviewer PDF, as built by CI for one commit, 
 # Self-score
 
 Score the reviewer PDF the way the TDK reviewer will, on the review sheet in
-`docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`. The sheet has five criteria and 35 points:
-A form and style 0-5, B figures and literature 0-4 (average of B/1 and B/2), C topic 0-8,
+`docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`, the bundled 2025 reference. Check the current
+faculty call for the applicable sheet. The bundled sheet has five criteria and 35 points:
+A form and style 0-5, B figures and literature 0-4 (average of B/1 and B/2, or B/2 when B/1 is
+inapplicable), C topic 0-8,
 D originality and soundness 0-10 (D/1 novelty 0-5 plus D/2 correctness 0-5), E introduction and
 evaluation 0-8. The guide's "TDK rules and dates" chapter (`guide/06-tdk-rules-and-dates.tex`, `app:tdk:sheet`)
 quotes the top of every scale.
@@ -21,6 +23,8 @@ quotes the top of every scale.
 2. Read the whole PDF once as a reader, then once per criterion.
 3. For each criterion, give the score and the sheet's own sentence that fits, then the evidence:
    page numbers, a quoted phrase, a figure or table number. No evidence, no score.
+   If B/1 is inapplicable, write `N/A` and the reason, and use B/2 as B. An omitted score means
+   incomplete scoring, not N/A; give a total only when every applicable criterion is scored.
 4. Name the weakest criterion and the single cheapest change that would raise it, with where it
    goes. Then the second cheapest.
 
