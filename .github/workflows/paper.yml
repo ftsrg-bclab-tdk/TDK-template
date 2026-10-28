@@ -239,7 +239,12 @@ jobs:
       - name: Lint as JSON, for the skim and the review bundle
         id: lintjson
         if: always()
-        run: rc=0; texlua scripts/lint.lua all --doc reviewer --json > lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; [ -s lint.json ]
+        run: |
+          rc=0
+          texlua scripts/lint.lua all --doc reviewer --json > lint.json 2> lint.stderr || rc=$?
+          cat lint.stderr >&2
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          [ -s lint.json ]
       - name: Skim view of the reviewer PDF
         id: skim
         if: always() && hashFiles('reviewer.pdf') != ''
@@ -252,7 +257,7 @@ jobs:
         if: always()
         run: |
           sha=${{ github.event.pull_request.head.sha || github.sha }}
-          python3 scripts/review/review.py bundle --built . --lint lint.json --skim skim --out review-bundle --by ci \
+          python3 scripts/review/review.py bundle --built . --lint lint.json --lint-stderr lint.stderr --skim skim --out review-bundle --by ci \
             --sha "$sha" --ref "${{ github.head_ref || github.ref_name }}" \
             --image-ref danteev/texlive:latest --image-digest "${{ needs.image.outputs.digest }}" \
             --exit thesis=${{ steps.draft.outputs.rc || 1 }} --exit reviewer=${{ steps.reviewer.outputs.rc || 1 }} \

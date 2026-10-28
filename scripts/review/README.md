@@ -61,7 +61,8 @@ review-<sha7>/
   A PDF without its build log is omitted, even if an older build left it on disk.
 - If lint exits nonzero without a readable JSON object, the bundle keeps the PDFs and build
   logs. `lint.status` is `unavailable`, `lint.error` records the read failure, and the raw output
-  (if present) is saved as `logs/lint-output.txt`. There is no `lint.json` or invented result.
+  (if present) is saved as `logs/lint-output.txt`. CI also captures stderr as
+  `logs/lint-stderr.txt`; local callers supply it with `--lint-stderr FILE`. There is no `lint.json` or invented result.
   Missing or malformed JSON with lint exit 0 is refused as contradictory evidence.
 - An exit that was not passed to `review.py bundle` (`--exit lint=N`, `--exit skim=N`) is `null`,
   never a made-up 0; so are `image.ref` and `image.digest` when not given. CI passes them all.

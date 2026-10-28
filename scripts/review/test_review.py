@@ -120,7 +120,10 @@ class TestBundle(Workdir):
     def test_lint_startup_failure_keeps_diagnostics_without_claiming_json(self):
         self.make_bundle()
         lint = self.tmp / "bundle-lint.json"
+        stderr = self.tmp / "lint.stderr"
+        write(stderr, "lint: unknown phase 'finall'\n")
         base = ["bundle", "--built", self.tmp / "bundle-built", "--lint", lint,
+                "--lint-stderr", stderr,
                 "--skim", self.tmp / "no-skim", "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "skim=1"]
         for name, raw in (("empty", ""), ("broken", "not JSON"), ("array", "[]"), ("missing", None)):
             with self.subTest(name=name):
@@ -140,6 +143,8 @@ class TestBundle(Workdir):
                 self.assertIn("logs/reviewer.log", manifest["files"])
                 self.assertIn("reviewer.pdf", manifest["files"])
                 self.assertNotIn("lint.json", manifest["files"])
+                self.assertIn("logs/lint-stderr.txt", manifest["files"])
+                self.assertEqual((out / "logs/lint-stderr.txt").read_text(), stderr.read_text())
                 if raw is not None:
                     self.assertEqual((out / "logs/lint-output.txt").read_text(), raw)
                 with mock.patch.dict(os.environ, CI_ENV):

@@ -245,6 +245,9 @@ def cmd_bundle(a):
         raise Fail(f"--image-digest must look like sha256:<hex>, not {a.image_digest!r}")
     if not built.is_dir():
         raise Fail(f"--built {built} is not a directory")
+    lint_stderr = Path(a.lint_stderr) if a.lint_stderr else None
+    if lint_stderr is not None and not lint_stderr.is_file():
+        raise Fail(f"--lint-stderr {lint_stderr} is not a file")
     lint_error = None
     try:
         lint_doc = json.loads(lint.read_text(encoding="utf-8"))
@@ -296,6 +299,8 @@ def cmd_bundle(a):
         shutil.copy2(lint, out / "lint.json")
     elif lint.is_file():
         shutil.copy2(lint, out / "logs" / "lint-output.txt")
+    if lint_stderr is not None:
+        shutil.copy2(lint_stderr, out / "logs" / "lint-stderr.txt")
     if skim_ok:
         shutil.copytree(skim, out / "skim")
     else:
@@ -635,6 +640,7 @@ def parser():
                        "'{{index .RepoDigests 0}}' <image>` prints the image digest after the '@'.")
     p.add_argument("--built", required=True, metavar="DIR", help="the directory the paper was built in")
     p.add_argument("--lint", required=True, metavar="FILE", help="lint.json: texlua scripts/lint.lua all --doc reviewer --json")
+    p.add_argument("--lint-stderr", metavar="FILE", help="stderr captured from the lint command, including startup failures")
     p.add_argument("--skim", required=True, metavar="DIR", help="the skim output directory (skim.md, skim.html, skim.json, assets/)")
     p.add_argument("--out", required=True, metavar="DIR", help="the bundle directory to create (must be empty or absent)")
     p.add_argument("--by", choices=("ci", "local"), help="who built it (default: ci inside GitHub Actions, else local)")
