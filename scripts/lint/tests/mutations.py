@@ -399,7 +399,7 @@ MUTATIONS = [
         sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:after})")), "thm:after is not an evaluation result"),
     ("a theorem in a note is not evidence", "essentials", both(filled_gap,
         append("content/03-approach.tex", "\\todo{\\begin{theorem}\\label{thm:note} A proposed result.\\end{theorem}}"),
-        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:note})")), "thm:note is not an evaluation result"),
+        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:note})")), "thm:note, which no label defines in the printed paper"),
     ("a definition with a theorem label is not result evidence", "essentials", both(filled_gap,
         append("content/03-approach.tex", "\\begin{definition}\\label{thm:definition} A witness is bounded when its age is below the limit.\\end{definition}"),
         sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:definition})")), "thm:definition is not an evaluation result"),

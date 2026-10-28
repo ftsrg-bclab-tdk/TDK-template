@@ -6,6 +6,7 @@
 -- (topic to plan ◔, draft ◑, polish and submit ●), and a row below it fails. The rows, with their level,
 -- place and next step, stay in C.ESSENTIALS for the Checks page, the job summary and --json.
 local C = require("lintcore")
+local T = require("texscan")
 local ROWS = require("essentials")
 local fail, warn, note = C.fail, C.warn, C.note
 
@@ -152,16 +153,42 @@ function M.label_for(row, cmd) return (cmd == "paragraph" and "par:" or "sec:") 
 -- artifact. Whether the record is this paper's code, and the version the results came from, the
 -- lint cannot tell; the reader checks that. Returns the key, or nil and why the nearest miss fails
 local ARTIFACT_TYPES = { software = true, dataset = true, misc = true, online = true, electronic = true, www = true, data = true }
-local function zenodo_in(body, field)
-  local v = body:match("[,%s]" .. field .. "%s*=%s*[{\"]([^}\"]*)")
-  return v and v:match("10%.5281/zenodo%.%d+")
+-- Split only at field-level commas, respecting nested braces, quotes and escapes. Text such
+-- as "url = {...}" inside a note is a value, never another field. BibTeX string expansion is
+-- not attempted: a DOI assembled using @string macros still needs human inspection.
+local function artifact_fields(body)
+  local fields, pos = {}, (body:find(",", 1, true) or #body) + 1
+  body = body:sub(1, -2) -- C.bib_entries includes the entry's outer braces
+  while pos <= #body do
+    pos = body:match("^[%s,]*()", pos)
+    local _, e, name = body:find("^([%a][%w_]*)%s*=%s*", pos)
+    local start = e and e + 1 or pos
+    local i, depth, quoted = start, 0, false
+    while i <= #body do
+      local c = body:sub(i, i)
+      if c == "\\" then i = i + 2
+      elseif c == '"' and depth == 0 then quoted = not quoted; i = i + 1
+      elseif c == "{" then depth = depth + 1; i = i + 1
+      elseif c == "}" then depth = depth - 1; i = i + 1
+      elseif c == "," and depth == 0 and not quoted then break
+      else i = i + 1 end
+    end
+    if name then fields[name:lower()] = body:sub(start, i - 1) end
+    pos = i + 1
+  end
+  return fields
+end
+local function zenodo_in(fields, field)
+  local v = fields[field]
+  return v and v:lower():match("10%.5281/zenodo%.%d+")
 end
 local function cited_artifact(files)
   local bib, found, why = C.bib_entries(), nil, nil
   C.each_cite(files, function(_, _, key)
     local e = bib[key]
     if found or not e then return end
-    local doi = zenodo_in(e.body, "[dD][oO][iI]") or zenodo_in(e.body, "[uU][rR][lL]")
+    local fields = artifact_fields(e.body)
+    local doi = zenodo_in(fields, "doi") or zenodo_in(fields, "url")
     if not doi then return end
     if ARTIFACT_TYPES[e.type] then found = key
     else why = why or string.format("%s is an @%s entry with a Zenodo DOI, a publication rather than the artifact: cite the artifact's own record (@software or @misc)", key, e.type) end
@@ -176,8 +203,8 @@ local TEXT_USED = {
   end,
   setup = function()
     local key, why = cited_artifact(C.role_files("evaluation"))
-    if key then return true end
-    return false, why or "cite the archived artifact in the evaluation: a bibliography entry with its Zenodo DOI, 10.5281/zenodo.<number>"
+    if key then return true, "Zenodo record found: the reader must check that it is this paper's own artifact and the version used for the results" end
+    return false, why or "cite the archived artifact in the evaluation: a bibliography entry with its Zenodo DOI, 10.5281/zenodo.<number>; the reader must check artifact identity and the version used for the results"
   end,
   scalability = function(f, a, b)
     for _, key in ipairs(labels_in_span(f, a, b)) do if (key:match("^fig:") or key:match("^tab:")) and main_refs(key) > 0 then return true end end
@@ -208,13 +235,101 @@ local function eval_text(row, r)
   local used = TEXT_USED[row.id]
   if not used then return 4 end
   local ok, why = used(found.file, found.line, last)
-  if ok then return 4 end
+  if ok then return 4, why end
   return 3, why
 end
 
 -- tagged lists ---------------------------------------------------------------------------
 -- every label with the prefix in the main chapters, in reading order, with its item's text
+-- Requirement membership comes from printed list items or explicit \tagrow{requirements}
+-- items, not arbitrary req: labels. Retain one record per printed item, even when its
+-- identity is missing or ambiguous. Keep source lines for the essentials interface.
+local function requirement_items()
+  local items = {}
+  for _, f in ipairs(C.main_chapters()) do
+    local text = table.concat(C.printed_lines(f), "\n")
+    local pos, envs, current = 1, {}, nil
+    local function row_end(start)
+      local i, depth = start, 0
+      while i <= #text do
+        local c = text:sub(i, i)
+        if c == "\\" then
+          if text:sub(i + 1, i + 1) == "\\" and depth == 0 then return i end
+          local cmd = text:match("^\\%a+", i)
+          i = i + (cmd and #cmd or 2)
+        elseif c == "{" then depth = depth + 1; i = i + 1
+        elseif c == "}" then depth = depth - 1; i = i + 1
+        else i = i + 1 end
+      end
+      return #text + 1
+    end
+    local function finish(stop)
+      if current then
+        current.text = text:sub(current.start, stop - 1)
+        current.stop = 1 + C.count(text:sub(1, stop - 1), "\n")
+        items[#items + 1] = { labels = current.labels, file = f,
+          line = 1 + C.count(text:sub(1, current.start - 1), "\n"),
+          text = current.text, stop = current.stop }
+        current = nil
+      end
+    end
+    while pos <= #text do
+      local a, b, cmd = text:find("\\([%a]+)", pos)
+      local rowend = current and current.rowend
+      -- tagrow's scope is its table row; a list item's scope ends at the next item/end.
+      if current and current.row and rowend and (not a or rowend < a) then
+        finish(rowend); pos = rowend + 2
+      elseif not a then break
+      else
+        pos = b + 1
+        local argpos = text:match("^%s*()", pos)
+        local arg = text:match("^%b{}", argpos)
+        local name = arg and arg:sub(2, -2)
+        if cmd == "begin" and name then
+          envs[#envs + 1] = name; pos = argpos + #arg
+        elseif cmd == "end" and name then
+          if name == "requirements" then finish(a) end
+          envs[#envs] = nil; pos = argpos + #arg
+        elseif cmd == "item" and envs[#envs] == "requirements" then
+          finish(a)
+          current = { start = a, labels = {} }
+        elseif cmd == "tagrow" and name == "requirements" then
+          finish(a)
+          current = { start = a, labels = {}, row = true, rowend = row_end(a), envdepth = #envs }
+          pos = argpos + #arg
+        elseif cmd == "label" and current and name and name:match("^req:")
+            and ((not current.row and envs[#envs] == "requirements") or (current.row and #envs == current.envdepth)) then
+          current.labels[#current.labels + 1] = { key = name, line = 1 + C.count(text:sub(1, a - 1), "\n") }
+          pos = argpos + #arg
+        end
+      end
+    end
+    finish(#text + 1)
+  end
+  local counts = {}
+  for _, it in ipairs(items) do
+    for _, label in ipairs(it.labels) do counts[label.key] = (counts[label.key] or 0) + 1 end
+  end
+  for _, it in ipairs(items) do
+    local where = string.format("requirement item at %s:%d", it.file, it.line)
+    if #it.labels == 0 then
+      it.identity_problem = where .. " has no req: label: give every printed requirement exactly one usable, unique identity"
+    elseif #it.labels ~= 1 then
+      it.identity_problem = where .. " has multiple req: labels: give it exactly one usable, unique identity"
+    else
+      local key = it.labels[1].key
+      if not key:match("^req:.+") or key:find("[%s{},\\]") then
+        it.identity_problem = where .. " has an unusable req: label: use a nonempty literal requirement key without spaces, commas, braces or commands"
+      else
+        it.key = key
+        if counts[key] > 1 then it.identity_problem = key .. " is duplicated across printed requirement labels: give each item a unique identity" end
+      end
+    end
+  end
+  return items
+end
 local function tag_items(prefix)
+  if prefix == "req" then return requirement_items() end
   local items = {}
   for _, f in ipairs(C.main_chapters()) do
     local ls = lines(f)
@@ -243,10 +358,11 @@ local function own_item(it)
   return n >= 2
 end
 local function each_unreferenced(items, role, what, miss)
-  for _, it in ipairs(items) do if role_refs(role, it.key) == 0 then miss[#miss + 1] = it.key .. " " .. what end end
+  for _, it in ipairs(items) do if it.key and role_refs(role, it.key) == 0 then miss[#miss + 1] = it.key .. " " .. what end end
 end
 local TAG_USED = {
   req = function(items, miss)
+    for _, it in ipairs(items) do if it.identity_problem then miss[#miss + 1] = it.identity_problem end end
     each_unreferenced(items, "related", "is not in the related work", miss)
     each_unreferenced(items, "evaluation", "is not checked in the evaluation", miss)
     each_unreferenced(tag_items("dr"), "evaluation", "is not checked in the evaluation", miss)
@@ -340,7 +456,11 @@ local FLOAT_USED = {
     if #miss == 0 then return true end
     return false, first_of(miss, 2)
   end,
-  gapmatrix = function() local fails = M.gapmatrix(); if #fails == 0 then return true end; return false, first_of(fails, 1) end,
+  gapmatrix = function()
+    local fails = M.gapmatrix()
+    if #fails == 0 then return true, "the reader must check that each cited result is sufficient to support its matrix claim" end
+    return false, first_of(fails, 1)
+  end,
 }
 
 local function eval_float(row, r)
@@ -359,26 +479,26 @@ local function eval_float(row, r)
   local used = FLOAT_USED[row.id]
   local ok, why
   if used then ok, why = used(fl) else ok = main_refs(row.label) > 0; why = "reference it from the text: \\cref{" .. row.label .. "}" end
-  if ok then return 4 end
+  if ok then return 4, used and why or nil end
   return 3, why
 end
 
--- Labels inside the template's theorem-like result environments, independent of their prefix.
--- Definitions, examples and remarks are not results. Read prose so a theorem in a note or
--- commented-out block cannot supply evidence, and process tokens in order even on one line.
+-- Labels inside printed theorem-like result environments, independent of their prefix.
+-- Use the shared command reader so escaped commands, literal code, notes and link addresses
+-- cannot open a result environment. Read all content, including appendix results.
 local RESULT_ENV = { theorem = true, lemma = true, proposition = true, corollary = true,
   invariant = true, property = true, claim = true }
 local function theorem_labels()
-  local out = {}
-  for _, f in ipairs(C.main_chapters()) do
-    local stack = {}
-    for cmd, arg in table.concat(plines(f), "\n"):gmatch("\\(%a+)%s*(%b{})") do
-      local key = arg:sub(2, -2)
+  local out, stacks = {}, {}
+  C.each_call(C.CONTENT, function(cmd) return cmd == "begin" or cmd == "end" or cmd == "label" end,
+    function(f, n, cmd, key, start)
+      local stack = stacks[f] or {}; stacks[f] = stack
       if cmd == "begin" then stack[#stack + 1] = key
       elseif cmd == "end" and stack[#stack] == key then stack[#stack] = nil
-      elseif cmd == "label" and RESULT_ENV[stack[#stack]] then out[key] = true end
-    end
-  end
+      elseif cmd == "label" and RESULT_ENV[stack[#stack]] then
+        out[key] = { file = f, line = n, start = start }
+      end
+    end)
   return out
 end
 
@@ -386,57 +506,159 @@ end
 -- a pointer to a result, or justifies why the requirement is not applicable. Returns the failures;
 -- warnings go out as the rule's own findings. Whether a pointed-at result shows what the cell
 -- claims is for the reader to judge.
+-- Read a literal alignment rather than physical source lines. Braced cells (makecell,
+-- shortstack, etc.) and nested environments own their separators. Macro-generated rows,
+-- merged cells and TeX alignment primitives cannot be checked reliably without TeX expansion.
+local ALIGNMENT = { tabular = 1, ["tabular*"] = 2, tabularx = 2, longtable = 1 }
+local function matrix_rows(block)
+  local a, b, env = block:find("\\begin%s*{(tabular%*?)}")
+  local xa, xb, xe = block:find("\\begin%s*{(tabularx)}")
+  if xa and (not a or xa < a) then a, b, env = xa, xb, xe end
+  local la, lb, le = block:find("\\begin%s*{(longtable)}")
+  if la and (not a or la < a) then a, b, env = la, lb, le end
+  if not a then return nil, "the gap matrix has no supported tabular (tabular, tabular*, tabularx or longtable)" end
+  local pos = block:match("^%s*()", b + 1)
+  local opt = block:match("^%b[]", pos)
+  if opt then pos = block:match("^%s*()", pos + #opt) end
+  for _ = 1, ALIGNMENT[env] do
+    local arg = block:match("^%b{}", pos)
+    if not arg then return nil, "cannot read the gap matrix's literal alignment arguments; review the matrix manually" end
+    pos = block:match("^%s*()", pos + #arg)
+  end
+  local last = block:find("\\end{" .. env .. "}", pos, true)
+  if not last then return nil, "the gap matrix's alignment has no matching end; review it manually" end
+  local text = block:sub(pos, last - 1)
+  if text:match("\\tabularnewline%f[^%a]") then
+    return nil, "cannot check \\tabularnewline row terminators in the gap matrix; use literal \\\\ or review it manually"
+  end
+  if text:match("\\multicolumn%f[^%a]") or text:match("\\multirow%f[^%a]") or text:match("\\input%f[^%a]")
+      or text:match("\\[oO]mit%f[^%a]") or text:match("\\span%f[^%a]") or text:match("\\cr%f[^%a]") then
+    return nil, "cannot check merged cells, external rows or TeX alignment primitives in the gap matrix; use literal cells or review it manually"
+  end
+  local rows, cells, start, depth, nested, i = {}, {}, 1, 0, 0, 1
+  while i <= #text do
+    local c = text:sub(i, i)
+    if c == "\\" then
+      local cmd = text:match("^\\(%a+)", i)
+      if cmd == "begin" or cmd == "end" then
+        local _, e = text:find("^\\%a+%s*%b{}", i)
+        if e then nested = nested + (cmd == "begin" and 1 or -1); i = e + 1
+        else return nil, "cannot read a nested environment in the gap matrix; review it manually" end
+      elseif text:sub(i + 1, i + 1) == "\\" and depth == 0 and nested == 0 then
+        cells[#cells + 1] = C.trim(text:sub(start, i - 1))
+        rows[#rows + 1] = cells; cells = {}
+        i = i + 2
+        if text:sub(i, i) == "*" then i = i + 1 end
+        local sp = text:match("^%s*()", i)
+        local gap = text:match("^%b[]", sp)
+        if gap then i = sp + #gap end
+        start = i
+      else i = i + (cmd and #cmd + 1 or 2) end
+    elseif c == "{" then depth = depth + 1; i = i + 1
+    elseif c == "}" then depth = depth - 1; i = i + 1
+    elseif c == "&" and depth == 0 and nested == 0 then
+      cells[#cells + 1] = C.trim(text:sub(start, i - 1)); i = i + 1; start = i
+    else i = i + 1 end
+    if depth < 0 or nested < 0 then return nil, "unbalanced groups or environments in the gap matrix; review it manually" end
+  end
+  if depth ~= 0 or nested ~= 0 then return nil, "unbalanced groups or environments in the gap matrix; review it manually" end
+  -- TeX permits the final row without \\; keep it, but ignore trailing \bottomrule, etc.
+  local tail = C.trim(text:sub(start))
+  if #cells > 0 or tail:match("\\ref%s*{req:") then cells[#cells + 1] = tail; rows[#rows + 1] = cells end
+  return rows
+end
 M.gapwarn = {}
+-- Read cell commands as TeX tokens, skipping addresses and reference arguments. A literal
+-- \\cref or a command written inside a URL cannot supply a status or an evidence pointer.
+local function cell_commands(text, fn)
+  local pos = 1
+  while pos <= #text do
+    if text:sub(pos, pos) ~= "\\" then pos = pos + 1
+    else
+      local cmd, after = T.command(text, pos)
+      pos = after
+      local bare = cmd:gsub("%*$", "")
+      if T.LINK[bare] or bare == "path" then
+        local _, e
+        if bare == "url" or bare == "path" or bare == "nolinkurl" then _, e = T.address(text, after)
+        else _, e = T.argument(text, after, true) end
+        if e then pos = e + 1 end
+      elseif bare == "ref" or bare == "cref" or bare == "Cref" then
+        local arg, e = T.argument(text, after)
+        if e then fn(bare, arg); pos = e + 1 end
+      else fn(cmd) end
+    end
+  end
+end
 function M.gapmatrix()
   local fails = {}
   M.gapwarn = {}
   local fl = find_float(C.main_chapters(), "tab:related")
   if not fl then return { "no gap matrix table labelled tab:related" } end
-  local tab = fl.block:match("\\label{tab:related}(.-)\\end{tabularx}") or fl.block:match("\\label{tab:related}(.-)\\end{tabular}")
-    or fl.block:match("\\begin{tabularx}(.-)\\label{tab:related}") or fl.block:match("\\begin{tabular}(.-)\\label{tab:related}")
-  if not tab then return { "the gap matrix has no tabular" } end
+  fl.block = table.concat(C.printed_lines(fl.file), "\n", fl.line, fl.last)
+  local parsed, problem = matrix_rows(fl.block)
+  if not parsed then return { problem } end
   local rows, ncols, seen = {}, nil, {}
-  for line in tab:gmatch("[^\n]+") do
-    local req = line:match("\\ref{(req:[^}]*)}")
-    if req and line:match("\\\\") then
-      local cells = {}
-      for cell in (line:gsub("\\\\.*$", "") .. "&"):gmatch("(.-)&") do cells[#cells + 1] = C.trim(cell) end
+  for _, cells in ipairs(parsed) do
+    local req = cells[1]:match("\\ref%s*{(req:[^}]*)}")
+    if req then
       rows[#rows + 1] = cells; ncols = ncols or #cells
       if #cells ~= ncols then fails[#fails + 1] = "gap matrix rows have different numbers of cells" end
       if seen[req] then fails[#fails + 1] = req .. " has two rows in the gap matrix" end
       seen[req] = true
+    elseif table.concat(cells, " "):match("\\ref%s*{req:") then
+      fails[#fails + 1] = "a gap matrix requirement reference is outside the first cell; review that row manually"
     end
   end
   if #rows == 0 then return { "the gap matrix has no rows starting with \\ref{req:...}" } end
   local declared = {}
   for _, it in ipairs(tag_items("req")) do
-    declared[it.key] = true
-    if not seen[it.key] then fails[#fails + 1] = it.key .. " has no row in the gap matrix" end
+    if it.identity_problem then fails[#fails + 1] = it.identity_problem end
+    if it.key then
+      declared[it.key] = true
+      if not seen[it.key] then fails[#fails + 1] = it.key .. " has no row in the gap matrix" end
+    end
   end
   for req in pairs(seen) do
     if not declared[req] then fails[#fails + 1] = req .. " is a row of the gap matrix but no requirement carries that label" end
   end
-  -- what this work's cells may point at: a label in an evaluation chapter, or a research question,
-  -- guarantee or derived requirement the evaluation answers, or an actual theorem-like result
-  -- elsewhere in the paper; a chapter or an unknown label is no result
-  local labels = C.collect_labels_and_refs(C.main_chapters())
+  -- Index only printed labels, including appendices. Theorem evidence comes from its
+  -- environment; figure/table prefixes and evaluation sections remain source heuristics.
+  local labels = {}
+  C.each_call(C.CONTENT, function(cmd) return cmd == "label" end, function(f, n, _, key, start)
+    labels[key] = { file = f, line = n, start = start }
+  end)
   local theorems = theorem_labels()
-  local evalfile = {}
+  local evalfile, heuristic = {}, {}
   for _, f in ipairs(C.role_files("evaluation")) do evalfile[f] = true end
   local function result_problem(key)
     local at = labels[key]
-    if not at then return key .. ", which no label defines" end
-    if evalfile[at.file] or theorems[key] or key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
-    return key .. " is not an evaluation result: point at a result in the evaluation chapter, a theorem-like result, or the research question or guarantee it answers"
+    if not at then return key .. ", which no label defines in the printed paper" end
+    if not key:match("^ch:") and key ~= "tab:related" then
+      if key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
+      local thm = theorems[key]
+      if thm and thm.file == at.file and thm.start == at.start then return nil end
+      if key:match("^fig:") or key:match("^tab:") then return nil end
+      if evalfile[at.file] and (key:match("^par:") or key:match("^sec:") or key:match("^subsec:") or key:match("^subsubsec:")) then
+        if not heuristic[key] then
+          heuristic[key] = true
+          M.gapwarn[#M.gapwarn + 1] = key .. " is a heuristic section pointer in the evaluation: the reader must check that it contains a result sufficient for the matrix claim"
+        end
+        return nil
+      end
+    end
+    return key .. " is not an evaluation result: point at a result figure, table or theorem, an evaluation section, or the research question or guarantee it answers"
   end
   local approaches = ncols - 3 -- tag, name, approaches..., this work
   if approaches < 2 then M.gapwarn[#M.gapwarn + 1] = "fewer than two other approaches in the gap matrix: the gap is argued against the closest existing work, plural" end
   for _, r in ipairs(rows) do
     local last = r[#r]
     local status, count = nil, 0
-    for marker in last:gmatch("\\(gap%a+)%f[%A]") do status = marker; count = count + 1 end
     local keys = {}
-    for list in last:gmatch("\\[cC]?ref%*?%s*{([^}]*)}") do for k in list:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
+    cell_commands(last, function(cmd, arg)
+      if cmd:match("^gap%a+$") then status = cmd; count = count + 1 end
+      if arg then for k in arg:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
+    end)
     if count ~= 1 or not ({ gapyes = true, gappartial = true, gapno = true, gapna = true })[status] then
       fails[#fails + 1] = string.format("row %s: this work's cell needs one status: \\gapyes, \\gappartial, \\gapno or \\gapna", r[1])
     elseif status == "gapna" then
@@ -607,6 +829,8 @@ C.rule("essentials", "source", "check", "always", "the essentials every paper of
     local line = r.where and r.where.line
     local msg = string.format("%s %s", M.GLYPH[r.level], r.row.title)
     if r.level < t then fail(file, line, msg, r.next ~= "" and r.next or M.LEVEL_NAME[r.level], r.fix) end
+    if r.row.id == "setup" and r.level == 4 then note(file, line, "Artifact identity and version need human review", r.next) end
+    if r.row.id == "gapmatrix" and r.level == 4 then note(file, line, "Matrix claim sufficiency needs human review", r.next) end
     if r.via == "heading" then note(file, line, string.format("%s found by its heading", r.row.title), string.format("add \\label{%s} so it is found when the heading changes", r.label), label_fix(r)) end
   end
   for _, w in ipairs(M.gapwarn) do warn(C.ROLE.related, nil, w) end

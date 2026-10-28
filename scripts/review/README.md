@@ -1,7 +1,7 @@
 # Review runs: the contract
 
 A review run reads one revision of the paper the way its reviewers will. Paper CI builds the
-evidence on every push. An agent then runs the reviewer personas on the evidence of one named
+evidence on pushes to main or master, non-draft pull requests and manual runs. An agent then runs the reviewer personas on the evidence of one named
 commit. Each persona reads only its own inputs. When the run is recorded, its findings go into
 one issue on the paper repository. This file fixes the formats those steps exchange. The skim
 (`scripts/skim/`), the runner (`review.py`) and the CI (`.github/workflows/paper.yml`) are built
@@ -9,7 +9,7 @@ against it, so a change here comes first.
 
 ## The bundle
 
-Every push to the paper repository uploads one Actions artifact, `review-<sha7>`, kept 14 days.
+Each paper CI run uploads one Actions artifact, `review-<sha7>`, kept 14 days.
 The commit SHA is the run's identity: the paper repository carries the template's scripts, so the
 SHA also fixes the lint, the skim and the personas that ran. Two builds of one commit give PDFs
 with different bytes, because XeLaTeX stamps the creation date, so a PDF hash identifies a
@@ -60,11 +60,14 @@ review-<sha7>/
   skipped): its log is absent, its exit is the one CI recorded, and `errors`, `undefined` and
   `pages` are `null`. A bundle with neither build started is refused. A build that ran but
   left no PDF keeps its log in the bundle, so a failed build is still evidence of the commit.
+  A PDF without its build log is omitted, even if an older build left it on disk.
+- If lint exits nonzero without a readable JSON object, the bundle keeps the PDFs and build
+  logs. `lint.status` is `unavailable`, `lint.error` records the read failure, and the raw output
+  (if present) is saved as `logs/lint-output.txt`. CI also captures stderr as
+  `logs/lint-stderr.txt`; local callers supply it with `--lint-stderr FILE`. There is no `lint.json` or invented result.
+  Missing or malformed JSON with lint exit 0 is refused as contradictory evidence.
 - An exit that was not passed to `review.py bundle` (`--exit lint=N`, `--exit skim=N`) is `null`,
   never a made-up 0; so are `image.ref` and `image.digest` when not given. CI passes them all.
-- `lint.json` is absent when the lint wrote nothing (an invalid `\lintphase` stops it before any
-  rule runs): `lint.exit` is then 2 whatever was passed, `phase` and `phase_source` are `null`,
-  and the bundle ships the builds all the same. A lint file that is present but not JSON is refused.
 - `image.digest` is the digest that actually ran. CI uses `latest` on purpose; the digest is how a
   later reader knows which TeX Live built the PDFs.
 - `builds[].errors` counts `! ` lines in the log, and `undefined` counts undefined references

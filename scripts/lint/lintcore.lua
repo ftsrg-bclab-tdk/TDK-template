@@ -1,6 +1,10 @@
 -- Shared helpers for the lint rules: files, findings, reporting, the rule registry.
 local lfs = require("lfs")
 local M = {}
+local T = require("texscan")
+M.balanced_group = T.group
+M.unformat = T.unformat
+M.LINK_COMMANDS = T.LINK
 
 M.opts = { dir = ".", doc = "thesis", profile = os.getenv("LINT_PROFILE") or "tdk", tex = false, json = false }
 -- the manual phase in thesis.tex is the lifecycle phase; the four before draft share the checks' first level
@@ -16,7 +20,7 @@ function M.lines(p)
 end
 function M.exists(p) return lfs.attributes(p) ~= nil end
 function M.bpath(p) return M.opts.dir .. "/" .. p end
-function M.strip_comment(l) return (l:gsub("\\%%", "\1"):gsub("%%.*$", ""):gsub("\1", "\\%%")) end
+function M.strip_comment(l) return T.mask(l, "comments") end
 function M.each_line(files, fn) for _, f in ipairs(files) do for n, l in ipairs(M.lines(f)) do fn(f, n, M.strip_comment(l)) end end end
 function M.file_has(file, pattern) return (M.readfile(file) or ""):find(pattern) ~= nil end
 function M.run(cmd) local h = io.popen(cmd .. " 2>&1"); if not h then return nil end; local s = h:read("a"); local ok = h:close(); return s, ok end
@@ -187,7 +191,11 @@ function M.main_chapters()
   return out
 end
 -- the environment of the running example's boxes: \lintexamplebox in thesis.tex, or the template's
-function M.example_box() return (M.readfile("thesis.tex") or ""):match("\\newcommand{\\lintexamplebox}{(%a+)}") or "runningexample" end
+function M.example_box()
+  local value, err = M.setting("lintexamplebox")
+  if err then error(err) end
+  return value or "runningexample"
+end
 -- the bibliography's entries by key: { type, body }, read once
 local bib_cache
 function M.bib_entries()
@@ -208,23 +216,22 @@ end
 function M.each_call(files, want, fn)
   for _, f in ipairs(files) do
     local text = table.concat(M.printed_lines(f), "\n")
-    local pos, line, counted = 1, 1, 1
-    while true do
-      local s, e, name = text:find("\\(%a+%*?)", pos)
-      if not s then break end
-      pos = e + 1
-      if want(name) then
-        local i = text:match("^%s*()", pos)
-        for _ = 1, 2 do
-          local _, be = text:find("^%b[]", i)
-          if not be then break end
-          i = text:match("^%s*()", be + 1)
-        end
-        local _, be = text:find("^%b{}", i)
-        if be then
-          line = line + M.count(text:sub(counted, s - 1), "\n"); counted = s
-          fn(f, line, name, text:sub(i + 1, be - 1))
-          pos = be + 1
+    local pos = 1
+    while pos <= #text do
+      if text:sub(pos, pos) ~= "\\" then pos = pos + 1
+      else
+        local start = pos
+        local name, after = T.command(text, pos)
+        pos = after
+        local link = T.LINK[name] or name == "path"
+        if want(name) or link then
+          local arg, e
+          if name == "url" or name == "path" or name == "nolinkurl" then arg, e = T.address(text, after)
+          else arg, e = T.argument(text, after, link) end
+          if e then
+            if want(name) then fn(f, 1 + M.count(text:sub(1, start - 1), "\n"), name, arg, start, e, text) end
+            pos = e + 1 -- never interpret a command in a key or an address
+          end
         end
       end
     end
@@ -245,14 +252,46 @@ function M.roles_ok(list)
   return ok
 end
 
--- a \newcommand in thesis.tex that the lint reads as its setting (\lintphase): its body, trimmed,
--- or nil when thesis.tex does not define it or defines it only in a comment. Read as TeX reads it:
--- \newcommand* counts, and the body may start on the next line
+-- Settings are literal, zero-argument declarations in thesis.tex, in source order.
+-- Support new/renew/providecommand (starred, multiline, optionally [0]) and def.
+-- No expansion, included settings, local groups or conditional evaluation. A
+-- declaration outside this subset is an error rather than a fallback to plan.
 function M.setting(name)
-  local t = {}
-  for _, l in ipairs(M.lines("thesis.tex")) do t[#t + 1] = M.strip_comment(l) end
-  local v = table.concat(t, "\n"):match("\\%a*newcommand%*?%s*{?%s*\\" .. name .. "%s*}?%s*(%b{})")
-  if v then return M.trim(v:sub(2, -2)) end
+  local text = T.mask(M.readfile("thesis.tex") or "", "settings")
+  local pos, depth, conditional, value = 1, 0, 0, nil
+  while pos <= #text do
+    local c = text:sub(pos, pos)
+    if c == "{" then depth = depth + 1; pos = pos + 1
+    elseif c == "}" then depth = math.max(0, depth - 1); pos = pos + 1
+    elseif c ~= "\\" then pos = pos + 1
+    else
+      local cmd, after = T.command(text, pos)
+      local bare = cmd:gsub("%*$", "")
+      pos = after
+      if bare:match("^if") then conditional = conditional + 1
+      elseif bare == "fi" then conditional = math.max(0, conditional - 1) end
+      if bare == "newcommand" or bare == "renewcommand" or bare == "providecommand" or bare == "def" or bare == "gdef" or bare == "edef" or bare == "let" or bare == "DeclareRobustCommand" or bare:match("DocumentCommand$") or bare == "xdef" then
+        local at = T.space(text, after)
+        local target, last = T.group(text, at)
+        if not last then target, last = text:match("^(\\[%a@]+)()", at); if last then last = last - 1 end end
+        if target and M.trim(target) == "\\" .. name then
+          local function unsupported() return nil, "unsupported declaration of \\" .. name .. " in thesis.tex: use a top-level literal zero-argument newcommand/renewcommand/providecommand or def" end
+          if depth > 0 or conditional > 0 or bare == "gdef" or bare == "edef" or bare == "let" or bare == "xdef" or bare:match("DocumentCommand$") then return unsupported() end
+          at = T.space(text, last + 1)
+          if text:sub(at, at) == "[" then
+            local n, e = T.group(text, at, "[")
+            if not e or M.trim(n) ~= "0" then return unsupported() end
+            at = T.space(text, e + 1)
+          end
+          local body, e = T.group(text, at)
+          if not e or body:find("[\\{}#]") then return unsupported() end
+          if bare ~= "providecommand" or value == nil then value = M.trim(body) end
+          pos = e + 1
+        end
+      end
+    end
+  end
+  return value
 end
 -- the manual phase: --phase, else LINT_PHASE, else \lintphase in thesis.tex, else plan. A value
 -- that is none of the seven (final included: the lint has no aliases) is an error, never read as
@@ -263,7 +302,11 @@ function M.resolve_phase()
     p, src = os.getenv("LINT_PHASE"), "LINT_PHASE"
     if p == "" then p = nil end -- an empty variable is an unset one
   end
-  if not p then p, src = M.setting("lintphase"), "\\lintphase in thesis.tex" end
+  if not p then
+    local err
+    p, err = M.setting("lintphase"); src = "\\lintphase in thesis.tex"
+    if err then return nil, err end
+  end
   if not p then p, src = "plan", "the default" end
   M.opts.phase, M.opts.phase_source = p, src
   if not M.PHASES[p] then return nil, string.format("unknown phase '%s' from %s: use one of %s", p, src, table.concat(M.PHASE_ORDER, ", ")) end
@@ -335,30 +378,57 @@ function M.raw_lines(file)
   if not raw_cache[file] then raw_cache[file] = M.lines(file) end
   return raw_cache[file]
 end
--- one edit applied to the code part of a line; nil when its old text is not there
-function M.apply_edit(l, e)
-  local code = M.strip_comment(l)
-  local rest = l:sub(#code + 1)
-  if e.at then
-    if code:sub(e.at, e.at + #e.old - 1) ~= e.old then return nil end
-    return code:sub(1, e.at - 1) .. e.new .. code:sub(e.at + #e.old) .. rest
+-- The guard sees the full original file, including literals opened on earlier
+-- lines. During planning, rescan the current line in that context after edits.
+local protection_cache = {}
+function M.edit_allowed(file, line, first, last, current)
+  if not file or not line then return true end
+  local raw = M.raw_lines(file)
+  local cache = protection_cache[file]
+  if not cache then
+    local starts, at = {}, 1
+    for n, l in ipairs(raw) do starts[n], at = at, at + #l + 1 end
+    cache = { starts = starts, spans = T.spans(table.concat(raw, "\n"), "fix") }
+    protection_cache[file] = cache
   end
-  local s, t = code:find(e.old, 1, true)
-  if not s then return nil end
-  if e.all then return (code:gsub(M.escape(e.old), (e.new:gsub("%%", "%%%%")))) .. rest end
-  return code:sub(1, s - 1) .. e.new .. code:sub(t + 1) .. rest
+  local offset = cache.starts[line]
+  if not offset then return false end
+  local spans = cache.spans
+  if current and current ~= raw[line] then
+    local ls = { table.unpack(raw) }; ls[line] = current
+    spans = T.spans(table.concat(ls, "\n"), "fix")
+  end
+  return not T.overlaps(spans, offset + first - 1, offset + last - 1)
+end
+-- A bound edit has an exact byte column and cannot migrate to another occurrence.
+function M.apply_edit(l, e)
+  local s = e.at or l:find(e.old, 1, true)
+  if not s or l:sub(s, s + #e.old - 1) ~= e.old then return nil end
+  if not M.edit_allowed(e.file, e.line, s, s + #e.old - 1, l) then return nil end
+  if not e.file and T.overlaps(T.spans(l, "fix"), s, s + #e.old - 1) then return nil end
+  if e.all then
+    local out, prev, pos = {}, 1, 1
+    while true do
+      local a, b = l:find(e.old, pos, true)
+      if not a then break end
+      if not M.edit_allowed(e.file, e.line, a, b, l) or (not e.file and T.overlaps(T.spans(l, "fix"), a, b)) then return nil end
+      out[#out + 1] = l:sub(prev, a - 1) .. e.new; prev, pos = b + 1, b + 1
+    end
+    out[#out + 1] = l:sub(prev); return table.concat(out)
+  end
+  return l:sub(1, s - 1) .. e.new .. l:sub(s + #e.old)
 end
 -- one edit per match of pattern in the code part of line l, right to left, so each column still
 -- holds when its edit comes; fn(match, column, code, captures...) gives the new text, nil skips it.
 -- A match inside a literal span (M.literal_spans) is never an edit
-function M.matches(l, pattern, fn)
-  local code, found, init = M.strip_comment(l), {}, 1
-  local literal = M.literal_spans(code)
+function M.matches(l, pattern, fn, original)
+  local code, found, init = T.mask(l, "fix"), {}, 1
+  local literal = M.literal_spans(l)
   while init <= #code + 1 do
     local r = { code:find(pattern, init) }
     if not r[1] then break end
     local s, e = r[1], r[2]
-    local new = not M.in_literal(literal, s, e) and fn(code:sub(s, e), s, code, table.unpack(r, 3)) or nil
+    local new = not M.in_literal(literal, s, e) and (not original or original:sub(s, e) == code:sub(s, e)) and fn(code:sub(s, e), s, code, table.unpack(r, 3)) or nil
     if new then found[#found + 1] = { at = s, old = code:sub(s, e), new = new } end
     if pattern:sub(1, 1) == "^" then break end
     init = e >= s and e + 1 or s + 1
@@ -369,72 +439,53 @@ function M.matches(l, pattern, fn)
 end
 -- the number of matches of pattern in s
 function M.nmatch(s, pattern) local n = 0; for _ in s:gmatch(pattern) do n = n + 1 end; return n end
--- the spans of a line's code that are literal text, never prose: inline verbatim (\verb|..|,
--- \lstinline{..} or \lstinline|..|, \mintinline{lang}{..}), typewriter text (\texttt{..}), paths
--- and links (\path, \url and the address of \href) and maths ($..$ and $$..$$). "abc" in
--- \verb|"abc"| is the program's own text and 10-20 in $10-20$ is a formula, so M.matches skips a
--- match that touches one of them, M.unliteral blanks them for a rule's pattern, and M.prose
--- starts by blanking them
-function M.literal_spans(code)
-  local spans, init = {}, 1
-  while true do
-    local s, e, d = code:find("\\verb%*?(%p)", init)
-    if not s then break end
-    local close = code:find(d, e + 1, true)
-    spans[#spans + 1] = { s, close or #code }
-    init = (close or #code) + 1
-  end
-  for _, name in ipairs({ "lstinline", "mintinline", "texttt", "path", "url", "href" }) do
-    init = 1
-    while true do
-      local s, e = code:find("\\" .. name .. "%f[%A]", init)
-      if not s then break end
-      local i, stop = e + 1, nil
-      local _, oe = code:find("^%s*%b[]", i); if oe then i = oe + 1 end
-      if name == "mintinline" then local _, le = code:find("^%s*%b{}", i); if le then i = le + 1 end end
-      local _, be = code:find("^%s*%b{}", i)
-      if be then stop = be
-      elseif name == "lstinline" and code:sub(i, i):match("%p") then stop = code:find(code:sub(i, i), i + 1, true) or #code end
-      spans[#spans + 1] = { s, stop or e }
-      init = (stop or e) + 1
-    end
-  end
-  local masked = code:gsub("\\%$", "##")
-  init = 1
-  while true do
-    local s = masked:find("$", init, true)
-    if not s then break end
-    local d = masked:sub(s, s + 1) == "$$" and "$$" or "$"
-    local _, e = masked:find(d, s + #d, true)
-    spans[#spans + 1] = { s, e or #masked }
-    init = (e or #masked) + 1
-  end
-  return spans
-end
-function M.in_literal(spans, s, e)
-  for _, sp in ipairs(spans) do if s <= sp[2] and e >= sp[1] then return true end end
-  return false
-end
--- the code of a line with its literal spans blanked to "#", column for column, for a rule's own
--- patterns: not to spaces, which would make "is \url{...}." a space before punctuation
-function M.unliteral(code)
-  for _, sp in ipairs(M.literal_spans(code)) do code = code:sub(1, sp[1] - 1) .. ("#"):rep(sp[2] - sp[1] + 1) .. code:sub(sp[2] + 1) end
-  return code
-end
+-- the spans of text that are literal, never prose: inline verbatim (\verb|..|,
+-- \lstinline{..} or \lstinline|..|, \mintinline{lang}{..}), paths and links (\path, \url and the
+-- address of \href) and inline maths ($..$). "abc" in \verb|"abc"| is the program's own text and
+-- 10-20 in $10-20$ is a formula, so M.matches skips a match that touches one of them and
+-- M.unliteral blanks them for a rule's pattern
+function M.literal_spans(code) return T.spans(code, "fix") end
+function M.in_literal(spans, s, e) return T.overlaps(spans, s, e) end
+function M.unliteral(code) return T.mask(code, "fix") end
 -- the fix bound to the finding's place and checked against the file; nil when it does not apply
 local function bind(fx, file, line)
   if not fx or #fx.edits == 0 then return nil end
   assert(M.SAFETY[fx.safety], "unknown fix safety " .. tostring(fx.safety))
+  local edits = {}
   for _, e in ipairs(fx.edits) do
-    if not e.cmd then
+    if e.cmd then edits[#edits + 1] = e
+    else
       e.file, e.line = e.file or file, e.line or line
       local l = e.file and e.line and M.raw_lines(e.file)[e.line]
-      if not l or (e.old and not M.apply_edit(l, e)) then
+      local found = false
+      if l and e.old and e.at and not M.edit_allowed(e.file, e.line, e.at, e.at + #e.old - 1) then
+        found = true -- a reader's mask can contain spaces where the literal was
+      elseif l and e.old and #e.old > 0 then
+        local positions, pos = {}, e.at or 1
+        while true do
+          local a, b = l:find(e.old, pos, true)
+          if not a or (e.at and a ~= e.at) then break end
+          found = true
+          if M.edit_allowed(e.file, e.line, a, b) then
+            positions[#positions + 1] = { file=e.file, line=e.line, at=a, old=e.old, new=e.new }
+            if not e.all then break end
+          end
+          if e.at then break end
+          pos = b + 1
+        end
+        for i = #positions, 1, -1 do edits[#edits + 1] = positions[i] end
+      elseif l and e.after then
+        found = true
+        if M.edit_allowed(e.file, e.line, #l + 1, #l + 1) then edits[#edits + 1] = e end
+      end
+      if not found then
         if os.getenv("LINT_FIX_STRICT") then error(string.format("fix %q does not apply at %s:%s", fx.help, tostring(e.file), tostring(e.line))) end
         return nil
       end
     end
   end
+  if #edits == 0 then return nil end
+  fx.edits = edits
   return fx
 end
 local FIX_WHO = { safe = "make fix writes it", review = "make fix-review writes it; read it first", placeholder = "fill in the <holes>" }
@@ -605,61 +656,32 @@ function M.refs_in(file, pattern)
   return n
 end
 
--- the prose lines of a file: comments, todo/beat/advisor notes (brace-balanced, across lines),
--- \iffalse ... \fi regions, tikzpicture and axis blocks, and listings removed; line numbers
--- preserved as empty lines
--- environments whose text is a program's or a listing's: verbatim and its fancyvrb and alltt kin,
--- lstlisting and minted
-M.CODE = { "verbatim", "verbatim*", "Verbatim", "BVerbatim", "LVerbatim", "alltt", "lstlisting", "minted" }
--- environments that hold no prose: commented-out text, code, pictures and display maths
-M.NONPROSE = { "comment", "tikzpicture", "forest", "equation", "equation*", "align", "align*", "gather", "gather*", "multline", "multline*", "displaymath" }
--- environments whose text never prints as text: commented-out text and code. M.printed_lines
--- keeps pictures and maths, where a \cite or \url prints like anywhere else
+-- The prose reader hides comments, notes, literal \iffalse regions, code,
+-- drawings and maths without changing byte columns or line numbers.
+M.CODE = { "verbatim", "verbatim*", "Verbatim", "Verbatim*", "BVerbatim", "LVerbatim", "SaveVerbatim", "alltt", "lstlisting", "minted" }
+M.NONPROSE = { "comment", "tikzpicture", "axis", "forest", "equation", "equation*", "align", "align*", "gather", "gather*", "multline", "multline*", "displaymath" }
+-- Printed readers retain maths and drawings, where citations and links can print.
 M.UNPRINTED = { "comment" }
 for _, e in ipairs(M.CODE) do M.NONPROSE[#M.NONPROSE + 1] = e; M.UNPRINTED[#M.UNPRINTED + 1] = e end
 function M.printed_lines(file) return M.prose_lines(file, M.UNPRINTED) end
-function M.prose_lines(file, skip)
-  local out, depth, intodo, inblock = {}, 0, false, nil
-  for _, raw in ipairs(M.lines(file)) do
-    local l = M.strip_comment(raw)
-    local keep = {}
-    local i = 1
-    while i <= #l do
-      if not intodo and not inblock then
-        local s, e, name = l:find("\\(%a*todo)%s*%[?", i)
-        local bs = l:find("\\beat{", i, true)
-        local blk, bstart
-        -- blk is the pattern that closes the block
-        for _, b in ipairs(skip or M.NONPROSE) do
-          local p = l:find("\\begin{" .. b .. "}", i, true)
-          if p and (not bstart or p < bstart) then blk, bstart = M.escape("\\end{" .. b .. "}"), p end
-        end
-        local dm = l:find("\\[", i, true) -- display maths \[ ... \], but not the line break \\[2pt]
-        if dm and not skip and l:sub(dm - 1, dm - 1) ~= "\\" and (not bstart or dm < bstart) then blk, bstart = "\\%]", dm end
-        -- \iffalse ... \fi, TeX's own way to comment a region out; the first \fi closes it
-        local ff = l:find("\\iffalse%f[%A]", i)
-        if ff and (not bstart or ff < bstart) then blk, bstart = "\\fi%f[%A]", ff end
-        local first = math.min(s or math.huge, bs or math.huge, bstart or math.huge)
-        if first == math.huge then keep[#keep + 1] = l:sub(i); break end
-        keep[#keep + 1] = l:sub(i, first - 1)
-        if first == bstart then inblock = blk; i = first + 1
-        else intodo = true; depth = 0; i = first + 1 end
-      elseif inblock then
-        local _, e = l:find(inblock, i)
-        if e then i = e + 1; inblock = nil else break end
-      else -- inside a todo or beat: skip until its braces close (the optional [..] and 1-4 {..} groups)
-        local c = l:sub(i, i)
-        if c == "{" or c == "[" then depth = depth + 1 elseif c == "}" or c == "]" then depth = depth - 1 end
-        i = i + 1
-        if depth == 0 and (c == "}" or c == "]") then
-          local nxt = l:match("^%s*(.)", i) -- the next group may follow spaces: \todo[inline] {...}
-          if nxt ~= "{" and nxt ~= "[" then intodo = false end
-        end
-      end
-    end
-    out[#out + 1] = table.concat(keep)
-  end
+local reader_cache = {}
+local function masked_lines(file, mode, skip)
+  local key = file .. ":" .. mode
+  if not skip and reader_cache[key] then return reader_cache[key] end
+  local extra = {}; for _, env in ipairs(skip or {}) do extra[env] = true end
+  local text = T.mask(M.readfile(file) or "", mode, extra)
+  local out = {}
+  for l in text:gmatch("([^\n]*)\n?") do out[#out + 1] = l end
+  if out[#out] == "" then out[#out] = nil end
+  if not skip then reader_cache[key] = out end
   return out
+end
+function M.prose_lines(file, skip)
+  return masked_lines(file, skip and "printed" or "prose", skip ~= M.UNPRINTED and skip or nil)
+end
+function M.editable_lines(file) return masked_lines(file, "fix") end
+function M.each_editable_line(files, fn)
+  for _, f in ipairs(files) do for n, l in ipairs(M.editable_lines(f)) do if l:match("%S") then fn(f, n, l) end end end
 end
 function M.each_prose_line(files, fn) for _, f in ipairs(files) do for n, l in ipairs(M.prose_lines(f)) do if l:match("%S") then fn(f, n, l) end end end end
 -- the printed lines (M.printed_lines: no comments, commented-out environments or code listings)
@@ -668,16 +690,29 @@ function M.each_printed_line(files, fn) for _, f in ipairs(files) do for n, l in
 -- prose of a line: literal text (M.literal_spans), macros, math, labels, citations and urls
 -- removed, for word-level rules
 function M.prose(l)
-  l = M.unliteral(l)
-  l = l:gsub("%$[^$]*%$", " ")
-  l = l:gsub("\\url%b{}", " "):gsub("\\href%b{}", " "):gsub("\\path%b{}", " ")
-  l = l:gsub("\\[cC]?ref%b{}", " "):gsub("\\[aA]utoref%b{}", " "):gsub("\\pageref%b{}", " "):gsub("\\nameref%b{}", " "):gsub("\\label%b{}", " ")
-  l = l:gsub("\\includegraphics%b[]%b{}", " "):gsub("\\includegraphics%b{}", " "):gsub("\\includesvg%b[]%b{}", " "):gsub("\\includesvg%b{}", " "):gsub("\\input%b{}", " "):gsub("\\cite[tp]?%*?%b[]?%b{}", " "):gsub("\\cite[tp]?%*?%b{}", " ")
-  l = l:gsub("\\texttt%b{}", " "):gsub("\\verb(.)(.-)%1", " "):gsub("\\lstinline%b[]%b{}", " "):gsub("\\lstinline%b{}", " "):gsub("\\mintinline%b{}%b{}", " ")
-  l = l:gsub("\\ac[slpf]*%*?%b{}", " "):gsub("\\[Gg]ls[%a]*%*?%b{}", " "):gsub("\\begin{tabularx}%b{}%b{}", " "):gsub("\\begin{xltabular}%b{}%b{}", " "):gsub("\\begin{tabular%*}%b{}%b{}", " "):gsub("\\begin{tabular}%b[]%b{}", " "):gsub("\\begin{tabular}%b{}", " "):gsub("\\begin{longtable}%b{}", " ")
-  l = l:gsub("\\begin%b{}%b[]", " "):gsub("\\begin%b{}", " "):gsub("\\end%b{}", " ")
-  l = l:gsub("\\[%a@]+%*?", " ")
+  l = T.mask_calls(T.mask(l, "prose"), is_cite)
+  local blank = T.blank
+  l = l:gsub("%$[^$]*%$", blank)
+  l = l:gsub("\\url%b{}", blank):gsub("\\href%b{}", blank):gsub("\\path%b{}", blank)
+  l = l:gsub("\\[cC]?ref%b{}", blank):gsub("\\[aA]utoref%b{}", blank):gsub("\\pageref%b{}", blank):gsub("\\nameref%b{}", blank):gsub("\\label%b{}", blank)
+  l = l:gsub("\\includegraphics%b[]%b{}", blank):gsub("\\includegraphics%b{}", blank):gsub("\\includesvg%b[]%b{}", blank):gsub("\\includesvg%b{}", blank):gsub("\\input%b{}", blank):gsub("\\cite[tp]?%*?%b[]?%b{}", blank):gsub("\\cite[tp]?%*?%b{}", blank)
+  l = l:gsub("\\texttt%b{}", blank):gsub("\\verb(.)(.-)%1", blank):gsub("\\lstinline%b[]%b{}", blank):gsub("\\lstinline%b{}", blank):gsub("\\mintinline%b{}%b{}", blank)
+  l = l:gsub("\\ac[slpf]*%*?%b{}", blank):gsub("\\[Gg]ls[%a]*%*?%b{}", blank):gsub("\\begin{tabularx}%b{}%b{}", blank):gsub("\\begin{xltabular}%b{}%b{}", blank):gsub("\\begin{tabular%*}%b{}%b{}", blank):gsub("\\begin{tabular}%b[]%b{}", blank):gsub("\\begin{tabular}%b{}", blank):gsub("\\begin{longtable}%b{}", blank)
+  l = l:gsub("\\begin%b{}%b[]", blank):gsub("\\begin%b{}", blank):gsub("\\end%b{}", blank)
+  l = l:gsub("\\[%a@]+%*?", blank)
   return l
+end
+
+-- A word view over the whole file, so a citation key split across lines is
+-- still metadata. M.prose preserves columns as well as the source-line readers.
+local word_cache = {}
+function M.word_lines(file)
+  if not word_cache[file] then
+    local out = {}
+    for l in (M.prose(table.concat(M.prose_lines(file), "\n")) .. "\n"):gmatch("([^\n]*)\n") do out[#out + 1] = l end
+    word_cache[file] = out
+  end
+  return word_cache[file]
 end
 
 -- the template's skeleton chapters, copied into scripts/lint/skeleton by `make skeleton`: a line of
