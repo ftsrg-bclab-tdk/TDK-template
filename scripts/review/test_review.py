@@ -89,6 +89,8 @@ class TestBundle(Workdir):
 
     def test_a_build_that_never_started_is_recorded_not_refused(self):
         built = self.tmp / "half-built"
+        # This stale PDF must not become evidence for a build that has no log.
+        write(built / "thesis.pdf", b"%PDF-1.4 stale")
         write(built / "reviewer.pdf", b"%PDF-1.4\n1 0 obj << /Type /Page >> endobj\n")
         write(built / "reviewer.log", LOG)
         write(self.tmp / "half-lint.json", "{}")
@@ -115,6 +117,41 @@ class TestBundle(Workdir):
         self.assertEqual(code, 1)
         self.assertIn("neither build left a log", err)
 
+    def test_lint_startup_failure_keeps_diagnostics_without_claiming_json(self):
+        self.make_bundle()
+        lint = self.tmp / "bundle-lint.json"
+        stderr = self.tmp / "lint.stderr"
+        write(stderr, "lint: unknown phase 'finall'\n")
+        base = ["bundle", "--built", self.tmp / "bundle-built", "--lint", lint,
+                "--lint-stderr", stderr,
+                "--skim", self.tmp / "no-skim", "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "skim=1"]
+        for name, raw in (("empty", ""), ("broken", "not JSON"), ("array", "[]"), ("missing", None)):
+            with self.subTest(name=name):
+                if raw is None:
+                    lint.unlink()
+                else:
+                    write(lint, raw)
+                out = self.tmp / name
+                with mock.patch.dict(os.environ, CI_ENV):
+                    code, _, err = call(*base, "--exit", "lint=2", "--out", out)
+                self.assertEqual(code, 0, err)
+                manifest, problems = review.verify_bundle(out, SHA)
+                self.assertEqual(problems, [])
+                self.assertEqual(manifest["lint"]["exit"], 2)
+                self.assertEqual(manifest["lint"]["status"], "unavailable")
+                self.assertIsNone(manifest["phase"])
+                self.assertIn("logs/reviewer.log", manifest["files"])
+                self.assertIn("reviewer.pdf", manifest["files"])
+                self.assertNotIn("lint.json", manifest["files"])
+                self.assertIn("logs/lint-stderr.txt", manifest["files"])
+                self.assertEqual((out / "logs/lint-stderr.txt").read_text(), stderr.read_text())
+                if raw is not None:
+                    self.assertEqual((out / "logs/lint-output.txt").read_text(), raw)
+                with mock.patch.dict(os.environ, CI_ENV):
+                    code, _, err = call(*base, "--exit", "lint=0", "--out", self.tmp / (name + "-success"))
+                self.assertEqual(code, 1)
+                self.assertIn("not readable JSON", err)
+
     def test_sha_and_ref_options_override_the_environment(self):
         other = "f" * 40
         m = review.load_manifest(self.make_bundle(extra=["--sha", other, "--ref", "feature"]))
@@ -137,11 +174,12 @@ class TestBundle(Workdir):
             out = self.tmp / f"out-{lint.stem}"
             with mock.patch.dict(os.environ, CI_ENV):
                 code, _, err = call("bundle", "--built", built, "--lint", lint, "--skim", self.tmp / "nolint-skim", "--out", out,
-                                    "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "lint=0", "--exit", "skim=0")
+                                    "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "lint=2", "--exit", "skim=0")
             self.assertEqual(code, 0, err)
-            self.assertIn("recorded as exit 2", err)
+            self.assertIn("lint exited 2", err)
             m = review.load_manifest(out)
-            self.assertEqual(m["lint"], {"exit": 2})
+            self.assertEqual(m["lint"]["exit"], 2)
+            self.assertEqual(m["lint"]["status"], "unavailable")
             self.assertEqual([m["phase"], m["phase_source"]], [None, None])
             self.assertNotIn("lint.json", m["files"])
             self.assertFalse((out / "lint.json").exists())
@@ -362,6 +400,20 @@ class TestRecord(Workdir):
         self.assertIn("Persona versions", out)
         self.assertIn(f"cryptographer  {self.inputs['cryptographer']['persona']['sha256']}", out)
         self.assertIn(f"skim  {self.inputs['skim']['persona']['sha256']}", out)
+
+    def test_inline_inputs_still_record_the_supplied_persona_versions(self):
+        self.findings["inputs"] = {p: v["files"] for p, v in self.inputs.items()}
+        code, out, err = self.record("--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertIn(f"skim  {self.inputs['skim']['persona']['sha256']}", out)
+        self.assertNotIn("not recorded", out)
+
+    def test_inline_inputs_cannot_borrow_versions_from_different_inputs(self):
+        self.findings["inputs"] = {p: dict(v["files"]) for p, v in self.inputs.items()}
+        self.findings["inputs"]["cryptographer"]["reviewer.pdf"] = "0" * 64
+        code, _, err = self.record("--dry-run")
+        self.assertEqual(code, 1)
+        self.assertIn("differs between findings.json and --inputs", err)
 
     def test_a_dirty_bundle_is_never_recorded(self):
         mp = self.bundle / "manifest.json"
