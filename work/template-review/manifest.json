@@ -1,0 +1,34 @@
+{
+  "commit": "9eda539b251b3d18472b399e2f222e6d190b54bd",
+  "image": "danteev/texlive@sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+  "builds": {
+    "thesis.pdf": {
+      "exit": 0,
+      "pages": 111,
+      "sha256": "f275e187305ad6c5920e894f75426c7f2109aa6807f3779f9a4bc67d044d040a"
+    },
+    "reviewer.pdf": {
+      "exit": 0,
+      "pages": 18,
+      "sha256": "9a29510a3f79723b866b0777f3835076ac1d7c4cecf3e04479939455c117c8ca"
+    }
+  },
+  "scope": "template review; no source edits",
+  "rubric": "docs/TDK2025_biralati_pontozolap_hallgatoi.pdf",
+  "targeted_tests": [
+    "this work misses a requirement: PASS",
+    "another approach meets everything: PASS",
+    "direct approach-theorem evidence: rejection reproduced with full texlua lint"
+  ],
+  "lint": {
+    "phase": "plan",
+    "exit": 0,
+    "offline": true,
+    "rules": 49
+  },
+  "skim": {
+    "exit": 0,
+    "unsure": 0,
+    "placeholder_blocks": 40
+  }
+}

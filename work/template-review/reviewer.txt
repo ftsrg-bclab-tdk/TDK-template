@@ -1,0 +1,397 @@
+    Budapest University of Technology and Economics
+      Faculty of Electrical Engineering and Informatics
+Department of Artificial Intelligence and Systems Engineering
+
+
+
+
+    TODO Title of the paper
+
+      Scientific Students’ Association Report
+
+
+
+
+                         Author:
+                     Jakab Gipsz
+
+
+                       Advisors:
+                   Martin Farkas
+                   Dr. Imre Kocsis
+
+
+
+                           2026
+Contents
+
+Kivonat                                                                                                        i
+
+Abstract                                                                                                       ii
+
+1 Introduction                                                                                                 1
+
+2 Background                                                                                                   2
+   2.1     TODO First concept . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      2
+   2.2     TODO Second concept . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         2
+
+3 Approach                                                                                                     3
+   3.1     Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      3
+   3.2     TODO Model or design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        3
+   3.3     Threat model and guarantees . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       3
+
+4 Implementation                                                                                               5
+   4.1     Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
+   4.2     Design decisions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
+   4.3     TODO The key technical contribution . . . . . . . . . . . . . . . . . . . . . . . . . . . .         5
+
+5 Evaluation                                                                                                   6
+   5.1     Research questions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      6
+   5.2     Setup . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+   5.3     Correctness (RQ1) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       6
+   5.4     Scalability (RQ2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+   5.5     Robustness analysis (RQ3) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       6
+   5.6     Threats to validity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+
+6 Related Work and Gap Analysis                                                                                7
+   6.1   Comparison criteria . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+   6.2   Existing approaches . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+   6.3   Gap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+
+7 Conclusion and Future Work                                                                               8
+   7.1   Summary . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     8
+   7.2   Limitations and future work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     8
+
+Acknowledgements                                                                                           9
+
+Bibliography                                                                                               10
+
+Hallgatói nyilatkozat generatív mesterséges intelligencia alkalmazásáról                                   11
+
+Appendix                                                                                                   13
+   A.1 Appendix title . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    13
+Kivonat
+
+TODO
+
+
+
+
+          i
+Abstract
+
+[1 Field, 1–2 sentences, for any computer scientist: TODO why this area matters.] [2 Background, 2–3
+sentences, for readers in related fields: TODO what the specific setting is and what existing approaches do.]
+[3 Problem, 1 sentence: TODO the general problem this work addresses, often starting with “However”.]
+[4 Main result, 1 sentence: TODO “Here we show that …” or an equivalent; this is the contribution in one
+sentence.] [5 Comparison, 2–3 sentences: TODO what the result reveals compared with what was known
+before, with the headline numbers from the evaluation.] [6 Context, 1–2 sentences: TODO what the result
+means for the field more generally.] [7 Broader perspective, optional, 2–3 sentences, for any computer
+scientist: TODO where this leads, e.g. the most important future work.]
+
+
+
+
+                                                     ii
+Chapter 1
+
+Introduction
+
+Context.
+
+
+Problem.
+
+  Running example, TODO name of the running example
+  TODO Two or three sentences: the actors, what they want to do, and what goes wrong today. Every
+  chapter returns to this scenario, so choose one small enough to follow and rich enough to show every
+  requirement.
+
+
+Requirements.
+
+ REQ1 TODO Short name. A property the running example needs, stated so it can be checked.
+
+
+Gap.
+
+                                   Figure 1.1: TODO leading figure.
+
+
+
+Contributions. TODO The contributions, which Figure 1.1 shows in one picture.
+
+ C1 TODO Short name. A theoretical contribution: a model, formalisation, algorithm or protocol, with
+    what it guarantees (Chapter 3).
+
+
+Structure. Chapter 2 introduces the background, Chapter 3 presents the approach, Chapter 4 the imple-
+mentation, and Chapter 5 the evaluation. Chapter 6 compares the results with related work, and Chapter 7
+concludes with future work.
+
+
+
+
+                                                   1
+Chapter 2
+
+Background
+
+2.1 TODO First concept
+
+ Running example, TODO name of the running example: in terms of the first concept
+ TODO The scenario of Chapter 1 restated with this concept’s vocabulary.
+
+Definition 1 (TODO). TODO A precise definition the later chapters rely on.          ⋅
+
+
+2.2 TODO Second concept
+
+
+
+
+                                                  2
+Chapter 3
+
+Approach
+
+3.1 Overview
+TODO The approach end to end, along Figure 3.1.
+
+ Running example, TODO name of the running example: through the approach
+ TODO The scenario step by step: which component handles which part of it, and what each produces.
+
+                                  Figure 3.1: TODO architecture.
+
+
+
+
+3.2 TODO Model or design
+
+3.3 Threat model and guarantees
+Adversary.
+
+ ADV1 TODO Malicious participant. A participant who …
+
+ Running example, TODO name of the running example: under attack
+ TODO How ADV1 plays out in the scenario, and which guarantee stops it.
+
+
+Attacks.
+
+
+Trust and cryptographic assumptions.
+
+ AS1 TODO Unforgeable signatures. The underlying signature scheme is existentially unforgeable under
+     chosen-message attack.
+
+
+                                                  3
+Out of scope.
+
+
+Guarantees.
+
+ SG1 TODO Short name. Under AS1, against ADV1, no participant can …
+
+Lemma 1 (TODO). TODO A helper statement.
+
+Theorem 2 (TODO). TODO The main result: SG1 holds against ADV1.       ⋅
+Proof. TODO By Lemma 1 and AS1.                                       □
+
+
+
+
+                                             4
+Chapter 4
+
+Implementation
+
+4.1 Overview
+TODO The code and measurement scripts are archived on Zenodo [1]; the development repository is https:
+//github.com/TODO.
+
+  Running example, TODO name of the running example: as input
+  TODO The scenario as the implementation sees it: a configuration file, a model, or a test case.
+
+
+
+4.2 Design decisions
+
+4.3 TODO The key technical contribution
+
+
+
+
+                                                     5
+Chapter 5
+
+Evaluation
+
+5.1 Research questions
+ RQ1 TODO Correctness. Does the approach handle the running example correctly?
+
+
+5.2 Setup
+Artifact availability.
+
+
+5.3 Correctness (RQ1)
+
+  Running example, TODO name of the running example: solved
+  TODO The scenario with this work, against Chapter 1; every case is in Table 5.1.
+
+Table 5.1: TODO Correctness: how each guarantee and requirement was checked. ✓ proved or passed, ∘
+           partially, × counterexample or failed.
+
+           Property                                      Checked by      This work   Baseline     Time
+ SG1       TODO                                          TODO                ✓          ×       TODO s
+
+
+
+
+5.4 Scalability (RQ2)
+
+5.5 Robustness analysis (RQ3)
+
+5.6 Threats to validity
+
+                                                   6
+Chapter 6
+
+Related Work and Gap Analysis
+
+6.1 Comparison criteria
+
+6.2 Existing approaches
+TODO The related work by family; Figure 6.1 places it, and Table 6.1 compares the closest approaches.
+
+  Running example, TODO name of the running example: elsewhere
+  TODO How the closest approach would handle the scenario, and which requirement it fails on.
+
+                                 Figure 6.1: TODO positioning figure.
+
+
+Table 6.1: TODO Gap matrix: each requirement against the closest approaches. ✓ meets the requirement,
+           ∘ partially, × does not, – not applicable.
+
+                                       Approach A      Approach B
+           Requirement                                                  Approach C       This work
+                                          [2]             [3]
+ REQ1      TODO short name                   ✓               ∘               ×            ✓ (RQ1)
+
+
+
+6.3 Gap
+
+
+
+
+                                                   7
+Chapter 7
+
+Conclusion and Future Work
+
+7.1 Summary
+
+ Running example, TODO name of the running example: in retrospect
+ TODO One or two sentences closing the scenario opened in Chapter 1.
+
+
+
+7.2 Limitations and future work
+LIM1 TODO Short name. The evaluation uses synthetic workloads only.
+
+
+
+
+                                              8
+Acknowledgements
+
+TODO
+
+
+
+
+                   9
+Bibliography
+
+[1] G. TODO Surname, “TODO Artifact for: thesis title,” Zenodo, version 1.0.0, 2026. [Online].
+    Available: https://doi.org/10.5281/zenodo.TODO
+
+[2] L. Lamport, “Time, clocks, and the ordering of events in a distributed system,” Communications of the
+    ACM, vol. 21, no. 7, pp. 558–565, 1978.
+
+[3] W3C, “Verifiable credentials data model v2.0,” 2025. [Online]. Available:
+    https://www.w3.org/TR/vc-data-model-2.0/. Accessed: 2026-10-25
+
+
+
+
+                                                   10
+Hallgatói nyilatkozat generatív mesterséges
+intelligencia alkalmazásáról
+
+□ Nem használtam semmilyen generatív MI segédeszközt.
+□ Használtam generatív MI segédeszközt. Az MI-vel generált tartalmakat ellenőriztem, a generált kimene-
+tek valóságtartalmáról meggyőződtem, az alábbi táblázatban megfelelően jelöltem minden használatot.
+
+ Felhasználási módok          Generatív MI          Érintett részek (fejezet,     Használat
+                              eszköz(ök) neve       oldalszám, hivatkozás)        becsült aránya
+                                                                                  (felhasználási
+                                                                                  módonként)
+ Irodalomkutatás              –                     –                             –
+ Prompt lényegi része         –
+ Programkód generálása        –                     –                             –
+ Prompt lényegi része         –
+ Új ötletek, megoldási        –                     –                             –
+ javaslatok generálása
+ Prompt lényegi része         –
+ Vázlat létrehozása           –                     –                             –
+ (szövegstruktúra,
+ vázlatpontok)
+ Prompt lényegi része         –
+ Szövegblokkok létrehozása    –                     –                             –
+ Prompt lényegi része         –
+ Képek generálása             –                     –                             –
+ illusztrációs célból
+ Prompt lényegi része         –
+ Adatvizualizáció,            –                     –                             –
+ grafikonok generálása
+ adatpontok alapján
+ Prompt lényegi része         –
+ Prezentáció készítése        –                     –                             –
+ Prompt lényegi része         –
+ Egyéb (nevezze meg)          –                     –                             –
+ Prompt lényegi része         –
+ Összesített százalékos érték (a feladat érdemi részére nézve)                    –
+
+
+                                                        11
+ Felhasználási módok         Generatív MI            Érintett részek (fejezet,        Használat
+                             eszköz(ök) neve         oldalszám, hivatkozás)           becsült aránya
+                                                                                      (felhasználási
+                                                                                      módonként)
+
+ Összesített érték rövid, szöveges indoklása: TODO
+
+
+Figyelem: a fenti százalékértékektől függetlenül az MI-vel generált minden tartalomért a szerző a felelős!
+
+Kelt: Budapest, 2026. október 28.                                                             Jakab Gipsz
+
+
+
+
+                                                      12
+Appendix
+
+A.1 Appendix title
+TODO Proofs, extra measurements, and anything else that supports the main text but would break its flow.
+The appendix does not count towards the 30–35 page limit.
+
+
+
+
+                                                  13
+

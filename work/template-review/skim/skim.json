@@ -1,0 +1,1494 @@
+{
+ "name": "t3-3bd95abb",
+ "title": "TODO Title of the paper",
+ "stem": "reviewer",
+ "metrics": {
+  "PDF pages": 18,
+  "main text pages": 8,
+  "figures": 3,
+  "tables": 2,
+  "boxes": 8,
+  "placeholders visible": 40,
+  "TODO printed": 67,
+  "tagged items": 7,
+  "tagged items unsure": 0,
+  "theorem-likes": 3,
+  "paragraphs": 14,
+  "footnotes": 0,
+  "citation links": 3,
+  "bibliography entries": 3,
+  "tag references clickable %": 80,
+  "unlabelled (unlinkable) items": 0,
+  "targets nothing links to": 5,
+  "walls over 1 page": 0,
+  "longest wall (pages)": 0.05,
+  "guarantees with a correctness row": 1,
+  "requirements with gap row": 1,
+  "requirements evaluated": 0,
+  "contributions in conclusion": 1,
+  "criteria without detected evidence": 3,
+  "broken references": 0,
+  "unclassified lines": 0
+ },
+ "items": [
+  {
+   "id": "it-REQ1",
+   "tag": "REQ1",
+   "name": "TODO Short name",
+   "kind": "requirements",
+   "label": "req:first",
+   "page": "1",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-C1",
+   "tag": "C1",
+   "name": "TODO Short name",
+   "kind": "contributions",
+   "label": "c:method",
+   "page": "1",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-Definition-1",
+   "tag": "Definition 1",
+   "name": "TODO",
+   "kind": "theorem",
+   "label": "def:example",
+   "page": "2",
+   "read": "",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-ADV1",
+   "tag": "ADV1",
+   "name": "TODO Malicious participant",
+   "kind": "threats",
+   "label": "thr:example",
+   "page": "3",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-AS1",
+   "tag": "AS1",
+   "name": "TODO Unforgeable signatures",
+   "kind": "assumptions",
+   "label": "asm:example",
+   "page": "3",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-SG1",
+   "tag": "SG1",
+   "name": "TODO Short name",
+   "kind": "guarantees",
+   "label": "g:example",
+   "page": "4",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-Lemma-1",
+   "tag": "Lemma 1",
+   "name": "TODO",
+   "kind": "theorem",
+   "label": "lem:helper",
+   "page": "4",
+   "read": "",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-Theorem-2",
+   "tag": "Theorem 2",
+   "name": "TODO",
+   "kind": "theorem",
+   "label": "thm:main",
+   "page": "4",
+   "read": "",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-RQ1",
+   "tag": "RQ1",
+   "name": "TODO Correctness",
+   "kind": "rqlist",
+   "label": "rq:correct",
+   "page": "6",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "it-LIM1",
+   "tag": "LIM1",
+   "name": "TODO Short name",
+   "kind": "limitations",
+   "label": "lim:example",
+   "page": "8",
+   "read": "paragraph",
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  }
+ ],
+ "unsure": [],
+ "placeholders": {
+  "spots": 40,
+  "by_kind": {
+   "para": 7,
+   "box": 8,
+   "item": 7,
+   "float": 5,
+   "heading": 3,
+   "theorem": 3,
+   "proof": 1,
+   "listing": 1,
+   "front": 2,
+   "back": 3
+  },
+  "TODO": 67
+ },
+ "lint": "work/template-review/lint-plan.json",
+ "floats": [
+  {
+   "id": "Figure-1.1",
+   "key": "Figure 1.1",
+   "caption": "Figure 1.1: TODO leading figure.",
+   "page": "1",
+   "labels": [
+    "fig:overview"
+   ],
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "Figure-3.1",
+   "key": "Figure 3.1",
+   "caption": "Figure 3.1: TODO architecture.",
+   "page": "3",
+   "labels": [
+    "fig:architecture"
+   ],
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "Table-5.1",
+   "key": "Table 5.1",
+   "caption": "Table 5.1: TODO Correctness: how each guarantee and requirement was checked. ✓proved or passed, ∘ partially, × counterexample or failed.",
+   "page": "6",
+   "labels": [
+    "tab:correctness"
+   ],
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO",
+    "TODO",
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "Figure-6.1",
+   "key": "Figure 6.1",
+   "caption": "Figure 6.1: TODO positioning figure.",
+   "page": "7",
+   "labels": [
+    "fig:positioning"
+   ],
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO"
+   ]
+  },
+  {
+   "id": "Table-6.1",
+   "key": "Table 6.1",
+   "caption": "Table 6.1: TODO Gap matrix: each requirement against the closest approaches. ✓meets the requirement, ∘partially, × does not, – not applicable.",
+   "page": "7",
+   "labels": [
+    "tab:related"
+   ],
+   "state": "placeholder",
+   "marks": [
+    "TODO",
+    "TODO",
+    "TODO"
+   ]
+  }
+ ],
+ "boxes": [
+  {
+   "id": "box-1",
+   "title": "Running example, TODO name of the running example",
+   "page": "1",
+   "lines": 4
+  },
+  {
+   "id": "box-2",
+   "title": "Running example, TODO name of the running example: in terms of the first concept",
+   "page": "2",
+   "lines": 2
+  },
+  {
+   "id": "box-3",
+   "title": "Running example, TODO name of the running example: through the approach",
+   "page": "3",
+   "lines": 2
+  },
+  {
+   "id": "box-4",
+   "title": "Running example, TODO name of the running example: under attack",
+   "page": "3",
+   "lines": 2
+  },
+  {
+   "id": "box-5",
+   "title": "Running example, TODO name of the running example: as input",
+   "page": "5",
+   "lines": 2
+  },
+  {
+   "id": "box-6",
+   "title": "Running example, TODO name of the running example: solved",
+   "page": "6",
+   "lines": 2
+  },
+  {
+   "id": "box-7",
+   "title": "Running example, TODO name of the running example: elsewhere",
+   "page": "7",
+   "lines": 2
+  },
+  {
+   "id": "box-8",
+   "title": "Running example, TODO name of the running example: in retrospect",
+   "page": "8",
+   "lines": 2
+  }
+ ],
+ "walls": [
+  {
+   "chapter": "chapter.1",
+   "number": "1",
+   "title": "Introduction",
+   "longest": null,
+   "over": []
+  },
+  {
+   "chapter": "chapter.2",
+   "number": "2",
+   "title": "Background",
+   "longest": null,
+   "over": []
+  },
+  {
+   "chapter": "chapter.3",
+   "number": "3",
+   "title": "Approach",
+   "longest": {
+    "lines": 1,
+    "pages": 0.03,
+    "first": "b36",
+    "from_label": "4",
+    "to_label": "4",
+    "blocks": 1
+   },
+   "over": []
+  },
+  {
+   "chapter": "chapter.4",
+   "number": "4",
+   "title": "Implementation",
+   "longest": {
+    "lines": 2,
+    "pages": 0.05,
+    "first": "b39",
+    "from_label": "5",
+    "to_label": "5",
+    "blocks": 2
+   },
+   "over": []
+  },
+  {
+   "chapter": "chapter.5",
+   "number": "5",
+   "title": "Evaluation",
+   "longest": null,
+   "over": []
+  },
+  {
+   "chapter": "chapter.6",
+   "number": "6",
+   "title": "Related Work and Gap Analysis",
+   "longest": {
+    "lines": 1,
+    "pages": 0.02,
+    "first": "b54",
+    "from_label": "7",
+    "to_label": "7",
+    "blocks": 1
+   },
+   "over": []
+  },
+  {
+   "chapter": "chapter.7",
+   "number": "7",
+   "title": "Conclusion and Future Work",
+   "longest": null,
+   "over": []
+  }
+ ],
+ "chains": {
+  "correctness": "Table-5.1",
+  "correctness_key": "Table 5.1",
+  "gap": "Table-6.1",
+  "gap_key": "Table 6.1",
+  "guarantees": [
+   {
+    "id": "it-SG1",
+    "tag": "SG1",
+    "name": "TODO Short name",
+    "assumptions": {
+     "AS1": "linked"
+    },
+    "adversaries": {
+     "ADV1": "linked"
+    },
+    "correctness_row": true
+   }
+  ],
+  "requirements": [
+   {
+    "id": "it-REQ1",
+    "tag": "REQ1",
+    "name": "TODO Short name",
+    "gap_row": true,
+    "evaluation": "missing"
+   }
+  ],
+  "contributions": [
+   {
+    "id": "it-C1",
+    "tag": "C1",
+    "name": "TODO Short name",
+    "conclusion": "by name (fuzzy)"
+   }
+  ],
+  "rqs": [
+   {
+    "id": "it-RQ1",
+    "tag": "RQ1",
+    "name": "TODO Correctness",
+    "answered": "plain"
+   }
+  ]
+ },
+ "rubric": {
+  "A": [
+   [
+    "detected",
+    "main text 8 pages (p. 1–8); the sheet: 30–35, 22 pages outside: about 7 point(s) off (1 per 3 pages)",
+    ""
+   ],
+   [
+    "detected",
+    "outline: 7 chapters, 19 sections, 0 subsections, 0 subsubsections, 12 run-in heads",
+    "outline"
+   ],
+   [
+    "detected",
+    "no stretch of plain text over 1 page without an anchor",
+    "walls"
+   ],
+   [
+    "placeholder",
+    "template text visible in 40 place(s); TODO printed 67×",
+    "top"
+   ],
+   [
+    "detected",
+    "tag references clickable: 8 of 10",
+    "refs"
+   ]
+  ],
+  "B/1": [
+   [
+    "placeholder",
+    "3 figures, 2 tables in the main text; per chapter: 1: 1F/0T; 2: 0F/0T; 3: 1F/0T; 4: 0F/0T; 5: 0F/1T; 6: 1F/1T; 7: 0F/0T; template text in Figure 1.1, Figure 3.1, Figure 6.1, Table 5.1, Table 6.1",
+    ""
+   ],
+   [
+    "placeholder",
+    "leading figure: Figure 1.1; shows template text \"TODO\"",
+    "Figure-1.1"
+   ],
+   [
+    "detected",
+    "3 sources cited (3 citation links); bibliography 3 entries",
+    ""
+   ]
+  ],
+  "B/2": [
+   [
+    "placeholder",
+    "related work: ch. 6 Related Work and Gap Analysis, 1 page, 8 text lines, 2 citation links; template text in 4 place(s)",
+    "h-chapter.6"
+   ],
+   [
+    "placeholder",
+    "background: ch. 2 Background, 1 page, 7 text lines, 0 citation links; template text in 4 place(s)",
+    "h-chapter.2"
+   ],
+   [
+    "placeholder",
+    "gap matrix: Table 6.1; shows template text \"TODO\"",
+    "Table-6.1"
+   ],
+   [
+    "detected",
+    "bibliography: 3 entries",
+    ""
+   ]
+  ],
+  "C": [
+   [
+    "placeholder",
+    "abstract: 125 words; shows template text \"TODO\"",
+    "abstract"
+   ],
+   [
+    "placeholder",
+    "introduction: ch. 1 Introduction, 1 page, 17 text lines, 0 citation links; template text in 5 place(s); sections —; run-in heads ['Context.', 'Problem.', 'Requirements.', 'Gap.', 'Contributions.', 'Structure.']",
+    "h-chapter.1"
+   ],
+   [
+    "placeholder",
+    "research questions: RQ1; RQ1 shows template text \"TODO\"",
+    "it-RQ1"
+   ],
+   [
+    "placeholder",
+    "leading figure: Figure 1.1; shows template text \"TODO\"",
+    "Figure-1.1"
+   ]
+  ],
+  "D/1": [
+   [
+    "placeholder",
+    "contributions: C1; C1 shows template text \"TODO\"",
+    "it-C1"
+   ],
+   [
+    "placeholder",
+    "gap matrix: Table 6.1; shows template text \"TODO\"",
+    "Table-6.1"
+   ]
+  ],
+  "D/2": [
+   [
+    "placeholder",
+    "guarantees: SG1; SG1 shows template text \"TODO\"",
+    "it-SG1"
+   ],
+   [
+    "placeholder",
+    "assumptions: AS1; AS1 shows template text \"TODO\"",
+    "it-AS1"
+   ],
+   [
+    "placeholder",
+    "adversaries: ADV1; ADV1 shows template text \"TODO\"",
+    "it-ADV1"
+   ],
+   [
+    "placeholder",
+    "theorem-like statements: 1 Definition, 1 Lemma, 1 Theorem; 1 proof; Definition 1, Lemma 1, Theorem 2 show template text \"TODO\"",
+    ""
+   ],
+   [
+    "placeholder",
+    "correctness table: Table 5.1, rows for 1 of 1 guarantees; shows template text \"TODO\"",
+    "Table-5.1"
+   ]
+  ],
+  "E": [
+   [
+    "placeholder",
+    "contributions: C1; C1 shows template text \"TODO\"",
+    "it-C1"
+   ],
+   [
+    "placeholder",
+    "evaluation: ch. 5 Evaluation, 1 page, 12 text lines, 0 citation links; template text in 3 place(s)",
+    "h-chapter.5"
+   ],
+   [
+    "detected",
+    "research questions mentioned in the evaluation or conclusion: 1 of 1",
+    "chains"
+   ],
+   [
+    "missing",
+    "no figure or table about scalability (by caption)",
+    ""
+   ],
+   [
+    "missing",
+    "no figure or table about robustness (by caption)",
+    ""
+   ],
+   [
+    "placeholder",
+    "limitations: LIM1; LIM1 shows template text \"TODO\"",
+    "it-LIM1"
+   ],
+   [
+    "detected",
+    "contributions restated in the conclusion: 1 of 1",
+    "chains"
+   ]
+  ]
+ },
+ "outline": [
+  {
+   "level": 1,
+   "number": "",
+   "title": "Kivonat",
+   "page": 3,
+   "y": 79.38001464843751,
+   "label": "i",
+   "anchor": "chapter*.2",
+   "part": "kivonat",
+   "roles": [],
+   "criteria": [],
+   "pages": 1,
+   "lines": 2,
+   "page_label": "i"
+  },
+  {
+   "level": 1,
+   "number": "",
+   "title": "Abstract",
+   "page": 4,
+   "y": 79.38001464843751,
+   "label": "ii",
+   "anchor": "chapter*.3",
+   "part": "abstract",
+   "roles": [],
+   "criteria": [],
+   "pages": 1,
+   "lines": 9,
+   "page_label": "ii"
+  },
+  {
+   "level": 1,
+   "number": "1",
+   "title": "Introduction",
+   "page": 5,
+   "y": 79.38001464843751,
+   "label": "1",
+   "anchor": "chapter.1",
+   "part": "main",
+   "roles": [
+    "intro"
+   ],
+   "criteria": [
+    "B/1",
+    "C",
+    "E"
+   ],
+   "pages": 1,
+   "lines": 17,
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Context.",
+   "page": 5,
+   "y": 278.6300146484375,
+   "label": "1",
+   "anchor": "section*.4",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Problem.",
+   "page": 5,
+   "y": 316.5400146484375,
+   "label": "1",
+   "anchor": "section*.5",
+   "pages": 0.2,
+   "lines": 5,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Requirements.",
+   "page": 5,
+   "y": 433.3400146484375,
+   "label": "1",
+   "anchor": "section*.6",
+   "pages": 0.1,
+   "lines": 2,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Gap.",
+   "page": 5,
+   "y": 501.6300146484375,
+   "label": "1",
+   "anchor": "section*.7",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Contributions.",
+   "page": 5,
+   "y": 585.8600146484375,
+   "label": "1",
+   "anchor": "section*.9",
+   "pages": 0.1,
+   "lines": 3,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Structure.",
+   "page": 5,
+   "y": 668.6000146484375,
+   "label": "1",
+   "anchor": "section*.10",
+   "pages": 0.1,
+   "lines": 3,
+   "part": "main",
+   "page_label": "1"
+  },
+  {
+   "level": 1,
+   "number": "2",
+   "title": "Background",
+   "page": 6,
+   "y": 79.38001464843751,
+   "label": "2",
+   "anchor": "chapter.2",
+   "part": "main",
+   "roles": [
+    "background"
+   ],
+   "criteria": [
+    "B/2"
+   ],
+   "pages": 1,
+   "lines": 7,
+   "page_label": "2"
+  },
+  {
+   "level": 2,
+   "number": "2.1",
+   "title": "TODO First concept",
+   "page": 6,
+   "y": 277.7600146484375,
+   "label": "2",
+   "anchor": "section.2.1",
+   "pages": 0.2,
+   "lines": 4,
+   "part": "main",
+   "page_label": "2"
+  },
+  {
+   "level": 2,
+   "number": "2.2",
+   "title": "TODO Second concept",
+   "page": 6,
+   "y": 408.7200146484375,
+   "label": "2",
+   "anchor": "section.2.2",
+   "pages": 0.5,
+   "lines": 1,
+   "part": "main",
+   "page_label": "2"
+  },
+  {
+   "level": 1,
+   "number": "3",
+   "title": "Approach",
+   "page": 7,
+   "y": 79.38001464843751,
+   "label": "3",
+   "anchor": "chapter.3",
+   "part": "main",
+   "roles": [
+    "approach"
+   ],
+   "criteria": [
+    "D/1",
+    "D/2"
+   ],
+   "pages": 2,
+   "lines": 22,
+   "page_label": "3"
+  },
+  {
+   "level": 2,
+   "number": "3.1",
+   "title": "Overview",
+   "page": 7,
+   "y": 277.7400146484375,
+   "label": "3",
+   "anchor": "section.3.1",
+   "pages": 0.3,
+   "lines": 4,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 2,
+   "number": "3.2",
+   "title": "TODO Model or design",
+   "page": 7,
+   "y": 454.0900146484375,
+   "label": "3",
+   "anchor": "section.3.2",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 2,
+   "number": "3.3",
+   "title": "Threat model and guarantees",
+   "page": 7,
+   "y": 493.5700146484375,
+   "label": "3",
+   "anchor": "section.3.3",
+   "pages": 1.4,
+   "lines": 15,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Adversary.",
+   "page": 7,
+   "y": 536.2700146484375,
+   "label": "3",
+   "anchor": "section*.12",
+   "pages": 0.2,
+   "lines": 4,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Attacks.",
+   "page": 7,
+   "y": 661.5500146484375,
+   "label": "3",
+   "anchor": "section*.13",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Trust and cryptographic assumptions.",
+   "page": 7,
+   "y": 699.4600146484374,
+   "label": "3",
+   "anchor": "section*.14",
+   "pages": 0.1,
+   "lines": 3,
+   "part": "main",
+   "page_label": "3"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Out of scope.",
+   "page": 8,
+   "y": 76.8900146484375,
+   "label": "4",
+   "anchor": "section*.15",
+   "pages": 0.0,
+   "lines": 1,
+   "part": "main",
+   "page_label": "4"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Guarantees.",
+   "page": 8,
+   "y": 114.80001464843747,
+   "label": "4",
+   "anchor": "section*.16",
+   "pages": 1.0,
+   "lines": 5,
+   "part": "main",
+   "page_label": "4"
+  },
+  {
+   "level": 1,
+   "number": "4",
+   "title": "Implementation",
+   "page": 9,
+   "y": 79.38001464843751,
+   "label": "5",
+   "anchor": "chapter.4",
+   "part": "main",
+   "roles": [
+    "implementation"
+   ],
+   "criteria": [
+    "D/1",
+    "D/2"
+   ],
+   "pages": 1,
+   "lines": 9,
+   "page_label": "5"
+  },
+  {
+   "level": 2,
+   "number": "4.1",
+   "title": "Overview",
+   "page": 9,
+   "y": 277.7400146484375,
+   "label": "5",
+   "anchor": "section.4.1",
+   "pages": 0.2,
+   "lines": 5,
+   "part": "main",
+   "page_label": "5"
+  },
+  {
+   "level": 2,
+   "number": "4.2",
+   "title": "Design decisions",
+   "page": 9,
+   "y": 420.9600146484375,
+   "label": "5",
+   "anchor": "section.4.2",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "5"
+  },
+  {
+   "level": 2,
+   "number": "4.3",
+   "title": "TODO The key technical contribution",
+   "page": 9,
+   "y": 460.4500146484375,
+   "label": "5",
+   "anchor": "section.4.3",
+   "pages": 0.4,
+   "lines": 1,
+   "part": "main",
+   "page_label": "5"
+  },
+  {
+   "level": 1,
+   "number": "5",
+   "title": "Evaluation",
+   "page": 10,
+   "y": 79.38001464843751,
+   "label": "6",
+   "anchor": "chapter.5",
+   "part": "main",
+   "roles": [
+    "evaluation"
+   ],
+   "criteria": [
+    "D/2",
+    "E"
+   ],
+   "pages": 1,
+   "lines": 12,
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.1",
+   "title": "Research questions",
+   "page": 10,
+   "y": 273.0000146484375,
+   "label": "6",
+   "anchor": "section.5.1",
+   "pages": 0.1,
+   "lines": 2,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.2",
+   "title": "Setup",
+   "page": 10,
+   "y": 354.7800146484375,
+   "label": "6",
+   "anchor": "section.5.2",
+   "pages": 0.1,
+   "lines": 2,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 5,
+   "number": "",
+   "title": "Artifact availability.",
+   "page": 10,
+   "y": 398.4300146484375,
+   "label": "6",
+   "anchor": "section*.17",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.3",
+   "title": "Correctness (RQ1)",
+   "page": 10,
+   "y": 434.1500146484375,
+   "label": "6",
+   "anchor": "section.5.3",
+   "pages": 0.3,
+   "lines": 3,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.4",
+   "title": "Scalability (RQ2)",
+   "page": 10,
+   "y": 648.5000146484375,
+   "label": "6",
+   "anchor": "section.5.4",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.5",
+   "title": "Robustness analysis (RQ3)",
+   "page": 10,
+   "y": 687.9700146484375,
+   "label": "6",
+   "anchor": "section.5.5",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 2,
+   "number": "5.6",
+   "title": "Threats to validity",
+   "page": 10,
+   "y": 728.2400146484375,
+   "label": "6",
+   "anchor": "section.5.6",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "6"
+  },
+  {
+   "level": 1,
+   "number": "6",
+   "title": "Related Work and Gap Analysis",
+   "page": 11,
+   "y": 79.38001464843751,
+   "label": "7",
+   "anchor": "chapter.6",
+   "part": "main",
+   "roles": [
+    "related"
+   ],
+   "criteria": [
+    "B/2",
+    "D/1"
+   ],
+   "pages": 1,
+   "lines": 8,
+   "page_label": "7"
+  },
+  {
+   "level": 2,
+   "number": "6.1",
+   "title": "Comparison criteria",
+   "page": 11,
+   "y": 277.7400146484375,
+   "label": "7",
+   "anchor": "section.6.1",
+   "pages": 0.1,
+   "lines": 1,
+   "part": "main",
+   "page_label": "7"
+  },
+  {
+   "level": 2,
+   "number": "6.2",
+   "title": "Existing approaches",
+   "page": 11,
+   "y": 316.46001464843755,
+   "label": "7",
+   "anchor": "section.6.2",
+   "pages": 0.4,
+   "lines": 4,
+   "part": "main",
+   "page_label": "7"
+  },
+  {
+   "level": 2,
+   "number": "6.3",
+   "title": "Gap",
+   "page": 11,
+   "y": 612.2600146484375,
+   "label": "7",
+   "anchor": "section.6.3",
+   "pages": 0.2,
+   "lines": 1,
+   "part": "main",
+   "page_label": "7"
+  },
+  {
+   "level": 1,
+   "number": "7",
+   "title": "Conclusion and Future Work",
+   "page": 12,
+   "y": 79.38001464843751,
+   "label": "8",
+   "anchor": "chapter.7",
+   "part": "main",
+   "roles": [
+    "conclusion"
+   ],
+   "criteria": [
+    "E"
+   ],
+   "pages": 1,
+   "lines": 7,
+   "page_label": "8"
+  },
+  {
+   "level": 2,
+   "number": "7.1",
+   "title": "Summary",
+   "page": 12,
+   "y": 273.1300146484375,
+   "label": "8",
+   "anchor": "section.7.1",
+   "pages": 0.2,
+   "lines": 3,
+   "part": "main",
+   "page_label": "8"
+  },
+  {
+   "level": 2,
+   "number": "7.2",
+   "title": "Limitations and future work",
+   "page": 12,
+   "y": 386.0400146484375,
+   "label": "8",
+   "anchor": "section.7.2",
+   "pages": 0.6,
+   "lines": 2,
+   "part": "main",
+   "page_label": "8"
+  },
+  {
+   "level": 1,
+   "number": "",
+   "title": "Acknowledgements",
+   "page": 13,
+   "y": 79.38001464843751,
+   "label": "9",
+   "anchor": "chapter*.21",
+   "part": "back",
+   "roles": [],
+   "criteria": [],
+   "pages": 1,
+   "lines": 0,
+   "page_label": "9"
+  },
+  {
+   "level": 1,
+   "number": "",
+   "title": "Bibliography",
+   "page": 14,
+   "y": 79.38001464843751,
+   "label": "10",
+   "anchor": "chapter*.22",
+   "part": "back",
+   "roles": [],
+   "criteria": [],
+   "pages": 1,
+   "lines": 0,
+   "page_label": "10"
+  },
+  {
+   "level": 1,
+   "number": "",
+   "title": "Hallgatói nyilatkozat generatív mesterséges intelligencia alkalmazásáról",
+   "page": 15,
+   "y": 79.38001464843751,
+   "label": "11",
+   "anchor": "chapter*.23",
+   "part": "back",
+   "roles": [],
+   "criteria": [],
+   "pages": 2,
+   "lines": 0,
+   "page_label": "11"
+  },
+  {
+   "level": 1,
+   "number": "",
+   "title": "Appendix",
+   "page": 17,
+   "y": 79.38001464843751,
+   "label": "13",
+   "anchor": "appendix*.24",
+   "part": "appendix",
+   "roles": [],
+   "criteria": [],
+   "pages": 1,
+   "lines": 4,
+   "page_label": "13"
+  },
+  {
+   "level": 2,
+   "number": "A.1",
+   "title": "Appendix title",
+   "page": 17,
+   "y": 221.95001464843745,
+   "label": "13",
+   "anchor": "appendix.A.1",
+   "pages": 0.8,
+   "lines": 3,
+   "part": "appendix",
+   "page_label": "13"
+  }
+ ],
+ "checks": {
+  "rows": [
+   {
+    "what": "figure",
+    "pdf": 3,
+    "source": 3
+   },
+   {
+    "what": "table",
+    "pdf": 2,
+    "source": 2
+   },
+   {
+    "what": "box",
+    "pdf": 8,
+    "source": 8
+   },
+   {
+    "what": "tag item",
+    "pdf": 7,
+    "source": 7
+   },
+   {
+    "what": "theorem-like",
+    "pdf": 3,
+    "source": 3
+   },
+   {
+    "what": "tag-list label in the .aux",
+    "pdf": 7,
+    "source": 7
+   }
+  ],
+  "unsure": [],
+  "mismatches": [],
+  "unclassified": 0,
+  "unclassified_pages": [],
+  "margin": 35
+ },
+ "criteria": [
+  {
+   "id": "A",
+   "name": "Szerkesztés, stílus",
+   "top": "“4–5: kiváló (ha a dolgozat közel hibamentes, jól tagolt, követhető, gördülékeny stílusú)”. The sheet also says: “Terjedelmi korlát 30–35 oldal. Ettől eltérés esetén 3 oldalanként 1 pont levonás javasolt.” “Műszaki tudományi OTDK szekcióba 50 oldal felett nem fogadnak dolgozatot.” The sheet recommends that reviewers deduct the point; it does not require them to.",
+   "bands": [
+    [
+     "0-1",
+     "gyenge (ha a dolgozat nehezen áttekinthető, gondatlanul szerkesztett, sok szerkesztési, nyelvtani hibával)"
+    ],
+    [
+     "2",
+     "átlagos (ha a dolgozat gondosan szerkesztett, azonban a dolgozat lényegi mondanivalója több helyen nehezen áttekinthető, körülményes)"
+    ],
+    [
+     "3",
+     "jó (ha a dolgozat gondosan szerkesztett, azonban a dolgozat szövegezése néhány helyen nehezen áttekinthető, körülményes);"
+    ],
+    [
+     "4-5",
+     "kiváló (ha a dolgozat közel hibamentes, jól tagolt, követhető, gördülékeny stílusú)"
+    ]
+   ],
+   "notes": [
+    "Terjedelmi korlát 30-35 oldal. Ettől eltérés esetén 3 oldalanként 1 pont levonás javasolt. Műszaki tudományi",
+    "OTDK szekcióba 50 oldal felett nem fogadnak dolgozatot."
+   ],
+   "max": 5
+  },
+  {
+   "id": "B/1",
+   "name": "Ábrák, táblázatok",
+   "top": "“4: kiváló (a dolgozat megfelelő számú és jól átgondolt ábrát, táblázatot tartalmaz, és a szakirodalmi hivatkozások pontosak)”.",
+   "bands": [
+    [
+     "0",
+     "nagyon gyenge (a dolgozat alig / egyáltalán nem tartalmaz magyarázó ábrákat ill. táblázatokat, pedig a téma feldolgozása igényelte volna)"
+    ],
+    [
+     "1",
+     "gyenge (a dolgozat kevés ábrát ill. táblázatot tartalmaz, pedig a téma feldolgozása igényelte volna)"
+    ],
+    [
+     "2",
+     "átlagos (a dolgozat megfelelő számú ábrát és táblázatot tartalmaz, ám azok több esetben nem jól átgondoltak vagy rossz minőségűek)"
+    ],
+    [
+     "3",
+     "jó (a dolgozat megfelelő számú és jól átgondolt ábrát, táblázatot tartalmaz, ám a szakirodalmi hivatkozások számos helyen pontatlanok)"
+    ],
+    [
+     "4",
+     "kiváló (a dolgozat megfelelő számú és jól átgondolt ábrát, táblázatot tartalmaz, és a szakirodalmi hivatkozások pontosak)"
+    ]
+   ],
+   "notes": [],
+   "max": 4
+  },
+  {
+   "id": "B/2",
+   "name": "Hivatkozások, irodalom feldolgozás",
+   "top": "“3–4: újszerű ipari megoldások és kutatási eredmények (a dolgozat – az újszerű ipari megoldásokon túl – bemutatja a dolgozat témakörében releváns kutatási eredményeket a szakterületen)”. B is the average of B/1 and B/2.",
+   "bands": [
+    [
+     "0",
+     "egyetemi tananyag (a dolgozat kizárólag egyetemi tankönyveket idéz kapcsolódó szakirodalomként)"
+    ],
+    [
+     "1",
+     "ismert ipari gyakorlat (a dolgozat feldolgozta a weblapokról, technikai dokumentációkból közismert ipari megoldásokat)"
+    ],
+    [
+     "2",
+     "újszerű ipari megoldások vagy közismert kutatási eredmények (a dolgozat ismerteti a legújabb, modern ipari megoldásokat vagy a legismertebb kutatási eredményeket a szakterületen)"
+    ],
+    [
+     "3-4",
+     "újszerű ipari megoldások és kutatási eredmények (a dolgozat – az újszerű ipari megoldásokon túl – bemutatja a ldolgozat témakörében releváns kutatási eredményeket a szakterületen)"
+    ]
+   ],
+   "notes": [
+    "A B bírálati szempont pontszáma a részpontok átlagaként képzendő. Ha a B/1 szempont nem értelmezhető,",
+    "akkora B bírálati szempont pontszáma a B/2."
+   ],
+   "max": 4
+  },
+  {
+   "id": "C",
+   "name": "A dolgozat témája",
+   "top": "“7–8: tudományos vizsgálat szükséges (ha a dolgozat témája korszerű, nem lezárt, vizsgálata magas szintű, tudományos, elmélyült tudást igényel)”.",
+   "bands": [
+    [
+     "0",
+     "elavult (ha a dolgozat témája elavult, korszerűtlen, szakirodalomban alaposan kidolgozott és vizsgálata nem igényel elmélyült tudást)"
+    ],
+    [
+     "1-2",
+     "korszerű, de közismert (ha a dolgozat témája korszerű, de jól ismert, elmélyült tudást nem igényel a vizsgálata)"
+    ],
+    [
+     "3-4",
+     "közismert, de mély (ha a dolgozat témája korszerű, de jól ismert, szakirodalomban / kézikönyvekben többé-kevésbé kidolgozott, azonban vizsgálata alapos, elmélyült tudást igényel)"
+    ],
+    [
+     "5-6",
+     "mély és újszerű (ha a dolgozat témája korszerű, újszerű, vizsgálata egy újszerű ipari technológia / eszköz igen mély ismeretét igényli)"
+    ],
+    [
+     "7-8",
+     "tudományos vizsgálat szükséges (ha a dolgozat témája korszerű, nem lezárt, vizsgálata magas szintű, tudományos, elmélyült tudást igényel)."
+    ]
+   ],
+   "notes": [
+    "Tématerület fontossága, aktualitása (Relevance)"
+   ],
+   "max": 8
+  },
+  {
+   "id": "D/1",
+   "name": "Tudományos újdonságtartalom és kontribúció",
+   "top": "“5: újszerű (legalább hazánkban újszerű, vagy eddig még nem létező megoldás)”; one step below, “3–4: inkrementális (értékes inkrementális kontribúció, létező megoldások apró továbbfejlesztése)”.",
+   "bands": [
+    [
+     "0",
+     "közismert (a tárgyalt probléma megoldása egyetemi tankönyvekből ismert)"
+    ],
+    [
+     "1-2",
+     "ismert (a kutatási terület szakirodalomban számos megoldás ismert a tárgyalt problémára, és ezek „másolás jellegű” alkalmazására került sor a dolgozatban)"
+    ],
+    [
+     "3-4",
+     "inkrementális (értékes inkrementális kontribúció, létező megoldások apró továbbfejlesztése)"
+    ],
+    [
+     "5",
+     "újszerű (legalább hazánkban újszerű, vagy eddig még nem létező megoldás)"
+    ]
+   ],
+   "notes": [],
+   "max": 5
+  },
+  {
+   "id": "D/2",
+   "name": "Technikai helyesség és színvonal",
+   "top": "“5: kiváló (kimagasló színvonalú kidolgozás, a közölt eredmények helyessége kétségkívül megalapozott)”. D is the sum of D/1 and D/2.",
+   "bands": [
+    [
+     "0",
+     "alacsony (ha a feldolgozás módszere kifogásolható, színvonala alacsony, a dolgozat alapvető szakmai hibákat tartalmaz)"
+    ],
+    [
+     "1",
+     "kielégítő (ha a kidolgozás módszere és színvonala kielégítő, de a dolgozatban lényeges, tartalmi, szakmai hibák vannak)"
+    ],
+    [
+     "2",
+     "kérdéses (színvonalas kidolgozás, de egyes részletekben kisebb szakmai hibák vannak, vagy egyes eredmények helyessége kérdéses / egyáltalán nem ellenőrizhető)"
+    ],
+    [
+     "3-4",
+     "jó (színvonalas kidolgozás, de esetleg egyes eredmények helyessége nincs kellőképpen alátámasztva)"
+    ],
+    [
+     "5",
+     "kiváló (kimagasló színvonalú kidolgozás, a közölt eredmények helyessége kétségkívül megalapozott)"
+    ]
+   ],
+   "notes": [
+    "A D bírálati szempont pontszáma a két alkategória összegeként alakítandó ki."
+   ],
+   "max": 5
+  },
+  {
+   "id": "E",
+   "name": "Bevezetés és az eredmények értékelése",
+   "top": "“7–8: teljeskörű – A bevezetés megfelelő és az elért eredmények pontosak és teljesek, az értékelés megalapozott. A szerző skálázhatósági, robosztussági vizsgálatokat is elvégzett, mellyel igazolta, hogy rendszere ipari környezetben is megállja a helyét”.",
+   "bands": [
+    [
+     "0",
+     "teljesen hiányzik – ha a dolgozat bevezetése hiányos (tématerület áttekintése, problémafelvetés, fő kontribúció kimondása) ÉS az eredmények gyakorlati validálása, értékelése is hiányzik ill. hibás;"
+    ],
+    [
+     "1-2",
+     "nagyon hiányos – ha a dolgozat bevezetése hiányos (tématerület áttekintése, bemutatása, problémafelvetés, fő kontribúció kimondása) VAGY az eredmények értékelése hiányzik ill. aránytalanul kis méretű vagy hibás;"
+    ],
+    [
+     "3-4",
+     "pontatlan – ha a dolgozat bevezetése megfelelő és a dolgozatban szerepel az eredmények kis mintapéldákon túlmenő értékelése is, de az utóbbi hiányos, pontatlan;"
+    ],
+    [
+     "5-6",
+     "pontos, de hiányos – ha a dolgozat bevezetése megfelelő és a dolgozatban szerepel az eredmények kis mintapéldákon túlmenő értékelése is, azok pontosak, de hiányosak;"
+    ],
+    [
+     "7-8",
+     "teljeskörű – A bevezetés megfelelő és az elért eredmények pontosak és teljesek, az értékelés megalapozott. A szerző skálázhatósági, robosztussági vizsgálatokat is elvégzett, mellyel igazolta, hogy rendszere ipari környezetben is megállja a helyét"
+    ]
+   ],
+   "notes": [],
+   "max": 8
+  }
+ ]
+}

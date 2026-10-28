@@ -1,0 +1,1780 @@
+{
+  "before": {
+    "chapter_roles": {
+      "approach": {
+        "criteria": [
+          "D/1",
+          "D/2"
+        ],
+        "files": [
+          "content/03-approach.tex"
+        ],
+        "guide": "app:chapters:approach",
+        "label": "ch:approach",
+        "name": "approach chapter"
+      },
+      "background": {
+        "criteria": [
+          "B/2"
+        ],
+        "files": [
+          "content/02-background.tex"
+        ],
+        "guide": "app:chapters:background",
+        "label": "ch:background",
+        "name": "background chapter"
+      },
+      "conclusion": {
+        "criteria": [
+          "E"
+        ],
+        "files": [
+          "content/07-conclusion.tex"
+        ],
+        "guide": "app:chapters:conclusion",
+        "label": "ch:conclusion",
+        "name": "conclusion"
+      },
+      "evaluation": {
+        "criteria": [
+          "D/2",
+          "E"
+        ],
+        "files": [
+          "content/05-evaluation.tex"
+        ],
+        "guide": "app:chapters:evaluation",
+        "label": "ch:evaluation",
+        "name": "evaluation chapter"
+      },
+      "implementation": {
+        "criteria": [
+          "D/1",
+          "D/2"
+        ],
+        "files": [
+          "content/04-implementation.tex"
+        ],
+        "guide": "app:chapters:implementation",
+        "label": "ch:implementation",
+        "name": "implementation chapter"
+      },
+      "intro": {
+        "criteria": [
+          "B/1",
+          "C",
+          "E"
+        ],
+        "files": [
+          "content/01-introduction.tex"
+        ],
+        "guide": "app:chapters:intro",
+        "label": "ch:intro",
+        "name": "introduction"
+      },
+      "related": {
+        "criteria": [
+          "B/2",
+          "D/1"
+        ],
+        "files": [
+          "content/06-related-work.tex"
+        ],
+        "guide": "app:chapters:related",
+        "label": "ch:related",
+        "name": "related-work chapter"
+      }
+    },
+    "doc": "reviewer",
+    "example_box": "runningexample",
+    "findings": [
+      {
+        "file": "content/00-abstract.tex",
+        "help": "only TODO or the template's text so far: write both",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Abstract and Kivonat",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Context",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 9,
+        "msg": "\u25d4 Problem statement",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "fix": {
+          "edits": [
+            {
+              "file": "thesis.tex",
+              "line": 28,
+              "new": "\\newcommand{\\exname}{<the example's name>}",
+              "old": "\\newcommand{\\exname}{TODO name of the running example}"
+            }
+          ],
+          "help": "name the running example",
+          "safety": "placeholder",
+          "text": [
+            "fix (placeholder): fill in the <holes>",
+            "@ thesis.tex:28",
+            "- \\newcommand{\\exname}{TODO name of the running example} % used in every chapter, e.g. \"the flat reservation\"",
+            "+ \\newcommand{\\exname}{<the example's name>} % used in every chapter, e.g. \"the flat reservation\""
+          ]
+        },
+        "help": "name the example: \\exname in thesis.tex is still a TODO",
+        "level": "error",
+        "line": 11,
+        "msg": "\u25d4 Running example",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "3 items, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 18,
+        "msg": "\u25d4 Requirements",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 23,
+        "msg": "\u25d4 Gap, in brief",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 26,
+        "msg": "\u25d4 Leading figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 37,
+        "msg": "\u25d4 Contributions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 13,
+        "msg": "\u25d4 Architecture figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 29,
+        "msg": "\u25d4 Threats",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 42,
+        "msg": "\u25d4 Assumptions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 52,
+        "msg": "\u25d4 Guarantees",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 9,
+        "msg": "\u25d4 Research questions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 12,
+        "msg": "\u25d4 Setup and artifact",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 24,
+        "msg": "\u25d4 Correctness",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 39,
+        "msg": "\u25d4 Scalability",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 42,
+        "msg": "\u25d4 Robustness",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 45,
+        "msg": "\u25d4 Threats to validity",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/06-related-work.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 17,
+        "msg": "\u25d4 Positioning figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/06-related-work.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 39,
+        "msg": "\u25d4 The gap",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Summary with evidence",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 12,
+        "msg": "\u25d4 Future work",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 16,
+        "msg": "\u25d4 Limitations",
+        "rule": "essentials"
+      }
+    ],
+    "fingerprint": "front \u25d4 \u00b7 intro \u25d4\u25d4\u25d4\u25d4\u25d4\u25d4\u25d4 \u00b7 approach \u25d4\u25d4\u25d4\u25d4 \u00b7 evaluation \u25d4\u25d4\u25d4\u25d4\u25d4\u25d4 \u00b7 related \u25d4\u25cf\u25d4 \u00b7 concl. \u25d4\u25d4\u25d4",
+    "ok": false,
+    "phase": "polish",
+    "phase_source": "--phase",
+    "profile": "tdk",
+    "roles": {
+      "approach": [
+        "content/03-approach.tex"
+      ],
+      "conclusion": [
+        "content/07-conclusion.tex"
+      ],
+      "evaluation": [
+        "content/05-evaluation.tex"
+      ],
+      "front": [],
+      "intro": [
+        "content/01-introduction.tex"
+      ],
+      "related": [
+        "content/06-related-work.tex"
+      ]
+    },
+    "rows": [
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "abstract",
+        "kind": "front",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write both",
+        "role": "front",
+        "title": "Abstract and Kivonat",
+        "where": {
+          "file": "content/00-abstract.tex",
+          "last": 48,
+          "line": 6,
+          "para_end": 48,
+          "para_start": 6,
+          "sec_end": 48,
+          "sec_start": 6
+        },
+        "words": 0
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "C, E",
+        "glyph": "\u25d4",
+        "id": "context",
+        "key": "context",
+        "kind": "text",
+        "label": "par:context",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Context",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 8,
+          "line": 6,
+          "para_end": 8,
+          "para_start": 6,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "problem",
+        "key": "problem",
+        "kind": "text",
+        "label": "par:problem",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Problem statement",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 14,
+          "line": 9,
+          "para_end": 14,
+          "para_start": 9,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "criterion": "A",
+        "glyph": "\u25d4",
+        "id": "example",
+        "kind": "example",
+        "level": 1,
+        "next": "name the example: \\exname in thesis.tex is still a TODO",
+        "role": "intro",
+        "title": "Running example",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 13,
+          "line": 11,
+          "para_end": 14,
+          "para_start": 9,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "requirements",
+        "kind": "tags",
+        "level": 1,
+        "next": "3 items, all TODO or the template's text: write them",
+        "prefix": "req",
+        "role": "intro",
+        "title": "Requirements",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 21,
+          "line": 18,
+          "para_end": 22,
+          "para_start": 15,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "introgap",
+        "key": "gap",
+        "kind": "text",
+        "label": "par:gap",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Gap, in brief",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 32,
+          "line": 23,
+          "para_end": 32,
+          "para_start": 23,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "criterion": "B/1",
+        "glyph": "\u25d4",
+        "id": "overview",
+        "kind": "float",
+        "label": "fig:overview",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "intro",
+        "title": "Leading figure",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 31,
+          "line": 26,
+          "para_end": 32,
+          "para_start": 23,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "contributions",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "c",
+        "role": "intro",
+        "title": "Contributions",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 38,
+          "line": 37,
+          "para_end": 39,
+          "para_start": 33,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "B/1",
+        "glyph": "\u25d4",
+        "id": "architecture",
+        "kind": "float",
+        "label": "fig:architecture",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "approach",
+        "title": "Architecture figure",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 18,
+          "line": 13,
+          "para_end": 19,
+          "para_start": 6,
+          "sec_end": 19,
+          "sec_start": 6
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "threats",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "thr",
+        "role": "approach",
+        "title": "Threats",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 30,
+          "line": 29,
+          "para_end": 35,
+          "para_start": 26,
+          "sec_end": 65,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "assumptions",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "asm",
+        "role": "approach",
+        "title": "Assumptions",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 43,
+          "line": 42,
+          "para_end": 44,
+          "para_start": 39,
+          "sec_end": 65,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "guarantees",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "g",
+        "role": "approach",
+        "title": "Guarantees",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 53,
+          "line": 52,
+          "para_end": 65,
+          "para_start": 48,
+          "sec_end": 65,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "rqs",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "rq",
+        "role": "evaluation",
+        "title": "Research questions",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 10,
+          "line": 9,
+          "para_end": 11,
+          "para_start": 6,
+          "sec_end": 11,
+          "sec_start": 6
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "setup",
+        "key": "setup",
+        "kind": "text",
+        "label": "sec:setup",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Setup and artifact",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 17,
+          "line": 12,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        },
+        "words": 0
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "correctness",
+        "kind": "float",
+        "label": "tab:correctness",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "evaluation",
+        "title": "Correctness",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 37,
+          "line": 24,
+          "para_end": 38,
+          "para_start": 18,
+          "sec_end": 38,
+          "sec_start": 18
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "scalability",
+        "key": "scalability",
+        "kind": "text",
+        "label": "sec:scalability",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Scalability",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 41,
+          "line": 39,
+          "para_end": 41,
+          "para_start": 39,
+          "sec_end": 41,
+          "sec_start": 39
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "robustness",
+        "key": "robustness",
+        "kind": "text",
+        "label": "sec:robustness",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Robustness",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 44,
+          "line": 42,
+          "para_end": 44,
+          "para_start": 42,
+          "sec_end": 44,
+          "sec_start": 42
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "validity",
+        "key": "validity",
+        "kind": "text",
+        "label": "sec:validity",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Threats to validity",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 46,
+          "line": 45,
+          "para_end": 46,
+          "para_start": 45,
+          "sec_end": 46,
+          "sec_start": 45
+        },
+        "words": 0
+      },
+      {
+        "criterion": "B/2",
+        "glyph": "\u25d4",
+        "id": "positioning",
+        "kind": "float",
+        "label": "fig:positioning",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "related",
+        "title": "Positioning figure",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 22,
+          "line": 17,
+          "para_end": 38,
+          "para_start": 9,
+          "sec_end": 38,
+          "sec_start": 9
+        }
+      },
+      {
+        "criterion": "D/1",
+        "glyph": "\u25cf",
+        "id": "gapmatrix",
+        "kind": "float",
+        "label": "tab:related",
+        "level": 4,
+        "next": "",
+        "role": "related",
+        "title": "Gap matrix",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 37,
+          "line": 24,
+          "para_end": 38,
+          "para_start": 9,
+          "sec_end": 38,
+          "sec_start": 9
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "gap",
+        "key": "gap",
+        "kind": "text",
+        "label": "sec:gap",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "related",
+        "title": "The gap",
+        "via": "label",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 40,
+          "line": 39,
+          "para_end": 40,
+          "para_start": 39,
+          "sec_end": 40,
+          "sec_start": 39
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "summary",
+        "key": "summary",
+        "kind": "text",
+        "label": "sec:summary",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "conclusion",
+        "title": "Summary with evidence",
+        "via": "label",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 11,
+          "line": 6,
+          "para_end": 11,
+          "para_start": 6,
+          "sec_end": 11,
+          "sec_start": 6
+        },
+        "words": 0
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "limitations",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "lim",
+        "role": "conclusion",
+        "title": "Limitations",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 17,
+          "line": 16,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "future",
+        "key": "future",
+        "kind": "text",
+        "label": "sec:future",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "conclusion",
+        "title": "Future work",
+        "via": "label",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 17,
+          "line": 12,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        },
+        "words": 0
+      }
+    ],
+    "rules": [
+      {
+        "counts": "at-target=1/24 \u25cf=1 \u25d5=0 \u25d1=0 \u25d4=23 \u25cb=0",
+        "errors": 23,
+        "family": "source",
+        "ignored": 0,
+        "phase": "always",
+        "rule": "essentials",
+        "severity": "check",
+        "status": "fix",
+        "warnings": 0
+      }
+    ],
+    "tag_lists": {
+      "assumptions": {
+        "name": "Assumption",
+        "tag": "AS"
+      },
+      "contributions": {
+        "name": "Contribution",
+        "tag": "C"
+      },
+      "derivedrequirements": {
+        "name": "Derived requirement",
+        "tag": "DR"
+      },
+      "guarantees": {
+        "name": "Guarantee",
+        "tag": "SG"
+      },
+      "limitations": {
+        "name": "Limitation",
+        "tag": "LIM"
+      },
+      "requirements": {
+        "name": "Requirement",
+        "tag": "REQ"
+      },
+      "rqlist": {
+        "name": "Research question",
+        "tag": "RQ"
+      },
+      "threats": {
+        "name": "Adversary",
+        "tag": "ADV"
+      }
+    },
+    "target": 4
+  },
+  "after": {
+    "chapter_roles": {
+      "approach": {
+        "criteria": [
+          "D/1",
+          "D/2"
+        ],
+        "files": [
+          "content/03-approach.tex"
+        ],
+        "guide": "app:chapters:approach",
+        "label": "ch:approach",
+        "name": "approach chapter"
+      },
+      "background": {
+        "criteria": [
+          "B/2"
+        ],
+        "files": [
+          "content/02-background.tex"
+        ],
+        "guide": "app:chapters:background",
+        "label": "ch:background",
+        "name": "background chapter"
+      },
+      "conclusion": {
+        "criteria": [
+          "E"
+        ],
+        "files": [
+          "content/07-conclusion.tex"
+        ],
+        "guide": "app:chapters:conclusion",
+        "label": "ch:conclusion",
+        "name": "conclusion"
+      },
+      "evaluation": {
+        "criteria": [
+          "D/2",
+          "E"
+        ],
+        "files": [
+          "content/05-evaluation.tex"
+        ],
+        "guide": "app:chapters:evaluation",
+        "label": "ch:evaluation",
+        "name": "evaluation chapter"
+      },
+      "implementation": {
+        "criteria": [
+          "D/1",
+          "D/2"
+        ],
+        "files": [
+          "content/04-implementation.tex"
+        ],
+        "guide": "app:chapters:implementation",
+        "label": "ch:implementation",
+        "name": "implementation chapter"
+      },
+      "intro": {
+        "criteria": [
+          "B/1",
+          "C",
+          "E"
+        ],
+        "files": [
+          "content/01-introduction.tex"
+        ],
+        "guide": "app:chapters:intro",
+        "label": "ch:intro",
+        "name": "introduction"
+      },
+      "related": {
+        "criteria": [
+          "B/2",
+          "D/1"
+        ],
+        "files": [
+          "content/06-related-work.tex"
+        ],
+        "guide": "app:chapters:related",
+        "label": "ch:related",
+        "name": "related-work chapter"
+      }
+    },
+    "doc": "reviewer",
+    "example_box": "runningexample",
+    "findings": [
+      {
+        "file": "content/00-abstract.tex",
+        "help": "only TODO or the template's text so far: write both",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Abstract and Kivonat",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Context",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 9,
+        "msg": "\u25d4 Problem statement",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "fix": {
+          "edits": [
+            {
+              "file": "thesis.tex",
+              "line": 28,
+              "new": "\\newcommand{\\exname}{<the example's name>}",
+              "old": "\\newcommand{\\exname}{TODO name of the running example}"
+            }
+          ],
+          "help": "name the running example",
+          "safety": "placeholder",
+          "text": [
+            "fix (placeholder): fill in the <holes>",
+            "@ thesis.tex:28",
+            "- \\newcommand{\\exname}{TODO name of the running example} % used in every chapter, e.g. \"the flat reservation\"",
+            "+ \\newcommand{\\exname}{<the example's name>} % used in every chapter, e.g. \"the flat reservation\""
+          ]
+        },
+        "help": "name the example: \\exname in thesis.tex is still a TODO",
+        "level": "error",
+        "line": 11,
+        "msg": "\u25d4 Running example",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "3 items, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 18,
+        "msg": "\u25d4 Requirements",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 23,
+        "msg": "\u25d4 Gap, in brief",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 26,
+        "msg": "\u25d4 Leading figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/01-introduction.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 37,
+        "msg": "\u25d4 Contributions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 13,
+        "msg": "\u25d4 Architecture figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 29,
+        "msg": "\u25d4 Threats",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 42,
+        "msg": "\u25d4 Assumptions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/03-approach.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 52,
+        "msg": "\u25d4 Guarantees",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 9,
+        "msg": "\u25d4 Research questions",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 12,
+        "msg": "\u25d4 Setup and artifact",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 24,
+        "msg": "\u25d4 Correctness",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 39,
+        "msg": "\u25d4 Scalability",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 42,
+        "msg": "\u25d4 Robustness",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/05-evaluation.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 45,
+        "msg": "\u25d4 Threats to validity",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/06-related-work.tex",
+        "help": "still the template's placeholder: make it your own",
+        "level": "error",
+        "line": 17,
+        "msg": "\u25d4 Positioning figure",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/06-related-work.tex",
+        "help": "row \\ref{req:first}: this work's cell points at thm:verified is not an evaluation result: point at a result in the evaluation chapter, or at the research question or guarantee it answers",
+        "level": "error",
+        "line": 24,
+        "msg": "\u25d5 Gap matrix",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/06-related-work.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 39,
+        "msg": "\u25d4 The gap",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 6,
+        "msg": "\u25d4 Summary with evidence",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "only TODO or the template's text so far: write it",
+        "level": "error",
+        "line": 12,
+        "msg": "\u25d4 Future work",
+        "rule": "essentials"
+      },
+      {
+        "file": "content/07-conclusion.tex",
+        "help": "1 item, all TODO or the template's text: write them",
+        "level": "error",
+        "line": 16,
+        "msg": "\u25d4 Limitations",
+        "rule": "essentials"
+      }
+    ],
+    "fingerprint": "front \u25d4 \u00b7 intro \u25d4\u25d4\u25d4\u25d4\u25d4\u25d4\u25d4 \u00b7 approach \u25d4\u25d4\u25d4\u25d4 \u00b7 evaluation \u25d4\u25d4\u25d4\u25d4\u25d4\u25d4 \u00b7 related \u25d4\u25d5\u25d4 \u00b7 concl. \u25d4\u25d4\u25d4",
+    "ok": false,
+    "phase": "polish",
+    "phase_source": "--phase",
+    "profile": "tdk",
+    "roles": {
+      "approach": [
+        "content/03-approach.tex"
+      ],
+      "conclusion": [
+        "content/07-conclusion.tex"
+      ],
+      "evaluation": [
+        "content/05-evaluation.tex"
+      ],
+      "front": [],
+      "intro": [
+        "content/01-introduction.tex"
+      ],
+      "related": [
+        "content/06-related-work.tex"
+      ]
+    },
+    "rows": [
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "abstract",
+        "kind": "front",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write both",
+        "role": "front",
+        "title": "Abstract and Kivonat",
+        "where": {
+          "file": "content/00-abstract.tex",
+          "last": 48,
+          "line": 6,
+          "para_end": 48,
+          "para_start": 6,
+          "sec_end": 48,
+          "sec_start": 6
+        },
+        "words": 0
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "C, E",
+        "glyph": "\u25d4",
+        "id": "context",
+        "key": "context",
+        "kind": "text",
+        "label": "par:context",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Context",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 8,
+          "line": 6,
+          "para_end": 8,
+          "para_start": 6,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "problem",
+        "key": "problem",
+        "kind": "text",
+        "label": "par:problem",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Problem statement",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 14,
+          "line": 9,
+          "para_end": 14,
+          "para_start": 9,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "criterion": "A",
+        "glyph": "\u25d4",
+        "id": "example",
+        "kind": "example",
+        "level": 1,
+        "next": "name the example: \\exname in thesis.tex is still a TODO",
+        "role": "intro",
+        "title": "Running example",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 13,
+          "line": 11,
+          "para_end": 14,
+          "para_start": 9,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "requirements",
+        "kind": "tags",
+        "level": 1,
+        "next": "3 items, all TODO or the template's text: write them",
+        "prefix": "req",
+        "role": "intro",
+        "title": "Requirements",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 21,
+          "line": 18,
+          "para_end": 22,
+          "para_start": 15,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "cmd": "paragraph",
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "introgap",
+        "key": "gap",
+        "kind": "text",
+        "label": "par:gap",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "intro",
+        "title": "Gap, in brief",
+        "via": "label",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 32,
+          "line": 23,
+          "para_end": 32,
+          "para_start": 23,
+          "sec_end": 42,
+          "sec_start": 2
+        },
+        "words": 0
+      },
+      {
+        "criterion": "B/1",
+        "glyph": "\u25d4",
+        "id": "overview",
+        "kind": "float",
+        "label": "fig:overview",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "intro",
+        "title": "Leading figure",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 31,
+          "line": 26,
+          "para_end": 32,
+          "para_start": 23,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "contributions",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "c",
+        "role": "intro",
+        "title": "Contributions",
+        "where": {
+          "file": "content/01-introduction.tex",
+          "last": 38,
+          "line": 37,
+          "para_end": 39,
+          "para_start": 33,
+          "sec_end": 42,
+          "sec_start": 2
+        }
+      },
+      {
+        "criterion": "B/1",
+        "glyph": "\u25d4",
+        "id": "architecture",
+        "kind": "float",
+        "label": "fig:architecture",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "approach",
+        "title": "Architecture figure",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 18,
+          "line": 13,
+          "para_end": 19,
+          "para_start": 6,
+          "sec_end": 19,
+          "sec_start": 6
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "threats",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "thr",
+        "role": "approach",
+        "title": "Threats",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 30,
+          "line": 29,
+          "para_end": 35,
+          "para_start": 26,
+          "sec_end": 67,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "assumptions",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "asm",
+        "role": "approach",
+        "title": "Assumptions",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 43,
+          "line": 42,
+          "para_end": 44,
+          "para_start": 39,
+          "sec_end": 67,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "guarantees",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "g",
+        "role": "approach",
+        "title": "Guarantees",
+        "where": {
+          "file": "content/03-approach.tex",
+          "last": 53,
+          "line": 52,
+          "para_end": 67,
+          "para_start": 48,
+          "sec_end": 67,
+          "sec_start": 23
+        }
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "rqs",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "rq",
+        "role": "evaluation",
+        "title": "Research questions",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 10,
+          "line": 9,
+          "para_end": 11,
+          "para_start": 6,
+          "sec_end": 11,
+          "sec_start": 6
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "setup",
+        "key": "setup",
+        "kind": "text",
+        "label": "sec:setup",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Setup and artifact",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 17,
+          "line": 12,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        },
+        "words": 0
+      },
+      {
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "correctness",
+        "kind": "float",
+        "label": "tab:correctness",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "evaluation",
+        "title": "Correctness",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 37,
+          "line": 24,
+          "para_end": 38,
+          "para_start": 18,
+          "sec_end": 38,
+          "sec_start": 18
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "scalability",
+        "key": "scalability",
+        "kind": "text",
+        "label": "sec:scalability",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Scalability",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 41,
+          "line": 39,
+          "para_end": 41,
+          "para_start": 39,
+          "sec_end": 41,
+          "sec_start": 39
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "robustness",
+        "key": "robustness",
+        "kind": "text",
+        "label": "sec:robustness",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Robustness",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 44,
+          "line": 42,
+          "para_end": 44,
+          "para_start": 42,
+          "sec_end": 44,
+          "sec_start": 42
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/2",
+        "glyph": "\u25d4",
+        "id": "validity",
+        "key": "validity",
+        "kind": "text",
+        "label": "sec:validity",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "evaluation",
+        "title": "Threats to validity",
+        "via": "label",
+        "where": {
+          "file": "content/05-evaluation.tex",
+          "last": 46,
+          "line": 45,
+          "para_end": 46,
+          "para_start": 45,
+          "sec_end": 46,
+          "sec_start": 45
+        },
+        "words": 0
+      },
+      {
+        "criterion": "B/2",
+        "glyph": "\u25d4",
+        "id": "positioning",
+        "kind": "float",
+        "label": "fig:positioning",
+        "level": 1,
+        "next": "still the template's placeholder: make it your own",
+        "role": "related",
+        "title": "Positioning figure",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 22,
+          "line": 17,
+          "para_end": 38,
+          "para_start": 9,
+          "sec_end": 38,
+          "sec_start": 9
+        }
+      },
+      {
+        "criterion": "D/1",
+        "glyph": "\u25d5",
+        "id": "gapmatrix",
+        "kind": "float",
+        "label": "tab:related",
+        "level": 3,
+        "next": "row \\ref{req:first}: this work's cell points at thm:verified is not an evaluation result: point at a result in the evaluation chapter, or at the research question or guarantee it answers",
+        "role": "related",
+        "title": "Gap matrix",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 37,
+          "line": 24,
+          "para_end": 38,
+          "para_start": 9,
+          "sec_end": 38,
+          "sec_start": 9
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "D/1",
+        "glyph": "\u25d4",
+        "id": "gap",
+        "key": "gap",
+        "kind": "text",
+        "label": "sec:gap",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "related",
+        "title": "The gap",
+        "via": "label",
+        "where": {
+          "file": "content/06-related-work.tex",
+          "last": 40,
+          "line": 39,
+          "para_end": 40,
+          "para_start": 39,
+          "sec_end": 40,
+          "sec_start": 39
+        },
+        "words": 0
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "summary",
+        "key": "summary",
+        "kind": "text",
+        "label": "sec:summary",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "conclusion",
+        "title": "Summary with evidence",
+        "via": "label",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 11,
+          "line": 6,
+          "para_end": 11,
+          "para_start": 6,
+          "sec_end": 11,
+          "sec_start": 6
+        },
+        "words": 0
+      },
+      {
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "limitations",
+        "kind": "tags",
+        "level": 1,
+        "next": "1 item, all TODO or the template's text: write them",
+        "prefix": "lim",
+        "role": "conclusion",
+        "title": "Limitations",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 17,
+          "line": 16,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        }
+      },
+      {
+        "cmd": "section",
+        "criterion": "E",
+        "glyph": "\u25d4",
+        "id": "future",
+        "key": "future",
+        "kind": "text",
+        "label": "sec:future",
+        "level": 1,
+        "next": "only TODO or the template's text so far: write it",
+        "role": "conclusion",
+        "title": "Future work",
+        "via": "label",
+        "where": {
+          "file": "content/07-conclusion.tex",
+          "last": 17,
+          "line": 12,
+          "para_end": 17,
+          "para_start": 12,
+          "sec_end": 17,
+          "sec_start": 12
+        },
+        "words": 0
+      }
+    ],
+    "rules": [
+      {
+        "counts": "at-target=0/24 \u25cf=0 \u25d5=1 \u25d1=0 \u25d4=23 \u25cb=0",
+        "errors": 24,
+        "family": "source",
+        "ignored": 0,
+        "phase": "always",
+        "rule": "essentials",
+        "severity": "check",
+        "status": "fix",
+        "warnings": 0
+      }
+    ],
+    "tag_lists": {
+      "assumptions": {
+        "name": "Assumption",
+        "tag": "AS"
+      },
+      "contributions": {
+        "name": "Contribution",
+        "tag": "C"
+      },
+      "derivedrequirements": {
+        "name": "Derived requirement",
+        "tag": "DR"
+      },
+      "guarantees": {
+        "name": "Guarantee",
+        "tag": "SG"
+      },
+      "limitations": {
+        "name": "Limitation",
+        "tag": "LIM"
+      },
+      "requirements": {
+        "name": "Requirement",
+        "tag": "REQ"
+      },
+      "rqlist": {
+        "name": "Research question",
+        "tag": "RQ"
+      },
+      "threats": {
+        "name": "Adversary",
+        "tag": "ADV"
+      }
+    },
+    "target": 4
+  }
+}
