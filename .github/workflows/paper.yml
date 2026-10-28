@@ -63,6 +63,8 @@ jobs:
         run: |
           python3 -m unittest scripts/review/test_review.py scripts/skim/test_skim.py
           python3 scripts/lint/tests/execution.py
+          python3 scripts/lint/tests/evidence.py
+          python3 scripts/lint/tests/safety_readers.py
       - name: template / the lint's skeleton copy matches content/ (the template's repository only)
         if: github.repository == 'BlackLight54/TDK-template'
         run: for f in content/0[1-7]-*.tex; do cmp "$f" "scripts/lint/skeleton/${f#content/}" || exit 1; done
