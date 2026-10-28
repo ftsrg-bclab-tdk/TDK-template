@@ -153,7 +153,15 @@ The skill collects the personas' answers into one file for `review.py record`:
 ```
 
 `scores` holds the skim persona's score and maximum per criterion; it is absent when the skim
-pass did not run. `mode` is `premortem` (a spine, no draft) or `draft`.
+pass did not run. The bundled sheet is the 2025 reference
+(`docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`); check the current faculty call for the
+applicable sheet. B is the average of B/1 and B/2 unless B/1 is inapplicable, when B equals B/2.
+Represent that case with `"B/1": [null, 4]` in `scores` and a separate
+`"score_na_reasons": {"B/1": "<why B/1 is inapplicable>"}`. Only B/1 accepts `null`, and its
+reason is required; omit `score_na_reasons` otherwise. A numeric zero remains a score in the
+average. An omitted criterion means incomplete scoring, not N/A: partial numeric records
+remain supported, but no total is rendered until all criteria are present. The total remains
+out of 35 when B/1 is N/A. `mode` is `premortem` (a spine, no draft) or `draft`.
 
 ## The record
 

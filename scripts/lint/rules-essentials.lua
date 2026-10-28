@@ -6,6 +6,7 @@
 -- (topic to plan ◔, draft ◑, polish and submit ●), and a row below it fails. The rows, with their level,
 -- place and next step, stay in C.ESSENTIALS for the Checks page, the job summary and --json.
 local C = require("lintcore")
+local T = require("texscan")
 local ROWS = require("essentials")
 local fail, warn, note = C.fail, C.warn, C.note
 
@@ -482,8 +483,27 @@ local function eval_float(row, r)
   return 3, why
 end
 
--- the gap matrix's argument: one row per requirement, each exactly once; this work meets all, each
--- with a pointer to a result; every other approach misses something. Returns the failures;
+-- Labels inside printed theorem-like result environments, independent of their prefix.
+-- Use the shared command reader so escaped commands, literal code, notes and link addresses
+-- cannot open a result environment. Read all content, including appendix results.
+local RESULT_ENV = { theorem = true, lemma = true, proposition = true, corollary = true,
+  invariant = true, property = true, claim = true }
+local function theorem_labels()
+  local out, stacks = {}, {}
+  C.each_call(C.CONTENT, function(cmd) return cmd == "begin" or cmd == "end" or cmd == "label" end,
+    function(f, n, cmd, key, start)
+      local stack = stacks[f] or {}; stacks[f] = stack
+      if cmd == "begin" then stack[#stack + 1] = key
+      elseif cmd == "end" and stack[#stack] == key then stack[#stack] = nil
+      elseif cmd == "label" and RESULT_ENV[stack[#stack]] then
+        out[key] = { file = f, line = n, start = start }
+      end
+    end)
+  return out
+end
+
+-- The gap matrix: one row per requirement, each exactly once; this work reports a status with
+-- a pointer to a result, or justifies why the requirement is not applicable. Returns the failures;
 -- warnings go out as the rule's own findings. Whether a pointed-at result shows what the cell
 -- claims is for the reader to judge.
 -- Read a literal alignment rather than physical source lines. Braced cells (makecell,
@@ -548,6 +568,28 @@ local function matrix_rows(block)
   return rows
 end
 M.gapwarn = {}
+-- Read cell commands as TeX tokens, skipping addresses and reference arguments. A literal
+-- \\cref or a command written inside a URL cannot supply a status or an evidence pointer.
+local function cell_commands(text, fn)
+  local pos = 1
+  while pos <= #text do
+    if text:sub(pos, pos) ~= "\\" then pos = pos + 1
+    else
+      local cmd, after = T.command(text, pos)
+      pos = after
+      local bare = cmd:gsub("%*$", "")
+      if T.LINK[bare] or bare == "path" then
+        local _, e
+        if bare == "url" or bare == "path" or bare == "nolinkurl" then _, e = T.address(text, after)
+        else _, e = T.argument(text, after, true) end
+        if e then pos = e + 1 end
+      elseif bare == "ref" or bare == "cref" or bare == "Cref" then
+        local arg, e = T.argument(text, after)
+        if e then fn(bare, arg); pos = e + 1 end
+      else fn(cmd) end
+    end
+  end
+end
 function M.gapmatrix()
   local fails = {}
   M.gapwarn = {}
@@ -580,12 +622,13 @@ function M.gapmatrix()
   for req in pairs(seen) do
     if not declared[req] then fails[#fails + 1] = req .. " is a row of the gap matrix but no requirement carries that label" end
   end
-  -- Index only printed labels, including appendices. Prefixes are conventional pointers,
-  -- not a scientific sufficiency test; evaluation sections remain an explicit heuristic.
+  -- Index only printed labels, including appendices. Theorem evidence comes from its
+  -- environment; figure/table prefixes and evaluation sections remain source heuristics.
   local labels = {}
-  C.each_call(C.CONTENT, function(cmd) return cmd == "label" end, function(f, n, _, key)
-    labels[key] = { file = f, line = n }
+  C.each_call(C.CONTENT, function(cmd) return cmd == "label" end, function(f, n, _, key, start)
+    labels[key] = { file = f, line = n, start = start }
   end)
+  local theorems = theorem_labels()
   local evalfile, heuristic = {}, {}
   for _, f in ipairs(C.role_files("evaluation")) do evalfile[f] = true end
   local function result_problem(key)
@@ -593,8 +636,10 @@ function M.gapmatrix()
     if not at then return key .. ", which no label defines in the printed paper" end
     if not key:match("^ch:") and key ~= "tab:related" then
       if key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
-      if key:match("^thm:") or key:match("^fig:") or key:match("^tab:") then return nil end
-      if evalfile[at.file] then
+      local thm = theorems[key]
+      if thm and thm.file == at.file and thm.start == at.start then return nil end
+      if key:match("^fig:") or key:match("^tab:") then return nil end
+      if evalfile[at.file] and (key:match("^par:") or key:match("^sec:") or key:match("^subsec:") or key:match("^subsubsec:")) then
         if not heuristic[key] then
           heuristic[key] = true
           M.gapwarn[#M.gapwarn + 1] = key .. " is a heuristic section pointer in the evaluation: the reader must check that it contains a result sufficient for the matrix claim"
@@ -606,13 +651,31 @@ function M.gapmatrix()
   end
   local approaches = ncols - 3 -- tag, name, approaches..., this work
   if approaches < 2 then M.gapwarn[#M.gapwarn + 1] = "fewer than two other approaches in the gap matrix: the gap is argued against the closest existing work, plural" end
-  local allmet = {}
   for _, r in ipairs(rows) do
     local last = r[#r]
-    if not last:match("\\gapyes") then fails[#fails + 1] = string.format("row %s: this work does not meet its own requirement; if a requirement is not met, say so in the text and the limitations", r[1])
+    local status, count = nil, 0
+    local keys = {}
+    cell_commands(last, function(cmd, arg)
+      if cmd:match("^gap%a+$") then status = cmd; count = count + 1 end
+      if arg then for k in arg:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
+    end)
+    if count ~= 1 or not ({ gapyes = true, gappartial = true, gapno = true, gapna = true })[status] then
+      fails[#fails + 1] = string.format("row %s: this work's cell needs one status: \\gapyes, \\gappartial, \\gapno or \\gapna", r[1])
+    elseif status == "gapna" then
+      local justified = false
+      for _, k in ipairs(keys) do
+        local prefix, suffix = k:match("^([^:]+):(.+)$")
+        if not labels[k] then fails[#fails + 1] = string.format("row %s: this work's cell points at %s, which no label defines", r[1], k)
+        elseif prefix == "lim" or ((prefix == "par" or prefix == "sec" or prefix == "subsec")
+          and (suffix == "scope" or suffix == "out-of-scope" or suffix == "limitations")) then justified = true end
+      end
+      -- A short reason in the cell also suffices; a bare marker or "not applicable" does not.
+      local reason = last:gsub("\\[cC]?ref%*?%s*%b{}", " ")
+      local words = 0
+      for _ in C.prose(reason):gmatch("%a%a+") do words = words + 1 end
+      if words >= 3 and not reason:match("TODO") then justified = true end
+      if not justified then fails[#fails + 1] = string.format("row %s: this work's N/A cell needs a reason or a reference to its scope or limitations", r[1]) end
     else
-      local keys = {}
-      for list in last:gmatch("\\[cC]?ref%*?%s*{([^}]*)}") do for k in list:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
       if #keys == 0 then fails[#fails + 1] = string.format("row %s: this work's cell points at no evaluation result: add \\cref to the result that shows it", r[1]) end
       for _, k in ipairs(keys) do
         local why = result_problem(k)
@@ -620,9 +683,7 @@ function M.gapmatrix()
       end
     end
     if (r[2] or ""):match("TODO") then M.gapwarn[#M.gapwarn + 1] = string.format("row %s: the requirement's short name is a TODO", r[1]) end
-    for c = 3, #r - 1 do allmet[c] = (allmet[c] == nil or allmet[c]) and r[c]:match("\\gapyes") ~= nil end
   end
-  for c = 3, (ncols or 0) - 1 do if allmet[c] then fails[#fails + 1] = string.format("the approach in column %d meets every requirement: then there is no gap, or a requirement is missing", c - 2) end end
   M.gapcounts = string.format("rows=%d approaches=%d", #rows, approaches)
   return fails
 end

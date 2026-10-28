@@ -1,0 +1,14 @@
+{
+  "base_commit": "9eda539b251b3d18472b399e2f222e6d190b54bd",
+  "branch": "review/template-helpfulness-1",
+  "lint_mutations_passed": 171,
+  "review_tests_passed": 32,
+  "plan_lint_ok": true,
+  "draft_pages": 115,
+  "reviewer_pages": 20,
+  "visual_checks": "Introduction, evaluation section, worked rationale and target, proof and code caption, mindmaps, lifecycle, essentials and rubric inspected; no overfull boxes or undefined references in final logs.",
+  "pdf_sha256": {
+    "thesis.pdf": "05da10e64c9a91c9fed38c353dbd380814ddc977b93767485955529793eff39e",
+    "reviewer.pdf": "7e1ab893e08b78c04c633e4e0d0e713ce7c50b9c9765f951eb108c435c46091d"
+  }
+}

@@ -104,13 +104,15 @@ student may choose to record any run. A recorded run becomes one issue on the pa
 until every persona has returned, then:
 
 1. Write `findings.json` next to `inputs.json`. Its fields are in `scripts/review/README.md`:
-   `sha`, `bundle`, `mode`, `panel`, `skipped`, `model`, `scores` and `findings`. Leave `inputs`
-   out; `record` takes the hashes from `inputs.json`.
+   `sha`, `bundle`, `mode`, `panel`, `skipped`, `model`, `scores`, optional `score_na_reasons`
+   and `findings`. Leave `inputs` out; `record` takes the hashes from `inputs.json`.
 2. Put every finding of every persona in `findings`, not only the worst one, numbered `F1`, `F2`, ...
    in the order of the chat answer. Copy the persona's words. For the skim persona, `where` is its
    location, `objection` its issue and `answer` its suggested fix, and `scores` holds its score and
    maximum for each of A, B/1, B/2, C, D/1, D/2 and E. Leave `scores` out when the skim pass did
-   not run.
+   not run. For an inapplicable B/1, use `"B/1": [null, 4]` and
+   `"score_na_reasons": {"B/1": "<reason>"}`; B then equals B/2. Otherwise B is the average
+   of B/1 and B/2. An omitted criterion means incomplete scoring, not N/A, and yields no total.
 3. Run `python3 scripts/review/review.py record findings.json --bundle <bundle-dir> --inputs inputs.json`.
    Add `--dry-run` first when the student wants to read the issue before it is filed. Give the
    student the issue URL it prints.
@@ -136,7 +138,8 @@ Handed on: one line per thing noticed outside this slice, each with its owner.
 ```
 
 At most three findings, most costly first. A blocker costs the top band of a criterion on the review
-sheet (`docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`), a major finding costs a point, and
+sheet (the bundled 2025 reference, `docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`; check the
+current faculty call for the applicable sheet), a major finding costs a point, and
 a minor one costs only the reviewer's goodwill. A persona with nothing above minor says so in one
 line and does not pad.
 

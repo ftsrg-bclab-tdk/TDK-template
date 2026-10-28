@@ -186,6 +186,83 @@ gap("gap-tabularnewline-unsupported", m.sub(RELATED, ROW, ROW[:-2] + r"\tabularn
     level=3, reason=r"cannot check \tabularnewline row terminators")
 
 
+# Main-policy interactions with the audited printed reader and balanced matrix parser.
+# The original 76 cases and their assertions above remain unchanged.
+APPROACH = "content/03-approach.tex"
+for status in ("gappartial", "gapno"):
+    gap("interaction-" + status + "-wrapped-evidence",
+        m.sub(RELATED, ROW, ROW.replace(" & " + SC, "\n & " + SC.replace("gapyes", status))),
+        diagnostic="Matrix claim sufficiency needs human review")
+    gap("interaction-" + status + "-missing-evidence",
+        m.sub(RELATED, SC, "\\" + status), level=3, reason="points at no evaluation result")
+# Reporting a competitor that meets every requirement does not itself refute a gap.
+gap("interaction-competitor-meets-all", m.sub(RELATED,
+    r"Fast revocation & \gapyes & \gappartial", r"Fast revocation & \gapyes & \gapyes"),
+    m.sub(RELATED, r"Unlinkable checks & \gapno", r"Unlinkable checks & \gapyes"),
+    m.sub(RELATED, r"Auditable history & \gappartial & \gapno", r"Auditable history & \gapyes & \gapyes"))
+
+for name, file, text, key in (
+    ("appendix-theorem", APPENDIX, r"\begin{theorem}\label{sec:appendix-result} It holds.\end{theorem}", "sec:appendix-result"),
+    ("arbitrary-prefix", APPROACH, r"\begin{corollary}\label{result:bounded} It holds.\end{corollary}", "result:bounded"),
+    ("multiline", APPROACH, "\\begin {proposition}\n\\label\n {result:multiline} It holds.\\end {proposition}", "result:multiline"),
+    ("printed-math", APPROACH, r"\begin{theorem}\[x=1\label{result:math}\]\end{theorem}", "result:math"),
+    ("literal-end", APPROACH, r"\begin{claim}\verb|\end{claim}|\label{result:literal-end} It holds.\end{claim}", "result:literal-end"),
+):
+    gap("interaction-result-" + name, m.append(file, text), pointer(key))
+for name, file, text, key, reason in (
+    ("fake-prefix", APPROACH, r"\paragraph{Assertion}\label{thm:fake} Unproved assertion.", "thm:fake", "is not an evaluation result"),
+    ("fake-prefix-evaluation", m.EVAL, r"\paragraph{Assertion}\label{thm:fake} Unproved assertion.", "thm:fake", "is not an evaluation result"),
+    ("after-close", APPROACH, r"\begin{theorem} It holds.\end{theorem}\label{thm:after}", "thm:after", "is not an evaluation result"),
+    ("definition", APPROACH, r"\begin{definition}\label{thm:definition} A definition.\end{definition}", "thm:definition", "is not an evaluation result"),
+    ("escaped-begin", APPROACH, r"\\begin{theorem}\label{thm:escaped} Text.", "thm:escaped", "is not an evaluation result"),
+    ("address-begin", APPROACH, r"\href{https://example.org/\begin{theorem}}{Address}\label{thm:address} Text.", "thm:address", "is not an evaluation result"),
+    ("printed-duplicate-after", APPROACH, r"\begin{theorem}\label{thm:collision} Result.\end{theorem}\paragraph{Other}\label{thm:collision}", "thm:collision", "is not an evaluation result"),
+    ("chapter-prefix", APPROACH, r"\begin{theorem}\label{ch:fake} It holds.\end{theorem}", "ch:fake", "is not an evaluation result"),
+):
+    gap("interaction-result-" + name, m.append(file, text), pointer(key), level=3, reason=key + " " + reason)
+for name, text in {
+    "todo": r"\todo{\begin{theorem}\label{thm:hidden} Result.\end{theorem}}",
+    "comment": r"\begin{comment}\begin{theorem}\label{thm:hidden} Result.\end{theorem}\end{comment}",
+    "false": r"\iffalse\begin{theorem}\label{thm:hidden} Result.\end{theorem}\fi",
+    "listing": "\\begin{lstlisting}\n\\begin{theorem}\\label{thm:hidden} Result.\\end{theorem}\n\\end{lstlisting}",
+    "inline": r"\verb|\begin{theorem}\label{thm:hidden}\end{theorem}|",
+    "texttt": r"\texttt{\begin{theorem}\label{thm:hidden}\end{theorem}}",
+    "address": r"\url{https://example.org/\begin{theorem}\label{thm:hidden}\end{theorem}}",
+}.items():
+    gap("interaction-result-hidden-" + name, m.append(APPROACH, text), pointer("thm:hidden"),
+        level=3, reason="thm:hidden, which no label defines in the printed paper")
+for name, text in {
+    "todo": r"\todo{No revocation operation exists in the offline model}",
+    "multiline-note": "\\advisortodo[inline]{No revocation\noperation exists in the offline model}",
+    "false": r"\iffalse No revocation operation exists in the offline model\fi",
+    "inline": r"\verb|No revocation operation exists in the offline model|",
+    "address": r"\url{https://example.org/no revocation operation exists}",
+}.items():
+    gap("interaction-na-hidden-reason-" + name, m.sub(RELATED, SC, r"\gapna{} " + text),
+        level=3, reason="N/A cell needs a reason")
+for name, text in {
+    "hidden": r"\todo{\paragraph{Scope}\label{par:scope} This operation is absent.}",
+    "literal": r"\verb|\paragraph{Scope}\label{par:scope} This operation is absent.|",
+}.items():
+    gap("interaction-na-" + name + "-scope", m.append(APPROACH, text),
+        m.sub(RELATED, SC, r"\gapna\,(\cref{par:scope})"), level=3,
+        reason="par:scope, which no label defines")
+gap("interaction-na-visible-makecell", m.sub(RELATED, SC,
+    r"\makecell{\gapna{} No revocation operation\\exists in the offline model}"))
+gap("interaction-na-appendix-scope", m.append(APPENDIX,
+    r"\section{Scope}\label{sec:scope} The offline model has no revocation operation."),
+    m.sub(RELATED, SC, r"\gapna\,(\cref{sec:scope})"))
+gap("interaction-na-self-pointer", m.sub(RELATED, SC, r"\gapna\,(\cref{tab:related})"),
+    level=3, reason="N/A cell needs a reason")
+for name, cell, reason in (
+    ("escaped-pointer", r"\gapyes\\cref{rq:correct}", "points at no evaluation result"),
+    ("address-pointer", r"\gapyes\url{https://example.org/\cref{rq:correct}}", "points at no evaluation result"),
+    ("escaped-status", r"\\gapyes\cref{rq:correct}", "this work's cell needs one status"),
+    ("address-status", r"\url{https://example.org/\gapyes}\cref{rq:correct}", "this work's cell needs one status"),
+):
+    gap("interaction-cell-" + name, m.sub(RELATED, SC, cell), level=3, reason=reason)
+
+
 def lint(d):
     cmd = ["texlua", "scripts/lint.lua", "essentials", "--phase", "submit", "--json"]
     env = dict(os.environ, LINT_OFFLINE="1")

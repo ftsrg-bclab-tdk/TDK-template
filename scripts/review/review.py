@@ -478,16 +478,23 @@ def validate_findings(f, panel_inputs):
     if not (isinstance(f.get("model"), str) and f["model"].strip()):
         errs.append("model: the model that ran the personas")
     scores = f.get("scores")
+    na_reasons = f.get("score_na_reasons", {})
     if scores is not None:
         ok = isinstance(scores, dict) and set(scores) <= set(CRITERIA) and all(
-            isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
-            and 0 <= v[0] <= v[1] for v in scores.values())
+            isinstance(v, list) and len(v) == 2 and (
+                (k == "B/1" and v[0] is None and v[1] == 4)
+                or (all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+                    and 0 <= v[0] <= v[1])) for k, v in scores.items())
         if not ok:
-            errs.append(f"scores: an object of criterion ({', '.join(CRITERIA)}) -> [score, maximum]")
+            errs.append(f"scores: an object of criterion ({', '.join(CRITERIA)}) -> [score, maximum]; only B/1 may be [null, 4]")
         if "skim" not in panel:
             errs.append("scores: present, but skim is not in the panel")
     elif "skim" in panel:
         errs.append("scores: the skim ran, so its scores are required")
+    na = {"B/1"} if isinstance(scores, dict) and scores.get("B/1") == [None, 4] else set()
+    if not (isinstance(na_reasons, dict) and set(na_reasons) == na
+            and all(isinstance(r, str) and r.strip() for r in na_reasons.values())):
+        errs.append("score_na_reasons: a non-empty reason for B/1 exactly when its score is [null, 4]")
     findings = f.get("findings")
     if not isinstance(findings, list):
         errs.append("findings: a list")
@@ -540,7 +547,8 @@ def total(scores):
         return None
     def at(i):
         s = lambda k: scores[k][i]
-        return s("A") + (s("B/1") + s("B/2")) / 2 + s("C") + s("D/1") + s("D/2") + s("E")
+        b = s("B/2") if scores["B/1"][0] is None else (s("B/1") + s("B/2")) / 2
+        return s("A") + b + s("C") + s("D/1") + s("D/2") + s("E")
     return at(0), at(1)
 
 
@@ -564,10 +572,15 @@ def render_issue(f, manifest, inputs, today, versions=None):
     scores = f.get("scores")
     if scores:
         lines += ["## Skim scores", "", "| Criterion | Score | Maximum |", "|---|---|---|"]
-        lines += [f"| {c} | {scores[c][0]:g} | {scores[c][1]:g} |" for c in CRITERIA if c in scores]
+        for c in CRITERIA:
+            if c in scores:
+                score = "N/A" if scores[c][0] is None else f"{scores[c][0]:g}"
+                lines.append(f"| {c} | {score} | {scores[c][1]:g} |")
+        if scores.get("B/1") == [None, 4]:
+            lines += ["", "B/1 is N/A: " + one_line(f["score_na_reasons"]["B/1"])]
         t = total(scores)
         if t:
-            lines += ["", f"Total {t[0]:g} of {t[1]:g} (B is the average of B/1 and B/2, D is D/1 plus D/2)."]
+            lines += ["", f"Total {t[0]:g} of {t[1]:g} (B is the average of B/1 and B/2, or B/2 when B/1 is N/A; D is D/1 plus D/2)."]
         lines.append("")
     lines += ["## Findings", ""] + [finding_line(x) for x in f["findings"]]
     lines += ["", "## Dispositions", "",

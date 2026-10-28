@@ -13,6 +13,7 @@ built on a claim: a reviewer should be confident giving the maximum score from t
 figures, the labelled items (C1, REQ1, AS1, SG1, ADV1, DR1, RQ1, LIM1, ...) and the coloured boxes
 alone. This persona tests that claim. It is cheap and runs on every review, before any reader of
 the full paper would. It is a gate on what is visible, not on whether the work is correct.
+Its numeric score captures the reader's system-one first impression.
 
 Rules:
 - Input is `skim.md` plus the figure and table PNGs it links, in the `assets/` folder next to it.
@@ -29,6 +30,8 @@ Rules:
   "követhető" (followable) and against the chain it should carry; never as a missing link if the
   skim shows a clickable one.
 - Score only on the sheet's criteria, in its bands. Do not invent criteria.
+  The bundled sheet is the 2025 reference; the caller must check the current faculty call for
+  the applicable sheet before preparing the review inputs.
 - For each criterion (A, B/1, B/2, C, D/1, D/2, E): the score you would give after the skim, the
   maximum, whether the skim alone justifies the maximum, and the items that decided it.
 
@@ -55,7 +58,9 @@ This persona has its own format. The skill maps it onto findings.
 
 1. Score table, one row per criterion:
    criterion | score after the skim / max | does the skim alone justify the max (yes/no) | decisive evidence (item, figure, box ids).
-   Then B (average of B/1 and B/2), D (D/1 + D/2) and the total out of 35.
+   If B/1 is inapplicable, mark it N/A with a reason and use B/2 as B; otherwise B is the
+   average of B/1 and B/2. Then D (D/1 + D/2) and the total out of 35. An omitted criterion
+   means incomplete scoring, not N/A; give a total only when every applicable criterion is scored.
 2. What the skim leaves unconvinced, one block per issue, most severe first:
    - severity: blocker | major | minor (blocker: on its own it keeps a criterion below the maximum)
    - criterion:
