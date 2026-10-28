@@ -397,6 +397,62 @@ class TestRecord(Workdir):
         self.assertEqual(code, 1)
         self.assertIn("scores: the skim ran", err)
 
+    def test_inapplicable_b1_uses_b2_and_records_the_reason(self):
+        self.findings["scores"]["B/1"] = [None, 4]
+        self.findings["score_na_reasons"] = {"B/1": "The topic needs no figures or tables.\nChecked against the sheet."}
+        code, out, err = self.record("--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertIn("| B/1 | N/A | 4 |", out)
+        self.assertIn("B/1 is N/A: The topic needs no figures or tables. Checked against the sheet.", out)
+        self.assertIn("Total 24 of 35", out)
+        self.assertIn("or B/2 when B/1 is N/A", out)
+
+    def test_inapplicable_b1_requires_a_nonempty_reason(self):
+        self.findings["scores"]["B/1"] = [None, 4]
+        for reasons in ({}, {"B/1": ""}, {"B/1": "  "}, {"B/1": None}, {"B/2": "Not applicable"}, []):
+            with self.subTest(reasons=reasons):
+                self.findings["score_na_reasons"] = reasons
+                code, _, err = self.record("--dry-run")
+                self.assertEqual(code, 1)
+                self.assertIn("score_na_reasons:", err)
+
+    def test_only_b1_accepts_an_explicit_na_score(self):
+        for criterion in review.CRITERIA:
+            if criterion == "B/1":
+                continue
+            with self.subTest(criterion=criterion):
+                original = self.findings["scores"][criterion]
+                self.findings["scores"][criterion] = [None, original[1]]
+                code, _, err = self.record("--dry-run")
+                self.assertEqual(code, 1)
+                self.assertIn("scores:", err)
+                self.findings["scores"][criterion] = original
+        self.findings["scores"]["B/1"] = [None, 5]
+        code, _, err = self.record("--dry-run")
+        self.assertEqual(code, 1)
+        self.assertIn("scores:", err)
+
+    def test_an_omitted_b1_stays_incomplete_and_is_not_na(self):
+        del self.findings["scores"]["B/1"]
+        code, out, err = self.record("--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("Total ", out)
+        self.assertNotIn("N/A", out)
+        self.findings["score_na_reasons"] = {"B/1": "Not applicable"}
+        code, _, err = self.record("--dry-run")
+        self.assertEqual(code, 1)
+        self.assertIn("score_na_reasons:", err)
+
+    def test_zero_b1_is_scored_in_the_average(self):
+        self.findings["scores"]["B/1"] = [0, 4]
+        code, out, err = self.record("--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertIn("Total 23 of 35", out)
+        self.findings["score_na_reasons"] = {"B/1": "Not applicable"}
+        code, _, err = self.record("--dry-run")
+        self.assertEqual(code, 1)
+        self.assertIn("score_na_reasons:", err)
+
     def test_input_hashes_must_come_from_the_bundle(self):
         self.inputs["cryptographer"]["files"]["reviewer.pdf"] = "0" * 64
         write(self.tmp / "inputs.json", json.dumps(self.inputs))

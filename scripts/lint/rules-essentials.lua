@@ -363,8 +363,27 @@ local function eval_float(row, r)
   return 3, why
 end
 
--- the gap matrix's argument: one row per requirement, each exactly once; this work meets all, each
--- with a pointer to a result; every other approach misses something. Returns the failures;
+-- Labels inside the template's theorem-like result environments, independent of their prefix.
+-- Definitions, examples and remarks are not results. Read prose so a theorem in a note or
+-- commented-out block cannot supply evidence, and process tokens in order even on one line.
+local RESULT_ENV = { theorem = true, lemma = true, proposition = true, corollary = true,
+  invariant = true, property = true, claim = true }
+local function theorem_labels()
+  local out = {}
+  for _, f in ipairs(C.main_chapters()) do
+    local stack = {}
+    for cmd, arg in table.concat(plines(f), "\n"):gmatch("\\(%a+)%s*(%b{})") do
+      local key = arg:sub(2, -2)
+      if cmd == "begin" then stack[#stack + 1] = key
+      elseif cmd == "end" and stack[#stack] == key then stack[#stack] = nil
+      elseif cmd == "label" and RESULT_ENV[stack[#stack]] then out[key] = true end
+    end
+  end
+  return out
+end
+
+-- The gap matrix: one row per requirement, each exactly once; this work reports a status with
+-- a pointer to a result, or justifies why the requirement is not applicable. Returns the failures;
 -- warnings go out as the rule's own findings. Whether a pointed-at result shows what the cell
 -- claims is for the reader to judge.
 M.gapwarn = {}
@@ -398,25 +417,43 @@ function M.gapmatrix()
     if not declared[req] then fails[#fails + 1] = req .. " is a row of the gap matrix but no requirement carries that label" end
   end
   -- what this work's cells may point at: a label in an evaluation chapter, or a research question,
-  -- guarantee or derived requirement the evaluation answers; a chapter or an unknown label is no result
+  -- guarantee or derived requirement the evaluation answers, or an actual theorem-like result
+  -- elsewhere in the paper; a chapter or an unknown label is no result
   local labels = C.collect_labels_and_refs(C.main_chapters())
+  local theorems = theorem_labels()
   local evalfile = {}
   for _, f in ipairs(C.role_files("evaluation")) do evalfile[f] = true end
   local function result_problem(key)
     local at = labels[key]
     if not at then return key .. ", which no label defines" end
-    if evalfile[at.file] or key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
-    return key .. " is not an evaluation result: point at a result in the evaluation chapter, or at the research question or guarantee it answers"
+    if evalfile[at.file] or theorems[key] or key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
+    return key .. " is not an evaluation result: point at a result in the evaluation chapter, a theorem-like result, or the research question or guarantee it answers"
   end
   local approaches = ncols - 3 -- tag, name, approaches..., this work
   if approaches < 2 then M.gapwarn[#M.gapwarn + 1] = "fewer than two other approaches in the gap matrix: the gap is argued against the closest existing work, plural" end
-  local allmet = {}
   for _, r in ipairs(rows) do
     local last = r[#r]
-    if not last:match("\\gapyes") then fails[#fails + 1] = string.format("row %s: this work does not meet its own requirement; if a requirement is not met, say so in the text and the limitations", r[1])
+    local status, count = nil, 0
+    for marker in last:gmatch("\\(gap%a+)%f[%A]") do status = marker; count = count + 1 end
+    local keys = {}
+    for list in last:gmatch("\\[cC]?ref%*?%s*{([^}]*)}") do for k in list:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
+    if count ~= 1 or not ({ gapyes = true, gappartial = true, gapno = true, gapna = true })[status] then
+      fails[#fails + 1] = string.format("row %s: this work's cell needs one status: \\gapyes, \\gappartial, \\gapno or \\gapna", r[1])
+    elseif status == "gapna" then
+      local justified = false
+      for _, k in ipairs(keys) do
+        local prefix, suffix = k:match("^([^:]+):(.+)$")
+        if not labels[k] then fails[#fails + 1] = string.format("row %s: this work's cell points at %s, which no label defines", r[1], k)
+        elseif prefix == "lim" or ((prefix == "par" or prefix == "sec" or prefix == "subsec")
+          and (suffix == "scope" or suffix == "out-of-scope" or suffix == "limitations")) then justified = true end
+      end
+      -- A short reason in the cell also suffices; a bare marker or "not applicable" does not.
+      local reason = last:gsub("\\[cC]?ref%*?%s*%b{}", " ")
+      local words = 0
+      for _ in C.prose(reason):gmatch("%a%a+") do words = words + 1 end
+      if words >= 3 and not reason:match("TODO") then justified = true end
+      if not justified then fails[#fails + 1] = string.format("row %s: this work's N/A cell needs a reason or a reference to its scope or limitations", r[1]) end
     else
-      local keys = {}
-      for list in last:gmatch("\\[cC]?ref%*?%s*{([^}]*)}") do for k in list:gmatch("[^,%s]+") do keys[#keys + 1] = k end end
       if #keys == 0 then fails[#fails + 1] = string.format("row %s: this work's cell points at no evaluation result: add \\cref to the result that shows it", r[1]) end
       for _, k in ipairs(keys) do
         local why = result_problem(k)
@@ -424,9 +461,7 @@ function M.gapmatrix()
       end
     end
     if (r[2] or ""):match("TODO") then M.gapwarn[#M.gapwarn + 1] = string.format("row %s: the requirement's short name is a TODO", r[1]) end
-    for c = 3, #r - 1 do allmet[c] = (allmet[c] == nil or allmet[c]) and r[c]:match("\\gapyes") ~= nil end
   end
-  for c = 3, (ncols or 0) - 1 do if allmet[c] then fails[#fails + 1] = string.format("the approach in column %d meets every requirement: then there is no gap, or a requirement is missing", c - 2) end end
   M.gapcounts = string.format("rows=%d approaches=%d", #rows, approaches)
   return fails
 end
