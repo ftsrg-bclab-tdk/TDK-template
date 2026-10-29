@@ -55,7 +55,8 @@ essentials:
 guide-bib:
 	texlua scripts/guide-bib.lua
 
-# The template's regression suites, also run by CI. Mutation tests need make reviewer first.
+# The template's regression suites, also run by CI. Requires TeX Live and PyMuPDF;
+# mutation tests need make reviewer first. Use a Python environment with PyMuPDF installed.
 test: test-lint test-review
 
 test-lint:

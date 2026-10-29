@@ -89,7 +89,11 @@ bundle of one commit (`scripts/review/README.md` describes the bundle).
    no file outside that directory. Where a persona lists `spine` in `reads` and its entry has
    `"spine": false`, also tell it: there is no spine; judge overclaiming against the abstract and
    the introduction. No persona sees another's findings, the bundle's other files, or the
-   repository.
+   repository. Include the criterion key in every persona's prompt: A form and style;
+   B/1 figures and tables; B/2 references and literature; C the research topic;
+   D/1 novelty and contribution; D/2 technical correctness; E introduction and evaluation.
+   These names come from the bundled sheet in `guide/06-tdk-rules-and-dates.tex`.
+   They describe the output labels, not extra evidence about the paper.
 6. Each persona returns its findings in the persona format below. They stay in the conversation.
 7. Answer in the chat format below. Do not merge or reword findings. When two personas raised the
    same point, or one argued outside its slice, say so under borders: the persona files need
