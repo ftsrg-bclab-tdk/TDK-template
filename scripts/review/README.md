@@ -22,6 +22,7 @@ review-<sha7>/
   reviewer.pdf       what the reviewer gets
   logs/thesis.log    the LaTeX logs of both builds
   logs/reviewer.log
+  logs/lint-stderr.txt  stderr captured by CI, including execution failures
   lint.json          texlua scripts/lint.lua all --doc reviewer --json
   skim/skim.md       the skim view, the skim persona's only input
   skim/skim.html     the same for a human, with the panels
@@ -39,10 +40,10 @@ review-<sha7>/
   "ref": "main",
   "built": { "by": "ci", "run_url": "https://github.com/.../actions/runs/<id>", "run_attempt": 1 },
   "image": { "ref": "danteev/texlive:latest", "digest": "sha256:..." },
-  "phase": "polish", "phase_source": "thesis.tex", "profile": "tdk",
+  "phase": "polish", "phase_source": "\\lintphase in thesis.tex", "profile": "tdk",
   "builds": [
-    { "doc": "thesis",   "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
-    { "doc": "reviewer", "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
+    { "doc": "thesis",   "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
+    { "doc": "reviewer", "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
   ],
   "lint": { "exit": 1 },
   "skim": { "exit": 0 },
@@ -88,8 +89,7 @@ it besides the rule results and findings:
   The table lives in `scripts/lint/lintcore.lua` (`ROLE_CRITERIA`), beside the role labels.
   Criterion A is scored on the whole paper and belongs to no role. `texlua scripts/lint.lua
   criteria`, a template-only CI step, fails when the bold `\textbf{Criteri...}` heads of a role's
-  section in `guide/05-chapter-by-chapter.tex` name other criteria. (`roles`, role → files, stays as
-  it was for `work/essentials-labels.py`.)
+  section in `guide/05-chapter-by-chapter.tex` name other criteria. `roles` retains the simpler role-to-files mapping for existing consumers.
 - `tag_lists`: every tag list the paper declares with `\NewTagList{<environment>}{<tag>}{<Name>}{<Names>}`,
   the template's eight and any the paper adds:
   `{"contributions": {"tag": "C", "name": "Contribution"}, "assumptions": {"tag": "AS", "name": "Assumption"}, ...}`.
@@ -166,7 +166,7 @@ out of 35 when B/1 is N/A. `mode` is `premortem` (a spine, no draft) or `draft`.
 ## The record
 
 `inputs` may be left out of findings.json: `record --inputs inputs.json` takes the hashes from the
-saved output of `review.py inputs`, and an `inputs` field in findings.json wins over it.
+saved output of `review.py inputs`. If both are supplied, their hashes must agree; mismatches are refused.
 
 `review.py record findings.json --bundle <dir> [--inputs inputs.json]` verifies the bundle again,
 checks that its manifest names the commit findings.json names and that the persona input hashes

@@ -26,7 +26,7 @@ uv run scripts/skim/skim.py build . -o /tmp/skim/my-paper --debug   # also debug
 Without a local TeX Live, use the image CI uses:
 
 ```fish
-docker run --rm -u (id -u):(id -g) -e HOME=/tmp -e LINT_OFFLINE=1 -v $PWD:/w -w /w tdk-texlive-ci \
+docker run --rm -u (id -u):(id -g) -e HOME=/tmp -e LINT_OFFLINE=1 -v $PWD:/w -w /w danteev/texlive:latest \
     texlua scripts/lint.lua all --doc reviewer --json > lint.json
 ```
 
@@ -43,7 +43,7 @@ repository:
 | chapter roles and tag lists | `lint.json`, else `texlua scripts/lint.lua chapters --json` | `--lint` |
 
 It exits 1 when it cannot read the build: no PDF, a PDF it cannot open, an `.aux` without labels,
-a `.toc` without link targets, or a `--lint` file that is missing or not JSON. It exits 0 whenever
+a `.toc` without a numbered chapter or link targets, or a `--lint` file that is missing or not JSON. It exits 0 whenever
 it wrote a view, however incomplete the paper is. A missing guide, sheet or lint export is a note
 at the top of the view, not a failure.
 

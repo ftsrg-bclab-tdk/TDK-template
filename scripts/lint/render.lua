@@ -309,7 +309,7 @@ function M.checks_page(results)
   w(other_checks(C.results))
   w(counts_table(C.results))
   w("\\par\\medskip\\noindent\\rule{.4\\linewidth}{.4pt}\\par")
-  w(string.format("{\\footnotesize\\color{lintmute}\\noindent Generated %s by \\texttt{texlua scripts/lint.lua overleaf}. The build log's own warnings and the PDF rules are not here: Overleaf shows the first, CI runs the second. A finding judged and rejected is silenced by \\texttt{\\%% lint-ignore: <id> <reason>} on its line. Under a finding, after $\\to$, is the text to write instead, or else in italics what to do; in a local clone, \\texttt{make fix} writes the safe fixes and prints the diff.\\par}", os.date("%Y-%m-%d")))
+  w(string.format("{\\footnotesize\\color{lintmute}\\noindent Generated %s by \\texttt{texlua scripts/lint.lua overleaf}. The build log's own warnings and the PDF rules are not here: Overleaf shows the first, CI runs the second. A finding judged and rejected is silenced by \\texttt{\\%% lint-ignore: <rule> <reason>} on its line. Under a finding, after $\\to$, is the text to write instead, or else in italics what to do; in a local clone, \\texttt{make fix} writes the safe fixes and prints the diff.\\par}", os.date("%Y-%m-%d")))
   -- failing checks as package warnings, for Overleaf's log panel
   for _, res in ipairs(C.results) do
     if res.status == "error" or (res.severity == "check" and res.status == "fix") then

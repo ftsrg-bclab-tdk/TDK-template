@@ -686,7 +686,7 @@ def parser():
 
     p = sub.add_parser("inputs", help="make one directory per persona holding exactly its inputs",
                        description="For each persona, read `reads` from its file and copy exactly those inputs from the "
-                       "verified bundle into a fresh temporary directory. Prints persona -> {dir, files, spine} as JSON.")
+                       "verified bundle into a fresh temporary directory. Prints persona -> {dir, files, spine, persona} as JSON.")
     p.add_argument("bundle", metavar="BUNDLE", help="a bundle directory printed by `fetch`")
     p.add_argument("personas", nargs="+", metavar="PERSONA")
     p.add_argument("--spine", metavar="FILE", help="the spine, for personas that read it; without it they are told there is none")

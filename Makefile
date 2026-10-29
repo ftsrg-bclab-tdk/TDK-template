@@ -12,12 +12,12 @@ reviewer:
 
 clean:
 	latexmk -C $(DOCUMENT).tex reviewer.tex
-	rm -rf _minted-$(DOCUMENT) _minted-reviewer svg-inkscape *.tdo *.lol *.thm lint-checks.tex content/*.aux guide/*.aux include/*.aux
+	rm -rf _minted _minted-$(DOCUMENT) _minted-reviewer svg-inkscape *.tdo *.lol *.thm lint-checks.tex content/*.aux guide/*.aux include/*.aux
 
-# The requirements table's rows with a rule name (guide, Requirements): every lint rule against the last build.
+# The requirements table's rows with a rule name (guide, Requirements): every lint rule against the draft build (thesis by default).
 # "make lint-<rule>" runs one; "texlua scripts/lint.lua list" names them.
 check:
-	$(LINT) all
+	$(LINT) all --doc $(DOCUMENT)
 
 lint-%:
 	$(LINT) $*
@@ -55,14 +55,16 @@ essentials:
 guide-bib:
 	texlua scripts/guide-bib.lua
 
-# The template's own tests, the same two CI runs: the lint against each mutation of the skeleton
-# (scripts/lint/tests/mutations.py, after make reviewer) and review.py's unit tests.
+# The template's regression suites, also run by CI. Mutation tests need make reviewer first.
 test: test-lint test-review
 
 test-lint:
 	python3 scripts/lint/tests/mutations.py
+	python3 scripts/lint/tests/execution.py
+	python3 scripts/lint/tests/evidence.py
+	python3 scripts/lint/tests/safety_readers.py
 
 test-review:
-	python3 -m unittest scripts/review/test_review.py
+	python3 -m unittest scripts/review/test_review.py scripts/skim/test_skim.py
 
 .PHONY: all reviewer clean check check-reviewer check-submit fix fix-dry fix-review guide-bib skeleton essentials test test-lint test-review
