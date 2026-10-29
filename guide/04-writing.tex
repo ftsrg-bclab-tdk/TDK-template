@@ -147,9 +147,9 @@ The lint calls these items the \emph{essentials}. Their status appears on the dr
 \input{guide/essentials}
 
 \section{The leading figure (vezérábra)}\label{app:writing:figure}
-The leading figure (\tplref{fig:overview}) shows the problem, your contributions and the result in one picture. Decide what the reader should learn, then draw it and write a caption that makes it understandable on its own. Use the \texttt{ours} TikZ style to colour all your components blue. The problem is red, the result green, and reused or external parts grey (\texttt{prior}). Every work has at least two components; give all of yours the same blue and explain the colours in the caption. If ownership is unclear, a reviewer may attribute only the smallest part to you.
+The leading figure (\tplref{fig:overview}) shows the problem, your contributions and the result in one picture. Decide what the reader should learn, then draw it and write a caption that makes it understandable on its own. Use the \texttt{ours} TikZ style to colour all your components blue to indicate that they are your contribution. The problem is red, the result green, and reused or external parts grey (\texttt{prior}). Every work has at least two components; give all of yours the same blue and explain the colours in the caption. If ownership is unclear, a reviewer may attribute only the smallest part to you.
 
-Draft the figure during research and keep exploring it until the spine is agreed. Drawing often helps clarify the argument. \Cref{fig:collage} shows four examples from our group.
+Draft the figure during research and keep exploring it. Drawing often helps clarify the argument. \Cref{fig:collage} shows four examples from our group.
 
 \begin{figure}[!ht]
   \centering
@@ -314,7 +314,7 @@ The \texttt{bib} lint rule checks titles, years and authors, access dates for we
 
 \paragraph{Quoting.} Put every verbatim quotation in \texttt{\textbackslash enquote} and follow it with a citation. Cite paraphrases too. Cite each borrowed result, concept, tool or product at first use, however familiar it is. Unmarked quotations count as plagiarism, and criterion B/2 also rewards proper citation.
 
-\paragraph{Web pages.} The faculty guideline in \texttt{include/guideline.tex} requires: \enquote{Internetes hivatkozások megadásakor fontos, hogy az elérési út előtt megadjuk az oldal tulajdonosát és tartalmát (mivel a link egy idő után akár elérhetetlenné is válhat), valamint az elérés időpontját.} Use a \texttt{misc} entry. Set the author to the page owner in double braces, such as \texttt{author = \{\{W3C\}\}}, to keep its name intact. Give the page a descriptive title, a \texttt{url} and a \texttt{urldate} recording when you read it.
+\paragraph{Web pages.} The faculty guideline in \texttt{include/guideline.tex} requires: \enquote{Internetes hivatkozások megadásakor fontos, hogy az elérési út előtt megadjuk az oldal tulajdonosát és tartalmát (mivel a link egy idő után akár elérhetetlenné is válhat), valamint az elérés időpontját.} Use a \texttt{misc} entry. Set the author to the page owner in double braces, such as \texttt{author = \{\{W3C\}\}}, to keep its name intact. Give the page a descriptive title, a \texttt{url} and a \texttt{urldate} recording when you read it. A citation management tool, like Zotero, takes care of all of that for you.
 
 \paragraph{Where the entries come from: Zotero.} Add sources to the group library with the browser's \href{https://www.zotero.org/download/connectors}{Zotero Connector}. Click it on the paper or DOI page, then correct the fetched metadata in Zotero. Do not write literature entries by hand; the hand-written entries in \texttt{bib/references.bib} are the Zenodo artifact and web pages that are not in Zotero (\cref{app:latex:cite}).
 
