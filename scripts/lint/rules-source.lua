@@ -628,10 +628,102 @@ local function ref_fix(l)
   end)))
 end
 
+-- A reference typed as a number ("Lemma 4", "Table 3.2", "Section 3.5.2.4") and a tag typed by hand
+-- ("AS1", or the "A3" a misspelling left in a list of \cref{asm:...}) stay what they were when the
+-- paper is renumbered, so both want \cref. The tags are the template's own: the second argument of
+-- every \NewTagList in include/preamble.tex and include/macros.tex; TAG_KEY is the label prefix the
+-- template gives each kind (\cref{asm:x} prints AS<n>), and an unknown tag falls back to its lower case
+local TAG_KEY = { C = "c", REQ = "req", DR = "dr", AS = "asm", SG = "g", ADV = "thr", LIM = "lim", RQ = "rq" }
+local NUMBERED = { proposition = true, corollary = true, notation = true } -- beside CLEVER
+local REFCMD = { cref = true, Cref = true, crefrange = true, Crefrange = true, labelcref = true, ref = true }
+-- what is not prose even on a printed line: citation keys, labels, reference keys and the text of
+-- a marker (\tbd, \citeneeded; the todo notes and the links are already hidden by the reader)
+local function unprinted_args(l)
+  for _, pat in ipairs({ "\\[cC]ite%a*%*?%s*%b[]%s*%b[]%s*%b{}", "\\[cC]ite%a*%*?%s*%b[]%s*%b{}", "\\[cC]ite%a*%*?%s*%b{}",
+      "\\%a*ref%*?%s*%b[]%s*%b{}", "\\%a*ref%*?%s*%b{}", "\\label%s*%b{}", "\\tbd%s*%b{}", "\\citeneeded%s*%b[]", "\\input%s*%b{}", "\\include%s*%b{}" }) do
+    l = l:gsub(pat, function(x) return (x:gsub(".", " ")) end)
+  end
+  return l
+end
+local tag_cache
+local function tag_prefixes()
+  local out = {}
+  for _, file in ipairs({ "include/preamble.tex", "include/macros.tex" }) do
+    for _, l in ipairs(C.exists(file) and C.raw_lines(file) or {}) do
+      local pre = C.strip_comment(l):match("\\NewTagList%s*%b{}%s*{(%u+)}")
+      if pre then out[pre] = TAG_KEY[pre] or pre:lower() end
+    end
+  end
+  return out
+end
+-- "and", "or", a dash or a comma between two items of a list
+local TAG_JOIN = { [""] = true, ["and"] = true, ["or"] = true, ["--"] = true, ["-"] = true, ["\xE2\x80\x93"] = true, ["\xE2\x80\x94"] = true, ["/"] = true }
+local function typed_numbers(low)
+  for s, word, e in low:gmatch("%f[%a]()(%a+%.?)()") do
+    local w = word:gsub("%.$", ""):gsub("s$", "")
+    if CLEVER[w] or NUMBERED[w] or ABBREV[word] or ABBREV[word:gsub("s%.$", ".")] then
+      local rest = low:sub(e)
+      local num = rest:match("^[~ ]+(%d+[%.%d]*)")
+      if num then
+        num = num:gsub("%.$", "") -- Table 3.2. is Table 3.2 and a full stop
+        local tail = rest:match("^[~ ]+" .. num:gsub("%.", "%%.") .. "(.*)$")
+        -- 4a and 4(c) are items of a numbered thing; 5th, 3x4 and 2nd are not numbers of it
+        if tail:match("^[a-z]?%(%w+%)") or tail:match("^[a-z]?[^%w]") or tail:match("^[a-z]?$") then return true end
+      end
+    end
+  end
+  return false
+end
+local function typed_tags(code, l)
+  local prefixes = tag_cache
+  local items = {}
+  for s, name, arg, e in l:gmatch("()\\(%a*ref)%*?%s*(%b{})()") do
+    if REFCMD[name] then
+      local kp
+      for key in arg:gmatch("[^,%s{}]+") do
+        for _, p in pairs(prefixes) do if key:sub(1, #p + 1) == p .. ":" then kp = kp or p end end
+      end
+      items[#items + 1] = { s = s, e = e - 1, cref = kp or false }
+    end
+  end
+  for s, pre, e in code:gmatch("%f[%w]()(%u%u?%u?%u?)%d+%f[%W]()") do
+    items[#items + 1] = { s = s, e = e - 1, tag = pre }
+  end
+  table.sort(items, function(a, b) return a.s < b.s end)
+  -- a title names its research question the way the guide's examples do: \cref does not belong in one
+  local heading = code:match("^%s*\\chapter") or code:match("^%s*\\%a*section") or code:match("^%s*\\paragraph")
+  local key
+  local function close(group)
+    local tagged
+    for _, it in ipairs(group) do tagged = tagged or it.cref end
+    for _, it in ipairs(group) do
+      if it.tag and prefixes[it.tag] and not heading then key = key or prefixes[it.tag] -- AS1
+      elseif it.tag and tagged then key = key or tagged end -- A3 beside \cref{asm:x}
+    end
+  end
+  local group = {}
+  for _, it in ipairs(items) do
+    local prev = group[#group]
+    if prev and not TAG_JOIN[(code:sub(prev.e + 1, it.s - 1):gsub("[%s~,;]", ""))] then close(group); group = {} end
+    group[#group + 1] = it
+  end
+  close(group)
+  return key
+end
+local function typed_references(f, n, l)
+  local code = unprinted_args(l)
+  if typed_numbers(code:lower()) then warn(f, n, "a reference typed as a number", "write \\cref{...} so the number follows the label") end
+  tag_cache = tag_cache or tag_prefixes()
+  if next(tag_cache) == nil then return end
+  local key = typed_tags(code, l)
+  if key then warn(f, n, "a tag typed by hand", "write \\cref{" .. key .. ":...}; a typed tag does not follow renumbering") end
+end
+
 -- the printed lines only, and nothing inside \verb, \lstinline or a link: a Figure~\ref in a code
 -- listing is the program's text, and no fix touches it (lintcore.lua, M.literal_spans)
 rule("crefs", "source", "check", "always", "references go through \\cref: no 'Figure~\\ref', no \\autoref, \\Cref at the start of a sentence, and no bare \\ref outside table cells", function()
   C.each_editable_line(MAIN, function(f, n, l)
+    typed_references(f, n, l)
     if l:match("[Ff]igure~?\\ref") or l:match("[Tt]able~?\\ref") or l:match("[Ss]ection~?\\ref") or l:match("[Cc]hapter~?\\ref") or l:match("[Ll]isting~?\\ref") then fail(f, n, "a typed reference with \\ref", "write \\cref{...}", cref_fix(l, "(%a+)~?\\ref{([^}]*)}", function(w) return TYPED_REF[w:lower()] end)) end
     if l:match("\\autoref") then fail(f, n, "\\autoref", "the template uses cleveref, write \\cref", cref_fix(l, "\\(auto)ref{([^}]*)}", function() return true end)) end
     if l:match("\\figref") or l:match("\\tabref") or l:match("\\sectref") or l:match("\\listref") then fail(f, n, "the faculty template's \\figref family", "write \\cref", cref_fix(l, "\\(%a+)ref{([^}]*)}", function(w) return FACULTY_REF[w] end)) end
