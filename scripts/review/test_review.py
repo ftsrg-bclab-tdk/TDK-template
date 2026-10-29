@@ -56,7 +56,7 @@ class Workdir(unittest.TestCase):
         for doc in ("thesis", "reviewer"):
             write(built / f"{doc}.pdf", b"%PDF-1.4\n1 0 obj << /Type /Page >> endobj\n2 0 obj << /Type /Pages >> endobj\n")
             write(built / f"{doc}.log", LOG)
-        write(self.tmp / f"{name}-lint.json", json.dumps({"phase": "polish", "phase_source": "thesis.tex", "profile": "tdk"}))
+        write(self.tmp / f"{name}-lint.json", json.dumps({"phase": "polish", "phase_source": "\\lintphase in thesis.tex", "profile": "tdk"}))
         write(self.tmp / f"{name}-skim" / "skim.md", "# skim\n![Figure 1](assets/fig1.png)\n")
         write(self.tmp / f"{name}-skim" / "skim.html", "<html></html>")
         write(self.tmp / f"{name}-skim" / "assets" / "fig1.png", b"png1")
@@ -81,7 +81,7 @@ class TestBundle(Workdir):
         self.assertEqual([m["schema"], m["repo"], m["sha"], m["ref"]], [1, "BlackLight54/TDK26-Example", SHA, "main"])
         self.assertEqual(m["built"], {"by": "ci", "run_url": "https://github.com/BlackLight54/TDK26-Example/actions/runs/42", "run_attempt": 2})
         self.assertEqual(m["image"], {"ref": "texlive/texlive:latest", "digest": DIGEST})
-        self.assertEqual([m["phase"], m["phase_source"], m["profile"]], ["polish", "thesis.tex", "tdk"])
+        self.assertEqual([m["phase"], m["phase_source"], m["profile"]], ["polish", "\\lintphase in thesis.tex", "tdk"])
         self.assertEqual(m["builds"][1], {"doc": "reviewer", "engine": "xelatex", "latexmk_exit": 0, "started": True, "errors": 2, "undefined": 2, "pages": 1})
         self.assertEqual([m["lint"], m["skim"]], [{"exit": 1}, {"exit": 0}])
         self.assertEqual(set(m["files"]), {"thesis.pdf", "reviewer.pdf", "logs/thesis.log", "logs/reviewer.log", "lint.json",

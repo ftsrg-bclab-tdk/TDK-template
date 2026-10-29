@@ -293,6 +293,7 @@ Use it before a section that must follow all earlier floats.
 
 %----------------------------------------------------------------------------
 \section{Algorithms (algorithm, algpseudocode)}\label{app:latex:alg}
+Use \texttt{algorithm} for the captioned float and \texttt{algorithmic} for its steps. \Cref{alg:latex:revoke} shows the notation.
 \begin{algorithm}[!ht]
   \caption{Revocation with a freshness check}\label{alg:latex:revoke}
   \begin{algorithmic}[1]
@@ -387,8 +388,8 @@ pub fn revoke(registry: &mut HashSet<CredentialId>, id: CredentialId) -> bool {
 \begin{minted}{go}
 // IsRevoked reports whether the chaincode state marks the credential as revoked.
 func (s *Registry) IsRevoked(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
-	v, err := ctx.GetStub().GetState("revoked/" + id)
-	return v != nil, err
+    v, err := ctx.GetStub().GetState("revoked/" + id)
+    return v != nil, err
 }
 \end{minted}
 \caption{Go (a Hyperledger Fabric chaincode function).}\label{lst:latex:go}
