@@ -11,7 +11,8 @@ paper's appendices; the table at the end points into it.
 - `make reviewer` builds `reviewer.pdf`, the submission format, with no notes and no guide. On
   Overleaf, open `reviewer.tex` and choose *Recompile from this file*.
 - `make check-reviewer` builds the reviewer PDF and runs every lint rule on it. CI
-  (`.github/workflows/paper.yml`) judges this build. Prefer it to `make check`, which lints
+  (`.github/workflows/paper.yml`) reports its findings as advice; only compilation failures and
+  technical errors fail the workflow. Local check targets remain strict. Prefer it to `make check`, which lints
   the draft build. `make check-submit` does the same at the `submit` phase whatever
   `\lintphase` says: the check before upload.
 - `texlua scripts/lint.lua list` lists the rules with their severity and phase; `make lint-<rule>`
