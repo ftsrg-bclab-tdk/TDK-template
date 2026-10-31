@@ -32,6 +32,19 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
 \caption{A minimal \texttt{.zenodo.json}.}\label{lst:zenodo-json}
 \end{listing}
 
+\section{Before the repository goes public}\label{app:zenodo:public}
+Making the repository public, on GitHub or through its Zenodo archive, publishes its whole history, not only the current files. A file you deleted last month is still in a commit, and Zenodo does not let you change the files of a published record. Check the following before the first release:
+\begin{itemize}
+  \item \textbf{No links to private or unpublished places.} No Overleaf project, paper or notes repository, Notion, Teams or SharePoint page, or chat share link, in the README or anywhere else. Link only public URLs; the same-year rule for companion papers (\cref{app:tdk:companion}) applies here too.
+  \item \textbf{No paper sources.} The paper lives in the paper repository; standalone TikZ figures that a script generates may stay.
+  \item \textbf{You author your commits.} Configure the agent to commit as you; an agent identity such as \texttt{Claude <noreply@anthropic.com>} lists the agent as a contributor on GitHub. A \texttt{Co-Authored-By} line naming the agent is fine. Do not add an AI app or bot as a collaborator.
+  \item \textbf{No agent files in the archive.} The code template's \texttt{.gitattributes} marks \path{.claude/}, \texttt{CLAUDE.md}, \texttt{AGENTS.md} and similar files \texttt{export-ignore}, which keeps them out of GitHub's release archive that Zenodo stores. Add any other agent file there.
+  \item \textbf{No secrets, test keys included.} Keep keys, wallets and tokens in an untracked \texttt{.env}, and commit an \texttt{.env.example} with placeholders. A key that was ever committed is burned: replace it, then ask us to help remove it from the history.
+  \item \textbf{No machine-specific paths} such as \path{/home/you/}: use relative paths or variables.
+  \item \textbf{A fork credits its upstream.} Keep the upstream license, name its authors in \texttt{.zenodo.json}, and say in the README what you changed.
+\end{itemize}
+The code template's \texttt{hygiene} workflow checks these on every push: secrets with gitleaks over the whole history, the rest with \texttt{scripts/hygiene.py}. Findings in the current files fail the run; findings in the history only warn, because fixing them means rewriting the history. Run \texttt{just hygiene --strict} before the first release; it fails on both.
+
 \section{Publish the first release}
 \begin{enumerate}
   \item Sign in to \href{https://zenodo.org/}{Zenodo} with the repository owner's GitHub account. In the profile menu, choose \emph{GitHub}, click \emph{Sync now}, find the repository and enable its toggle; see \href{https://help.zenodo.org/docs/github/enable-repository/}{enable a repository}.
