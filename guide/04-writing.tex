@@ -345,3 +345,49 @@ You are responsible for verifying every AI answer; it cannot stand as a referenc
 These transcripts can contain everything you pasted in, so keep them out of public repositories.
 
 \paragraph{Do not wipe your machine.} During the TDK, avoid reinstalling the operating system or clearing your home directory. If necessary, first back up \path{~/.claude/}, \path{~/.codex/}, \path{~/.t3/} and any other tool histories, then restore them afterwards.
+
+
+\section{Cutting a paper to its page budget}\label{app:writing:cutting}
+
+Measure the submission build with \texttt{make reviewer}, then run
+\texttt{make check-reviewer}. Count the main text as defined in
+\cref{app:tdk}; record the commit, the first and last counted pages, and the
+chapter boundaries from the PDF. Draft notes and the guide are not part of
+that budget. Moving glossary tables behind the bibliography does not save
+main-text pages when they were already outside the counted interval.
+
+\begin{enumerate}
+  \item Give each chapter a budget before editing. Reserve room for the
+  contribution, its assumptions, the evaluation and the limitations. The
+  sum must fit the main-text limit; a long approach chapter cannot consume
+  the space needed to substantiate its claims.
+  \item Cut repetition first. Keep each definition, design rationale and
+  result at one authoritative location, and refer to it elsewhere. A
+  running example should advance at each appearance, rather than restart.
+  Remove background that no later argument uses.
+  \item Move reference material to an appendix: complete grammars, API and
+  error catalogues, long derivations, additional traces and full result
+  tables. Keep the statement, its conditions, the reason it matters and a
+  precise appendix reference in the main text. Keep the evidence needed to
+  judge the contribution there too. An appendix must not hide a limitation
+  or supply a missing central argument.
+  \item Choose between redundant presentations. A diagram, table, listing
+  and paragraph need not all describe the same control flow. Keep the form
+  that explains the decision best; let the prose interpret it. Preserve
+  distinct measurements and uncertainty when condensing result tables.
+  \item Tighten layout after cutting content. Crop empty figure margins,
+  allow sensible float placement, shorten table cells and use adjacent
+  panels when their labels remain readable. Do not force every float
+  exactly here. Keep the required margins, body font and line spacing;
+  respect the figure and table readability rule in \cref{app:tdk}. Avoid
+  negative spacing and scaling a whole table until its text is too small.
+\end{enumerate}
+
+For each proposed cut, record its source label, the action (delete,
+condense or move), what must remain, its destination and any references
+that must be repaired. Estimated savings are planning figures until a
+rebuilt PDF confirms them; float movement means they do not add exactly.
+Apply one group of edits at a time, rebuild and inspect the changed pages
+for whitespace, clipped content, unresolved references and unreadable
+labels. Stop when the argument fits, then rerun the submission checks.
+Keep the author's notes and outstanding gaps visible in the draft.
