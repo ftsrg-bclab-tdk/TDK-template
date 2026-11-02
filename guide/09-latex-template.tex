@@ -213,7 +213,7 @@ Compact lists:
   \caption{Subfigures with subcaption.}\label{fig:latex:sub}
 \end{figure}
 
-Draw measurement plots from the result files, not from numbers typed into \texttt{coordinates}. Copy the CSV files your benchmark scripts write into \texttt{figures/data/} and read them with \verb|\addplot table[col sep=comma, x=n, y=p95] {figures/data/latency.csv}|. New results then change the figure without editing it by hand. Next to the files, keep a \texttt{README.md} with one row per file: the figure that reads it, the script that wrote it, and the run and code commit it comes from. A reviewer who checks a number against your archived artifact (\cref{app:chapters:setup}) follows that row.
+Draw measurement plots from the result files, not from numbers typed into \texttt{coordinates}. Copy the CSV files your benchmark scripts write into \texttt{figures/data/} and read them with \verb|\addplot table[col sep=comma, x=n, y=p95] {figures/data/latency.csv}|. New results then change the figure without editing it by hand. Next to the files, keep a \texttt{README.md} with one row per file: the figure that reads it, the script that wrote it, and the run and code commit it comes from. A reviewer who checks a number against your archived artifact (\cref{app:chapters:setup}) follows that row. Link the two directions: the paper cites the artifact's tagged release, and the artifact's README names the paper and the result files each of its scripts feeds.
 
 \begin{wrapfigure}{r}{0.3\linewidth}
   \centering
