@@ -18,6 +18,7 @@ lint-checks.tex
 *.lot
 *.out
 *.synctex.gz
+*.synctex(busy)
 *.tdo
 *.thm
 *.toc
