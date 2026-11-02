@@ -548,14 +548,16 @@ rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vert
   end
 end)
 
-rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:), so references read right and the lint can trace them", function()
+rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:, and app: for the headings after \\appendix), so references read right and the lint can trace them", function()
   local envpref = { figure = "fig", table = "tab", sidewaystable = "tab", listing = "lst", lstlisting = "lst", algorithm = "alg", equation = "eq", align = "eq", definition = "def", theorem = "thm", lemma = "lem", proposition = "prop", corollary = "cor", invariant = "inv", property = "prty", claim = "claim", remark = "rem", notation = "not", example = "ex", subfigure = "fig", subtable = "tab" }
   local listpref = { contributions = "c", requirements = "req", derivedrequirements = "dr", assumptions = "asm", guarantees = "g", threats = "thr", limitations = "lim", rqlist = "rq" }
+  local appendix = false -- after \appendix, a heading's label may say app:, as the guide's do
   for _, f in ipairs(MAIN) do
     local stack = {}
     local lastheading
     for n, raw in ipairs(C.lines(f)) do
       local l = C.strip_comment(raw)
+      if l:match("\\appendix%f[^%a]") then appendix = true end
       for e in l:gmatch("\\begin{([%a%*]+)}") do stack[#stack + 1] = e:gsub("%*", "") end
       if l:match("\\chapter") then lastheading = "ch" elseif l:match("\\section") or l:match("\\subsection") then lastheading = "sec" elseif l:match("\\paragraph") then lastheading = "par" end
       local lab = l:match("\\lstlisting%[.-label%s*=%s*{?([^},%]]+)") ; if lab and not lab:match("^lst:") then warn(f, n, "listing label should start with lst: " .. lab) end
@@ -568,7 +570,8 @@ rule("labels", "source", "check", "always", "label prefixes match their environm
         if key:match("^page:") then expect = nil end
         if expect and pref ~= expect then
           -- subsec: and subsubsec: are common enough for subsections to count as sec:
-          if not (expect == "sec" and (pref == "ch" or pref == "subsec" or pref == "subsubsec")) and not (expect == "fig" and pref == "fig") then
+          if not (expect == "sec" and (pref == "ch" or pref == "subsec" or pref == "subsubsec")) and not (expect == "fig" and pref == "fig")
+            and not (appendix and pref == "app" and (expect == "ch" or expect == "sec")) then
             -- the label gets the expected prefix on its own name (fig:x in a table is tab:x, x in a
             -- section is sec:x), and so does every reference to it
             local fix
