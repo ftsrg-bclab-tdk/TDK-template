@@ -60,6 +60,14 @@ def append(rel, text):
     return f
 
 
+def write(rel, text):
+    def f(d):
+        p = d / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text + "\n")
+    return f
+
+
 def rename(old, new):
     def f(d):
         (d / old).rename(d / new)
@@ -270,6 +278,9 @@ MUTATIONS = [
     ("a paper glossary with no entries yet", "frame", lambda d: (d / "content/glossary.tex").write_text("% no entries yet\n"), "!no glossary file"),
     ("approach role missing", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:method}"), "no approach chapter"),
     ("file not NN-name", "frame", rename("content/02-background.tex", "content/background.tex"), "NN-name.tex"),
+    ("a figure body input from figures/", "frame", both(write("figures/lead-body.tex", "\\node {x};"), append(BG, "\\begin{tikzpicture}\\input{figures/lead-body}\\end{tikzpicture}")), "!NN-name.tex"),
+    ("a chapter piece input from content/", "chapters", both(write("content/bg-part.tex", "More background."), append(BG, "\\input{content/bg-part}")), "pulls part of the chapter"),
+    ("a table body input from tables/", "chapters", both(write("tables/results.tex", "\\begin{tabular}{l}x\\end{tabular}"), append(BG, "\\input{tables/results}")), "!pulls part of the chapter"),
     ("bib entry without title", "bib", drop_line("bib/references.bib", "{Time, Clocks, and the Ordering"), "lamport1978time: no title"),
     ("cited key missing", "bib", append(BG, "See~\\cite{nosuchref}."), "nosuchref is in no .bib file"),
     # a web source is a page, not a paper that has a link: a published paper or an archived preprint needs no access date

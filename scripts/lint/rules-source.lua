@@ -38,7 +38,8 @@ rule("frame", "source", "check", "always", "the template's frame is still there:
   -- without one; the fix numbers such a run one file after the other
   local last, want = -1, -1
   for _, f in ipairs(CONTENT) do
-    if f ~= C.FILES.glossary then
+    -- a figure or table body \input from figures/ or tables/ is part of a chapter, not one of its files
+    if f ~= C.FILES.glossary and not f:match("^figures/") and not f:match("^tables/") then
       local nn = f:match("([^/]+)%.tex$"):match("^(%d%d)%-")
       if not nn then
         warn(f, nil, "content files are named NN-name.tex in reading order, " .. string.format("%02d", last + 1) .. "-<name>.tex here", renumber_fix(f, want + 1))
@@ -250,7 +251,8 @@ rule("chapters", "source", "check", "always", "one chapter per file: no file hol
       if l:match("\\chapter{") then n = n + 1; if n == 2 then fail(f, ln, "a second chapter in one file", "each chapter is its own content/NN-name.tex") end end
       for arg in l:gmatch("\\input%s*(%b{})") do
         local p = arg:sub(2, -2)
-        if not p:match("^include/") then warn(f, ln, "\\input{" .. p .. "} pulls part of the chapter from another file", "keep the chapter in one file") end
+        -- a TikZ picture or a table generated from the results is not text of the chapter
+        if not (p:match("^include/") or p:match("^figures/") or p:match("^tables/")) then warn(f, ln, "\\input{" .. p .. "} pulls part of the chapter from another file", "keep the chapter in one file") end
       end
     end)
   end
