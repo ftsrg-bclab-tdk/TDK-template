@@ -170,8 +170,31 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
   return string.format("min l/r/t/b=%.0f/%.0f/%.0f/%.0f mm", worst.left, worst.right, worst.top, worst.bottom)
 end)
 
+-- the page's math scripts: TeX sets a sub- or superscript smaller than its base, 7 pt in a 10 pt
+-- table, so its size says nothing about the text's. A run of up to three characters that touches a
+-- larger run or another script is one; a figure label stands alone and is not. Left to right, so
+-- that the k of a (k) reaches the base through its parenthesis
+local function math_scripts(d, page)
+  local runs = {}
+  for _, t in ipairs(page.texts) do if d.fonts[t.font] then runs[#runs + 1] = t end end
+  table.sort(runs, function(a, b) return a.left < b.left end)
+  local function touch(a, b)
+    return a.left <= b.left + b.w + 1 and b.left <= a.left + a.w + 1 and a.top <= b.top + b.h + 1 and b.top <= a.top + a.h + 1
+  end
+  local scripts = {}
+  for _, t in ipairs(runs) do
+    local text = C.trim(t.text)
+    if (utf8.len(text) or #text) <= 3 then
+      for _, o in ipairs(runs) do
+        if o ~= t and touch(t, o) and (d.fonts[o.font].size > d.fonts[t.font].size or scripts[o]) then scripts[t] = true; break end
+      end
+    end
+  end
+  return scripts
+end
+
 -- 8 pt: the call asks for 10 pt in figures and tables, and 8 pt still reads in print; below it does not
-rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to read in print (the call asks for 10 pt in figures and tables, labels included); listings and footnotes show up here too", function()
+rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to read in print (the call asks for 10 pt in figures and tables, labels included); listings and footnotes show up here too, math sub- and superscripts do not", function()
   local d, why = doc(); if not d then C.skip(why); return end
   local perpage, total, smallest = {}, 0, 99
   -- the draft appends the guide, whose pages are not the paper's: stop at its first part
@@ -179,9 +202,10 @@ rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to 
   for _, it in ipairs(d.outline) do if it.title:match("^Guide:") then guide = math.min(guide, it.page) end end
   for _, page in ipairs(d.pages) do
     if page.n >= guide then break end
+    local scripts = math_scripts(d, page)
     for _, t in ipairs(page.texts) do
       local f = d.fonts[t.font]
-      if f and f.size < 8 and #C.trim(t.text) > 0 then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
+      if f and f.size < 8 and #C.trim(t.text) > 0 and not scripts[t] then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
     end
   end
   local pages = {}

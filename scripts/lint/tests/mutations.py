@@ -143,10 +143,11 @@ def tag_line(rel, n, comment):
 
 
 def pdf_with(rel, lines):
-    """A one-page PDF of the given (y, text) lines in 12 pt Helvetica, for the PDF rules, which
-    read what pdftotext and pdftohtml see: a built PDF cannot be mutated in place."""
+    """A one-page PDF of the given (y, text) lines in 12 pt Helvetica at x = 72, or (y, text, size,
+    x) runs, for the PDF rules, which read what pdftotext and pdftohtml see: a built PDF cannot be
+    mutated in place."""
     def f(d):
-        body = "".join(f"BT /F1 12 Tf 72 {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t in lines)
+        body = "".join(f"BT /F1 {size} Tf {x} {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t, size, x in ((*l, 12, 72)[:4] for l in lines))
         objs = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
                 "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
                 f"<< /Length {len(body)} >>\nstream\n{body}endstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
@@ -511,6 +512,9 @@ MUTATIONS = [
     ("a todo printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "TODO: the proving time")]), "1 TODO still printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a todo printed in the draft is a notice", "pdf-parts", pdf_with("thesis.pdf", [(700, "TODO: the proving time")]), "the draft shows them", {"args": "--doc thesis --phase submit"}),
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
+    # a math script is set small by design and touches its base; a figure label stands alone
+    ("a math subscript is not small text", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (698, "t+1", 6, 80)]), "!below 8 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    ("a figure label below 8 pt still warns", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (500, "0.5", 6, 300)]), "1 text runs below 8 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # the line pitch is the most common one (14 here: 8 of 14, 7 of 20, 6 of 26, whose median is 20), and too few lines are a warning
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # a page number low on the page is not text in the margin, in roman numerals too (the abstracts' i, ii)
