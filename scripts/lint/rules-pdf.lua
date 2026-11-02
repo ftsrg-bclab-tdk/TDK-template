@@ -8,9 +8,9 @@ local lfs = require("lfs")
 
 local PROFILES = {
   tdk = { name = "TDK call", size = { 11.5, 12.5 }, pitch = { 1.0, 1.35 }, margin = { 15, 35 }, pages = { 30, 35 }, pages_gate = true,
-    needs = { "Abstract", "Kivonat|Összefoglaló|Tartalmi összefoglaló", "generatív mesterséges intelligencia|generatív MI" }, forbids = { "HALLGATÓI NYILATKOZAT" } },
+    needs = { "Abstract", "Kivonat|Összefoglaló|Tartalmi összefoglaló", "generatív mesterséges intelligencia|generatív MI|Generative Artificial Intelligence" }, forbids = { "HALLGATÓI NYILATKOZAT" } },
   thesis = { name = "faculty thesis guide", size = { 10.5, 12.5 }, pitch = { 1.4, 2.0 }, margin = { 24, 40 }, pages = { 30, 90 }, pages_gate = false,
-    needs = { "Abstract", "Kivonat|Összefoglaló", "HALLGATÓI NYILATKOZAT", "generatív mesterséges intelligencia|generatív MI" }, forbids = {} },
+    needs = { "Abstract", "Kivonat|Összefoglaló", "HALLGATÓI NYILATKOZAT", "generatív mesterséges intelligencia|generatív MI|Generative Artificial Intelligence" }, forbids = {} },
 }
 local function profile() return PROFILES[C.opts.profile] or PROFILES.tdk end
 local function pdf() return C.bpath(C.opts.doc .. ".pdf") end

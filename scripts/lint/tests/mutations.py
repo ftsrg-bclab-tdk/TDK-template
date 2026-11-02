@@ -493,6 +493,7 @@ MUTATIONS = [
     # the PDF rules on a PDF of known text (pdf_with): a placeholder is a whole word, and no PDF is a skip
     ("a placeholder word printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "The proving time is TBD for now.")]), "TBD is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a roman numeral is not the XXX placeholder", "pdf-parts", pdf_with("tiny.pdf", [(700, "XXXVI. OTDK, Vol. TBDX")]), "!is printed in the PDF", {"args": "--doc tiny --phase submit"}),
+    ("an AI declaration headed in English is present", "pdf-parts", pdf_with("tiny.pdf", [(700, "Declaration on the Use of Generative Artificial Intelligence")]), "!missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     # the line pitch is the most common one (14 here: 8 of 14, 7 of 20, 6 of 26, whose median is 20), and too few lines are a warning
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
