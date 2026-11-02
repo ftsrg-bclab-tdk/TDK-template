@@ -602,6 +602,7 @@ function M.gapmatrix()
   for _, cells in ipairs(parsed) do
     local req = cells[1]:match("\\ref%s*{(req:[^}]*)}")
     if req then
+      cells[1] = "\\ref{" .. req .. "}" -- the row's name in messages, without a \midrule before it
       rows[#rows + 1] = cells; ncols = ncols or #cells
       if #cells ~= ncols then fails[#fails + 1] = "gap matrix rows have different numbers of cells" end
       if seen[req] then fails[#fails + 1] = req .. " has two rows in the gap matrix" end
