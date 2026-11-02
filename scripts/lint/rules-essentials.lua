@@ -368,7 +368,11 @@ local TAG_USED = {
     each_unreferenced(tag_items("dr"), "evaluation", "is not checked in the evaluation", miss)
   end,
   c = function(items, miss)
-    for _, it in ipairs(items) do if not it.text:match("\\[cC]ref{ch:") then miss[#miss + 1] = it.key .. " points to no chapter" end end
+    -- a section of a chapter is a chapter pointer too, and a more precise one
+    for _, it in ipairs(items) do
+      local t = it.text
+      if not (t:match("\\[cC]ref{%s*ch:") or t:match("\\[cC]ref{%s*sec:") or t:match("\\[cC]ref{%s*subsec:")) then miss[#miss + 1] = it.key .. " points to no chapter" end
+    end
     each_unreferenced(items, "conclusion", "is not restated in the conclusion", miss)
   end,
   thr = function(items, miss) each_unreferenced(items, "approach", "is not met in the approach", miss) end,
