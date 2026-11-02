@@ -1017,7 +1017,10 @@ rule("companion", "source", "check", "always", "a TDK paper of the same year is 
       -- Zotero writes accents as {\'a}: drop the commands and braces before matching the names
       local plain = e.body:lower():gsub("\\%p", ""):gsub("\\%a+%s?", ""):gsub("[{}]", "")
       local tdk = false
-      for _, p in ipairs(TDK_NAMES) do if plain:find(p) then tdk = true end end
+      -- an archived artifact, a Zenodo record in its doi or url, is code or data and no TDK
+      -- paper, even when its release is named after the TDK ("release TDK-Scalability")
+      local archived = e.body:lower():match("[,%s]doi%s*=%s*[{\"]?%s*10%.5281/zenodo%.%d") or e.body:lower():match("[,%s]url%s*=%s*[{\"]?%s*https?://[^%s{}\"]*zenodo")
+      if not archived then for _, p in ipairs(TDK_NAMES) do if plain:find(p) then tdk = true end end end
       local ey = tonumber(e.body:match("[,%s][yY][eE][aA][rR]%s*=%s*[{\"]?%s*(%d%d%d%d)") or e.body:match("[,%s][dD][aA][tT][eE]%s*=%s*[{\"]?%s*(%d%d%d%d)"))
       local cited = string.format("cited %d time%s", times[k], times[k] == 1 and "" or "s")
       if tdk and (not ey or ey >= year) then

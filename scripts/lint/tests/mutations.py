@@ -373,6 +373,8 @@ MUTATIONS = [
     ("a companion paper cited", "companion", append(BG, "A companion paper~\\cite{lamport1978time} verifies the protocol."), "attached to a companion paper"),
     ("a companion paper linked", "companion", append(BG, "The protocol is verified in \\href{https://example.org/paper.pdf}{a companion paper}."), "attached to a companion paper"),
     ("a companion paper named, its tool cited", "companion", append(BG, "A companion paper verifies the protocol in Tamarin~\\cite{lamport1978time}."), "!attached to a companion paper"),
+    ("this paper's Zenodo artifact, its release named after the TDK", "companion", both(append("bib/references.bib", f"@misc{{ownartifact,\n  author = {{Di{{\\'a}}k, D{{\\'o}}ra}},\n  title = {{Models and scripts of this paper}},\n  howpublished = {{Zenodo, release {{TDK-Scalability}}}},\n  year = {{{YEAR}}},\n  doi = {{10.5281/zenodo.1234567}}\n}}"),
+        append(BG, "The models are archived~\\cite{ownartifact}.")), "!is a TDK paper of"),
     # the citation reader: spaces and line breaks where TeX allows them, nothing from notes
     ("cited key missing after a space", "bib", append(BG, "See~\\cite {nosuchref}."), "nosuchref is in no .bib file"),
     ("cited key missing after a line break", "bib", append(BG, "See~\\cite\n{nosuchref}."), "nosuchref is in no .bib file"),
