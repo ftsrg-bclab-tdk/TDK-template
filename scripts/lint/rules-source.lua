@@ -832,6 +832,15 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
   local function generated(b) return b:match("zotero%.bib$") ~= nil end
   local function efail(b, ln, msg, fx) fail(b, ln, msg, not generated(b) and fx or nil) end
   local function ewarn(b, ln, msg, fx) warn(b, ln, msg, not generated(b) and fx or nil) end
+  -- that library is the whole research group's: an entry this paper does not cite prints nowhere,
+  -- and its defects are not this paper's. \nocite{*} prints them all
+  local cited = {}
+  C.each_cite(CONTENT, function(_, _, k) cited[k] = true end)
+  local nocited = { "thesis.tex" }
+  for _, f in ipairs(CONTENT) do nocited[#nocited + 1] = f end
+  C.each_call(nocited, function(name) return name == "nocite" end, function(_, _, _, arg)
+    for k in arg:gmatch("[^,%s]+") do cited[k] = true end
+  end)
   for _, b in ipairs(C.BIB) do
     local s = C.readfile(b) or ""
     local text, line, prev = "\n" .. s, 0, 1
@@ -853,6 +862,7 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
       local k = kind:lower()
       if key and k ~= "comment" and k ~= "string" and k ~= "preamble" then
         keys[key] = true
+        if generated(b) and not (cited[key] or cited["*"]) then goto next_entry end
         local function has(fld) return body:lower():match("\n%s*" .. fld .. "%s*=") ~= nil end
         if not has("title") then efail(b, line, key .. ": no title") end
         if not has("year") and not has("date") then efail(b, line, key .. ": no year", add("  year = {<year>},", "the year")) end
@@ -940,6 +950,7 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
           end
         end
       end
+      ::next_entry::
     end
   end
   C.each_cite(MAIN, function(f, n, k) if not keys[k] then fail(f, n, "cited key " .. k .. " is in no .bib file") end end)

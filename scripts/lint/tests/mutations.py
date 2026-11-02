@@ -291,6 +291,10 @@ MUTATIONS = [
     ("a chapter piece input from content/", "chapters", both(write("content/bg-part.tex", "More background."), append(BG, "\\input{content/bg-part}")), "pulls part of the chapter"),
     ("a table body input from tables/", "chapters", both(write("tables/results.tex", "\\begin{tabular}{l}x\\end{tabular}"), append(BG, "\\input{tables/results}")), "!pulls part of the chapter"),
     ("bib entry without title", "bib", drop_line("bib/references.bib", "{Time, Clocks, and the Ordering"), "lamport1978time: no title"),
+    ("a Zotero entry this paper does not cite is not its problem", "bib", append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), "!groupentry"),
+    ("a Zotero entry this paper cites is", "bib", both(append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), append(BG, "See~\\cite{groupentry}.")), "groupentry: no title"),
+    ("\\nocite{*} prints the whole Zotero library", "bib", both(append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), append(BG, "\\nocite{*}")), "groupentry: no title"),
+    ("a hand-written entry is checked uncited too", "bib", append("bib/references.bib", "@misc{ownentry,\n  url = {https://example.org},\n}"), "ownentry: no title"),
     ("cited key missing", "bib", append(BG, "See~\\cite{nosuchref}."), "nosuchref is in no .bib file"),
     # a web source is a page, not a paper that has a link: a published paper or an archived preprint needs no access date
     ("a web page without its access date", "bib", append("bib/references.bib", "@misc{somepage,\n  author = {{Some Owner}},\n  title = {Some Page},\n  year = {2026},\n  url = {https://example.org/page}\n}"), "somepage: a web source needs its access date"),
