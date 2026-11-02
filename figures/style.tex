@@ -1,0 +1,25 @@
+% The look of every figure in this paper. include/preamble.tex inputs this file; a template update
+% leaves it alone once you have changed it. Start each picture with \begin{tikzpicture}[fig] and keep
+% it in its own figures/<name>.tex. Give each colour one meaning and keep it in every figure.
+\definecolor{figaccent}{HTML}{2F5D8A} % the thing this paper is about: your system, its state
+\definecolor{figother}{HTML}{5A5A5A}  % other parties and what passes between them
+\definecolor{figcheck}{HTML}{B26A00}  % a check that decides
+\definecolor{figgood}{HTML}{2E7D32}   % accepted
+\definecolor{figbad}{HTML}{C62828}    % rejected
+
+\tikzset{
+  % \footnotesize is 10 pt in this 12 pt class, what the call asks for; \scriptsize puts labels at
+  % the 8 pt floor and their subscripts below it
+  fig/.style={>={Stealth[length=2.2mm]}, font=\footnotesize},
+  % boxes: `ours` and `prior` (include/preamble.tex) say whose a component is; these say what it does
+  box/.style={rounded corners=2pt, align=center, inner sep=4pt},
+  party/.style={box, draw=figother, fill=figother!8},
+  state/.style={box, draw=figaccent, fill=figaccent!8},
+  decision/.style={diamond, aspect=2.2, align=center, inner sep=1pt, draw=figcheck, fill=figcheck!10},
+  accepted/.style={box, draw=figgood, text=figgood},
+  rejected/.style={box, draw=figbad, text=figbad},
+  % arrows
+  msg/.style={->, thick, figother},
+  write/.style={->, very thick, figaccent},
+  read/.style={->, thick, dashed, figaccent},
+}
