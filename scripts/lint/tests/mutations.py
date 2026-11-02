@@ -266,6 +266,7 @@ MUTATIONS = [
     ("plural abbreviation typed by hand", "acronyms", append(BG, "Both VCs are signed."), "VC typed by hand"),
     ("a longer word is not the abbreviation", "acronyms", append(BG, "The VCS keeps the history."), "!VC typed by hand"),
     ("all-caps word not declared", "acronyms", append(BG, "The QWXZ protocol runs."), "QWXZ is not in the glossary"),
+    ("logic operators and the README are words", "acronyms", append(BG, "A query is an AND of ORs; NOT negates it, as the README says."), "!is not in the glossary"),
     ("a comment environment is not prose", "acronyms", append(BG, "\\begin{comment}\nEvery VC is signed.\n\\end{comment}"), "!VC typed by hand"),
     ("glossary key undeclared", "acronyms", append(BG, "We use \\gls{nosuchkey} here."), "nosuchkey is not declared"),
     # the common glossary, include/glossary-common.tex

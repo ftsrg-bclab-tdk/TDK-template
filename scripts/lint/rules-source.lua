@@ -764,8 +764,9 @@ rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key
       if l:match("\\end{definition}") or l:match("\\end{notation}") then indef = false end
     end
   end
-  -- undeclared all-caps words that look like acronyms, counted once each
-  local seen = {}
+  -- undeclared all-caps words that look like acronyms, counted once each; the logic operators and
+  -- a repository's README are words, not abbreviations
+  local seen = { AND = true, NOT = true, XOR = true, README = true }
   C.each_prose_line(MAIN, function(f, n, l)
     for w in C.prose(l):gmatch("%f[%w][%u][%u%d]+[%u]%f[%W]") do
       if not short[w] and not seen[w] and #w >= 2 and #w <= 6 and not w:match("^RQ") and not w:match("^TODO") and not w:match("^[IVXLC]+$") then
