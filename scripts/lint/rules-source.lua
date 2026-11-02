@@ -1220,7 +1220,12 @@ rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, o
   for _, f in ipairs(MAIN) do text[#text + 1] = C.prose(table.concat(C.prose_lines(f), "\n")) end
   local all = table.concat(text, "\n")
   local hyph = {}
-  for a, b in all:gmatch("%f[%a](%l%l+)%-(%l%l+)%f[%A]") do hyph[a .. "-" .. b] = true end
+  -- whole two-part compounds only: test-and-set and peer-to-peer are one word each, and 95th-percentile
+  -- starts with a number
+  for w in all:gmatch("[%w%-]+") do
+    local a, b = w:match("^(%l%l+)%-(%l%l+)$")
+    if a then hyph[a .. "-" .. b] = true end
+  end
   local n = 0
   for h in pairs(hyph) do
     local a, b = h:match("^(.-)%-(.*)$")
