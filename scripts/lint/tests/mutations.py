@@ -308,6 +308,8 @@ MUTATIONS = [
     ("a chain of hyphens is one word", "terms", append(BG, "A state-of-the-art tool is the state of play."), "!state-of"),
     ("unicode lstinline", "code", append(BG, "The rule \\lstinline{∀x} holds."), "ASCII"),
     ("label prefix wrong", "labels", append(BG, "\\begin{table}\\caption{A table for the test.}\\label{fig:wrong}\\end{table}"), "expected prefix tab:"),
+    ("a tabular of six columns", "tables", append(BG, "\\begin{tabular}{llllll}\\toprule a&b&c&d&e&f\\\\\\bottomrule\\end{tabular}"), "a wide tabular"),
+    ("column widths are not columns", "tables", append(BG, "\\begin{tabular}{p{0.3\\linewidth}p{0.3\\linewidth}}\\toprule a&b\\\\\\bottomrule\\end{tabular}"), "!a wide tabular"),
     ("running example missing from a chapter", "essentials", both(NAMED, OWN_BOX, lambda d: (d / BG).write_text(re.sub(r"\\begin\{runningexample\}.*?\\end\{runningexample\}", "", (d / BG).read_text(), flags=re.S))), "no example box in 02-background"),
     ("own example box not used", "essentials", sub("thesis.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"), "○ Running example"),
     ("own example box counts", "essentials", both(NAMED, OWN_BOX, sub("thesis.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"),

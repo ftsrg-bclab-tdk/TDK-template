@@ -541,7 +541,8 @@ rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vert
         end
       end
       if l:match("\\begin{tabular}") and not l:match("\\begin{tabularx}") and (raw:match("X") == nil) then
-        local cols = l:match("\\begin{tabular}(%b{})") or ""
+        -- the column letters only: widths such as p{0.2\linewidth} and @{} or >{} groups are not columns
+        local cols = (l:match("\\begin{tabular}(%b{})") or "{}"):sub(2, -2):gsub("%b{}", "")
         local nc = C.count(cols, "[lcrp]"); if nc >= 6 then warn(f, n, "a wide tabular", "use tabularx with \\linewidth so it cannot overflow") end
       end
     end
