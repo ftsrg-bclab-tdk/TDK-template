@@ -496,6 +496,8 @@ MUTATIONS = [
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     # the line pitch is the most common one (14 here: 8 of 14, 7 of 20, 6 of 26, whose median is 20), and too few lines are a warning
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    # a page number low on the page is not text in the margin, in roman numerals too (the abstracts' i, ii)
+    ("a roman page number is not text in the bottom margin", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(10, "ii")]), "!on page 1;", {"args": "--doc tiny --phase submit"}),
     ("too few lines to measure the pitch is a warning", "pdf-spacing", pdf_with("tiny.pdf", pitched([20, 20, 20, 20, 20])), "only 5 line pitches to measure", {"args": "--doc tiny --phase submit", "exit": 0}),
     # an overfull box is placed at the source lines the log names, so a lint-ignore there silences it; under a point it is invisible
     ("an overfull box at its source lines", "overfull", append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "content/02-background.tex:7: FAIL overfull by 12.5pt at lines 7-9"),

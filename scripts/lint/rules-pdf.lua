@@ -146,7 +146,8 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
       local edge = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then edge = math.max(edge, t.left + t.w) end end
       for _, t in ipairs(page.texts) do
         local f = d.fonts[t.font]
-        local pagenum = t.text:match("^%s*%d+%s*$") and t.top > page.h * 0.9
+        -- arabic or roman: the front matter (abstracts, contents) is numbered i, ii, ...
+        local pagenum = (t.text:match("^%s*%d+%s*$") or t.text:match("^%s*[ivxlcIVXLC]+%s*$")) and t.top > page.h * 0.9
         local margin_note = t.left > edge - 6 * MM
         if f and f.size >= 9 and not pagenum and not margin_note then
           l = math.min(l, t.left); r = math.max(r, t.left + t.w); tp = math.min(tp, t.top); b = math.max(b, t.top + t.h)
