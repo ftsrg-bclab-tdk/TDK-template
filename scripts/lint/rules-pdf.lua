@@ -138,17 +138,19 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
   local p = profile(); local bf = body_font(d); if not bf then return end
   local worst = { left = 1e9, right = 1e9, top = 1e9, bottom = 1e9 }; local worstpage = {}
   local typical = { left = {}, right = {}, top = {}, bottom = {} }
+  local final = C.opts.doc == "reviewer" or C.phase() == "submit"
   for _, page in ipairs(d.pages) do
     local body = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then body = body + 1 end end
     if body >= 10 then
       local l, r, tp, b = 1e9, 0, 1e9, 0
-      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin (the reviewer build has none)
+      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin. The reviewer build and the submit phase have
+      -- none, so there everything past the edge is text: the last run of a listing or an equation that overflows starts there too
       local edge = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then edge = math.max(edge, t.left + t.w) end end
       for _, t in ipairs(page.texts) do
         local f = d.fonts[t.font]
         -- arabic or roman: the front matter (abstracts, contents) is numbered i, ii, ...
         local pagenum = (t.text:match("^%s*%d+%s*$") or t.text:match("^%s*[ivxlcIVXLC]+%s*$")) and t.top > page.h * 0.9
-        local margin_note = t.left > edge - 6 * MM
+        local margin_note = not final and t.left > edge - 6 * MM
         if f and f.size >= 9 and not pagenum and not margin_note then
           l = math.min(l, t.left); r = math.max(r, t.left + t.w); tp = math.min(tp, t.top); b = math.max(b, t.top + t.h)
         end

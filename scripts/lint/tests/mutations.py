@@ -144,13 +144,14 @@ def tag_line(rel, n, comment):
 
 def pdf_with(rel, lines):
     """A one-page PDF of the given (y, text) lines in 12 pt Helvetica at x = 72, or (y, text, size,
-    x) runs, for the PDF rules, which read what pdftotext and pdftohtml see: a built PDF cannot be
-    mutated in place."""
+    x) runs, or (y, text, size, x, 2) runs in Courier, as a listing's run is, for the PDF rules,
+    which read what pdftotext and pdftohtml see: a built PDF cannot be mutated in place."""
     def f(d):
-        body = "".join(f"BT /F1 {size} Tf {x} {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t, size, x in ((*l, 12, 72)[:4] for l in lines))
+        body = "".join(f"BT /F{font} {size} Tf {x} {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t, size, x, font in ((*l, 12, 72, 1)[:5] if len(l) == 2 else (*l, 1)[:5] if len(l) == 4 else l for l in lines))
         objs = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-                f"<< /Length {len(body)} >>\nstream\n{body}endstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
+                f"<< /Length {len(body)} >>\nstream\n{body}endstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>"]
         out, offsets = "%PDF-1.4\n", []
         for i, o in enumerate(objs, 1):
             offsets.append(len(out))
@@ -536,6 +537,9 @@ MUTATIONS = [
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # a page number low on the page is not text in the margin, in roman numerals too (the abstracts' i, ii)
     ("a roman page number is not text in the bottom margin", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(10, "ii")]), "!on page 1;", {"args": "--doc tiny --phase submit"}),
+    # a listing's last run starts past the text column: text at submit, where no margin note is left, and taken for a note in a draft
+    ("a listing run past the column is text at submit", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(400, "values and th", 12, 470, 2)]), "right margin is 10.9", {"args": "--doc tiny --phase submit"}),
+    ("a run past the column is a margin note in a draft", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(400, "values and th", 12, 470, 2)]), "!right margin is 10.9", {"args": "--doc tiny --phase polish"}),
     ("too few lines to measure the pitch is a warning", "pdf-spacing", pdf_with("tiny.pdf", pitched([20, 20, 20, 20, 20])), "only 5 line pitches to measure", {"args": "--doc tiny --phase submit", "exit": 0}),
     # an overfull box is placed at the source lines the log names, so a lint-ignore there silences it; under a point it is invisible
     ("an overfull box at its source lines", "overfull", append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "content/02-background.tex:7: FAIL overfull by 12.5pt at lines 7-9"),
