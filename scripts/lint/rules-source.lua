@@ -1344,7 +1344,9 @@ rule("numbers", "source", "advice", "polish", "the headline numbers of the abstr
   end
   local function nums(file)
     local out = {}
-    local p = C.prose(table.concat(C.prose_lines(file), "\n"))
+    -- the running example's boxes hold the scenario's own numbers (a payment at 70 minutes), not results
+    local box = C.example_box():gsub("%p", "%%%0")
+    local p = C.prose((table.concat(C.prose_lines(file), "\n"):gsub("\\begin{" .. box .. "}.-\\end{" .. box .. "}", "")))
     for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*[%%×x]") do if not name_part(p, s, num) then out[#out + 1] = num end end
     for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*\\?,?%s*%a?%a?%a?%f[%W]") do if tonumber(num) and (tonumber(num) >= 20 or num:match("%.")) and not name_part(p, s, num) then out[#out + 1] = num end end
     return out
