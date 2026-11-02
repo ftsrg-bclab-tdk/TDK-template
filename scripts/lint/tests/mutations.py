@@ -321,6 +321,8 @@ MUTATIONS = [
     ("a template theorem defined again", "preamble", append("include/macros.tex", "\\newtheorem{lemma}{Lemma}"), "defines the lemma environment"),
     ("an option clash", "preamble", append("include/macros.tex", "\\usepackage[noend]{algpseudocode}"), "option clash"),
     ("Hungarian prose", "language", append(BG, "Ez a fejezet azt mutatja be, hogy a módszer hogyan működik és mit ad."), "Hungarian prose"),
+    ("a headline number missing from the evaluation", "numbers", append("content/01-introduction.tex", "A guarded update costs 4711 gas."), "number 4711 does not occur"),
+    ("a number inside a name is no result", "numbers", append("content/01-introduction.tex", "It uses BLS12-381 pairings, SHA-256, Ed25519 and Aries RFC~0104."), "!does not occur"),
     ("a numbered label", "labels", append(BG, "\\section{Extra}\\label{sec:3.4}"), "encodes a number"),
     ("an appendix chapter labelled app:", "labels", append(BG, "\\appendix\n\\chapter{Proofs}\\label{app:proofs}\n\\section{Lemmas}\\label{app:proofs:lemmas}"), "!label app:proofs"),
     ("a body section labelled app:", "labels", append(BG, "\\section{Extra}\\label{app:extra}"), "label app:extra inside sec"),

@@ -1308,11 +1308,16 @@ end)
 rule("numbers", "source", "advice", "polish", "the headline numbers of the abstract and the conclusion appear in the evaluation, so the paper agrees with itself", function()
   if not C.roles_ok({ "conclusion", "evaluation", "intro" }) then return end
   local eval = C.prose(C.role_text("evaluation"))
+  -- a number that is part of a name is no result: BLS12-381, SHA-256, Ed25519, RFC 0104
+  local function name_part(p, s, num)
+    local before = p:sub(math.max(1, s - 24), s - 1)
+    return before:match("%a$") or before:match("%a[%w]*%-$") or num:match("^0%d")
+  end
   local function nums(file)
     local out = {}
     local p = C.prose(table.concat(C.prose_lines(file), "\n"))
-    for num in p:gmatch("%f[%d](%d+%.?%d*)%s*[%%×x]") do out[#out + 1] = num end
-    for num in p:gmatch("%f[%d](%d+%.?%d*)%s*\\?,?%s*%a?%a?%a?%f[%W]") do if tonumber(num) and (tonumber(num) >= 20 or num:match("%.")) then out[#out + 1] = num end end
+    for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*[%%×x]") do if not name_part(p, s, num) then out[#out + 1] = num end end
+    for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*\\?,?%s*%a?%a?%a?%f[%W]") do if tonumber(num) and (tonumber(num) >= 20 or num:match("%.")) and not name_part(p, s, num) then out[#out + 1] = num end end
     return out
   end
   local missing = 0
