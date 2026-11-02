@@ -108,7 +108,7 @@ return {
     add = "add the correctness table, \\label{tab:correctness}, to the evaluation" },
 
   { id = "scalability", role = "evaluation", kind = "text", title = "Scalability", criterion = "E", example = "app:chapters:scalability", key = "scalability", label = "sec:scalability",
-    headings = { "scalab", "scaling", "performance" }, words = 100,
+    headings = { "scalab", "scaling", "performance", "cost" }, words = 100,
     why = "how the cost grows with the input; the review sheet scores the evaluation's depth in E",
     used = "the section holds a figure or table that the text references",
     add = "add a section \\section{Scalability}\\label{sec:scalability} to the evaluation" },
