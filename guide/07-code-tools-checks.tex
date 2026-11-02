@@ -18,6 +18,45 @@ Include the code and data behind the paper's results in each release (\cref{app:
 
 Put recurring commands in a \texttt{justfile} for the \href{https://github.com/casey/just}{just} command runner. We require that \texttt{just reproduce} regenerates every paper figure and table. Name individual recipes after their outputs: \texttt{just fig-scalability} for the scalability figure (\cref{fig:guide:scalability}) and \texttt{just tab-robustness} for the robustness table (\cref{tab:guide:robustness}). Provide \texttt{just reproduce --smoke} with a reduced workload that finishes in minutes. GitHub Actions runs it on every push to catch broken README commands.
 
+\section{The builds and what reads them}\label{app:code:builds}
+The template has one set of sources and two \LaTeX{} roots, so it builds two PDFs (\cref{tab:code:builds}). You edit \texttt{draft.tex}, which holds the title, \texttt{\textbackslash lintphase} and the chapter list. \texttt{final.tex} is four lines: it sets the \texttt{final} class option, disables todonotes, defines \texttt{\textbackslash finalmode} and inputs \texttt{draft.tex}. Never edit it. Your text lives in \texttt{content/}, and both PDFs print the same paper from it. The names follow \LaTeX{}'s \texttt{draft} and \texttt{final} options, but only the final build sets its option: the class option \texttt{draft} would replace your figures with empty boxes, so \texttt{draft.tex} leaves it out.
+\begin{table}[!ht]
+  \centering
+  \small
+  \caption{The two builds.}
+  \label{tab:code:builds}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.17\linewidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+     & \textbf{Draft} & \textbf{Final} \\
+    \midrule
+    Root & \texttt{draft.tex} & \texttt{final.tex} \\
+    Locally & \texttt{make draft} or \texttt{make all} & \texttt{make final} \\
+    On Overleaf & the default compile & open \texttt{final.tex}, then \emph{Recompile from this file} \\
+    Output & \texttt{draft.pdf} & \texttt{final.pdf} \\
+    Contains & the todo list, the Checks page, the notes, beats and gap markers, the paper, this guide & the paper only \\
+    Read by & you and your advisors, while you write & the TDK reviewers, the lint in CI, the self-score and the expert personas \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{\emph{Final} names the format, not the state of the paper.} A final PDF builds from your first day. It hides every todo, beat and gap marker, so it can look finished while half the paper is missing. Read it every week to see what reviewers will see, and run \texttt{make check-submit} to learn whether it is ready. The draft build is also separate from the \texttt{draft} phase of the lifecycle and from the full draft, the anchor we approve (\cref{app:lifecycle}). You build both PDFs in every phase.
+
+\paragraph{What is made from the builds.} The lint and paper CI produce four more outputs:
+\begin{description}[noitemsep]
+  \item[Checks page] Part of the draft. On every compile, the lint runs on the sources and prints its findings at the front of \texttt{draft.pdf} (\cref{app:latex:todo}). It runs no PDF rules and does not read the build log, so a clean Checks page does not promise a green CI.
+  \item[Skim view] Made by paper CI from \texttt{final.pdf} (\cref{app:lifecycle:reviewers}). It keeps headings, labelled items, boxes and captions, and replaces paragraphs with their length.
+  \item[Review bundle] The artifact \texttt{review-<sha7>} that paper CI uploads for one commit and keeps for 14 days: both PDFs, their logs, the lint's output, the skim view and a manifest (\cref{app:code:reviewers}). The self-score and the reviewer passes read this bundle, never a PDF on your machine, so what they judge is tied to a commit.
+  \item[Burn-down counts] A separate artifact of paper CI, \texttt{burndown.json}, which the notes repository plots (\cref{app:code:paperci}).
+\end{description}
+
+\paragraph{Which check reads which build.} Most rules read only the sources and give the same result for either build. The option \texttt{--doc} picks the build whose log, \texttt{.aux} file and PDF the remaining rules read: \texttt{build}, \texttt{overfull}, \texttt{pages}, \texttt{sources}, \texttt{checkcites}, \texttt{bibtex-log} and every \texttt{pdf-} rule. Read those results on the final build, because the draft's notes and guide change its page count, its margins and its text.
+\begin{description}[noitemsep]
+  \item[\texttt{make check}] The draft build, at your \texttt{\textbackslash lintphase}. Its PDF rules also measure the notes and this guide, so prefer the next command.
+  \item[\texttt{make check-final}] The final build, at your \texttt{\textbackslash lintphase}. Paper CI runs the same rules on the same build.
+  \item[\texttt{make check-submit}] The final build, at the \texttt{submit} phase whatever \texttt{\textbackslash lintphase} says. This is the check before you upload.
+\end{description}
+No reviewer persona reads \texttt{draft.pdf}. The skim reviewer reads the skim view, and the expert personas and the self-score read \texttt{final.pdf}.
+
 \section{The checks and paper CI}\label{app:code:paperci}
 The paper repository's \texttt{.github/workflows/paper.yml} builds both PDFs on pushes to \texttt{main} or \texttt{master}, non-draft pull requests and manual runs. It runs each rule in \texttt{scripts/lint.lua} as a separate step. The run page shows each result and annotates findings at the relevant file and line. Each annotation names the problem and the remedy, including replacement text where the lint can supply it. The job summary starts with the essentials (\cref{app:writing:essentials}): a line of marks, then a row per essential. A second table groups the other rules as on the Checks page. There are three rule families; \texttt{texlua scripts/lint.lua list} describes each rule, with its severity and phase.
 \begin{description}[noitemsep]
@@ -35,7 +74,7 @@ Paper CI uploads the paper's burn-down counts as \texttt{burndown.json} with eve
 \advisortodo{Move \texttt{tdk-notes-template} and \texttt{tdk-code-template} to an FTSRG organisation when there is one for the lab; \texttt{ftsrg-bta} is the course's.}
 
 \section{Running the reviewer passes}\label{app:code:reviewers}
-\paragraph{Self-score and reviewer passes.} The paper repository carries two agent skills in \path{.claude/skills/}, so each commit has the skills that review it. On main-branch pushes, non-draft pull requests and manual runs, paper CI uploads the evidence of that commit as one artifact: both PDFs, the build logs, the lint output and the skim view, kept for 14 days. \path{.claude/skills/self-score/} scores the artifact's \texttt{final.pdf} A--E using the review sheet's wording and page references, and identifies the weakest criterion and cheapest fix. \path{.claude/skills/reviewer-passes/} runs the skim reviewer and expert panel on the same artifact. \texttt{scripts/review/review.py} fetches the artifact of a named commit and checks its hashes. Self-score writes nothing; the reviewer passes write nothing unless you record a run. \Cref{app:lifecycle:reviewers} says what the passes are and when to run them; this section says how.
+\paragraph{Self-score and reviewer passes.} The paper repository carries two agent skills in \path{.claude/skills/}, so each commit has the skills that review it. On main-branch pushes, non-draft pull requests and manual runs, paper CI uploads the review bundle of that commit (\cref{app:code:builds}). \path{.claude/skills/self-score/} scores the artifact's \texttt{final.pdf} A--E using the review sheet's wording and page references, and identifies the weakest criterion and cheapest fix. \path{.claude/skills/reviewer-passes/} runs the skim reviewer and expert panel on the same artifact. \texttt{scripts/review/review.py} fetches the artifact of a named commit and checks its hashes. Self-score writes nothing; the reviewer passes write nothing unless you record a run. \Cref{app:lifecycle:reviewers} says what the passes are and when to run them; this section says how.
 
 \paragraph{Running them.} Push your commit and run paper CI, through a non-draft pull request or a manual workflow dispatch (\cref{app:code:paperci}). Then, in your paper repository, ask your agent to run the reviewer passes, or name one persona: \enquote{review as the cryptographer}. The skill in \path{.claude/skills/reviewer-passes/} fetches the CI artifact of that commit with \texttt{scripts/review/review.py}, which refuses an artifact whose hashes do not match. It gives each persona a directory holding only that persona's inputs: the final PDF, the skim view, or both, and your spine if you name the file. Without a spine, a persona judges overclaiming against the abstract and the introduction. Each persona runs apart from the others and never sees another persona's findings or an earlier run. The chat response gives each persona's worst finding, the criterion and page, and the cheapest fix. It then lists the three cheapest changes overall. Ask a persona for more to see its remaining findings.
 

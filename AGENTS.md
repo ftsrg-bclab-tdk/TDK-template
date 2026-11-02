@@ -7,9 +7,11 @@ paper's appendices; the table at the end points into it.
 
 ## Build and check
 
-- `make all` builds the draft, `draft.pdf`: the paper with its notes, the Checks page and the guide.
+- `make draft` (or `make all`) builds `draft.pdf`: the paper with its notes, the Checks page and
+  the guide.
 - `make final` builds `final.pdf`, the submission format, with no notes and no guide. On
-  Overleaf, open `final.tex` and choose *Recompile from this file*.
+  Overleaf, open `final.tex` and choose *Recompile from this file*. "Final" names the format: this
+  PDF builds in every phase, and only `make check-submit` says it is ready.
 - `make check-final` builds the final PDF and runs every lint rule on it. CI
   (`.github/workflows/paper.yml`) judges this build. Prefer it to `make check`, which lints
   the draft build. `make check-submit` does the same at the `submit` phase whatever
@@ -50,6 +52,11 @@ and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
 - The person running you decides what you may change in their own text.
 - In a template update, apply only named mechanical changes, such as a renamed macro. Show every
   other deletion or rewrite for review instead of applying it.
+- When a paper repository still has `thesis.tex` and `reviewer.tex`, the update renames them:
+  run `git mv thesis.tex draft.tex` and take `final.tex` from the template in place of
+  `reviewer.tex`. In `include/macros.tex` and `content/`, replace `\reviewermode` with `\finalmode`
+  and `thesis.tex` with `draft.tex`. The student then sets `draft.tex` as the main document in
+  Overleaf's menu.
 - Keep the notes. `\todo` (orange) is for the student, `\advisortodo` (blue) for the advisors, and
   `\atodo` (green) is an advisor's review comment that the student resolves and then deletes.
 - Mark a gap with `\tbd{...}` or `\citeneeded[...]`, never with a typed TBD, [CITE] or XXX.
@@ -72,6 +79,7 @@ and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
 | What each chapter must contain, with a worked example | `guide/05-chapter-by-chapter.tex` (`app:chapters`) |
 | The elements the lint measures in every paper | `guide/04-writing.tex` (`app:writing:essentials`) |
 | What must hold before upload | `guide/02-lifecycle.tex` (`tab:polish`) |
+| What the draft and final builds contain, and what reads each | `guide/07-code-tools-checks.tex` (`app:code:builds`) |
 | What each lint rule checks | `guide/07-code-tools-checks.tex` (`app:code:paperci`) |
 | Reviewer passes: what they are and when to run them | `guide/02-lifecycle.tex` (`app:lifecycle:reviewers`) |
 | Running the reviewer passes and self-score | `guide/07-code-tools-checks.tex` (`app:code:reviewers`) |
