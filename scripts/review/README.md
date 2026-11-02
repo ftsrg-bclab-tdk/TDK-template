@@ -1,7 +1,7 @@
 # Review runs: the contract
 
 A review run reads one revision of the paper the way its reviewers will. Paper CI builds the
-evidence on every push. An agent then runs the reviewer personas on the evidence of one named
+evidence on pushes to main or master, non-draft pull requests and manual runs. An agent then runs the reviewer personas on the evidence of one named
 commit. Each persona reads only its own inputs. When the run is recorded, its findings go into
 one issue on the paper repository. This file fixes the formats those steps exchange. The skim
 (`scripts/skim/`), the runner (`review.py`) and the CI (`.github/workflows/paper.yml`) are built
@@ -9,7 +9,7 @@ against it, so a change here comes first.
 
 ## The bundle
 
-Every push to the paper repository uploads one Actions artifact, `review-<sha7>`, kept 14 days.
+Each paper CI run uploads one Actions artifact, `review-<sha7>`, kept 14 days.
 The commit SHA is the run's identity: the paper repository carries the template's scripts, so the
 SHA also fixes the lint, the skim and the personas that ran. Two builds of one commit give PDFs
 with different bytes, because XeLaTeX stamps the creation date, so a PDF hash identifies a
@@ -22,6 +22,7 @@ review-<sha7>/
   reviewer.pdf       what the reviewer gets
   logs/thesis.log    the LaTeX logs of both builds
   logs/reviewer.log
+  logs/lint-stderr.txt  stderr captured by CI, including execution failures
   lint.json          texlua scripts/lint.lua all --doc reviewer --json
   skim/skim.md       the skim view, the skim persona's only input
   skim/skim.html     the same for a human, with the panels
@@ -39,10 +40,10 @@ review-<sha7>/
   "ref": "main",
   "built": { "by": "ci", "run_url": "https://github.com/.../actions/runs/<id>", "run_attempt": 1 },
   "image": { "ref": "danteev/texlive:latest", "digest": "sha256:..." },
-  "phase": "polish", "phase_source": "thesis.tex", "profile": "tdk",
+  "phase": "polish", "phase_source": "\\lintphase in thesis.tex", "profile": "tdk",
   "builds": [
-    { "doc": "thesis",   "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
-    { "doc": "reviewer", "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
+    { "doc": "thesis",   "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
+    { "doc": "reviewer", "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
   ],
   "lint": { "exit": 1 },
   "skim": { "exit": 0 },
@@ -60,11 +61,14 @@ review-<sha7>/
   skipped): its log is absent, its exit is the one CI recorded, and `errors`, `undefined` and
   `pages` are `null`. A bundle with neither build started is refused. A build that ran but
   left no PDF keeps its log in the bundle, so a failed build is still evidence of the commit.
+  A PDF without its build log is omitted, even if an older build left it on disk.
+- If lint exits nonzero without a readable JSON object, the bundle keeps the PDFs and build
+  logs. `lint.status` is `unavailable`, `lint.error` records the read failure, and the raw output
+  (if present) is saved as `logs/lint-output.txt`. CI also captures stderr as
+  `logs/lint-stderr.txt`; local callers supply it with `--lint-stderr FILE`. There is no `lint.json` or invented result.
+  Missing or malformed JSON with lint exit 0 is refused as contradictory evidence.
 - An exit that was not passed to `review.py bundle` (`--exit lint=N`, `--exit skim=N`) is `null`,
   never a made-up 0; so are `image.ref` and `image.digest` when not given. CI passes them all.
-- `lint.json` is absent when the lint wrote nothing (an invalid `\lintphase` stops it before any
-  rule runs): `lint.exit` is then 2 whatever was passed, `phase` and `phase_source` are `null`,
-  and the bundle ships the builds all the same. A lint file that is present but not JSON is refused.
 - `image.digest` is the digest that actually ran. CI uses `latest` on purpose; the digest is how a
   later reader knows which TeX Live built the PDFs.
 - `builds[].errors` counts `! ` lines in the log, and `undefined` counts undefined references
@@ -85,8 +89,7 @@ it besides the rule results and findings:
   The table lives in `scripts/lint/lintcore.lua` (`ROLE_CRITERIA`), beside the role labels.
   Criterion A is scored on the whole paper and belongs to no role. `texlua scripts/lint.lua
   criteria`, a template-only CI step, fails when the bold `\textbf{Criteri...}` heads of a role's
-  section in `guide/05-chapter-by-chapter.tex` name other criteria. (`roles`, role → files, stays as
-  it was for `work/essentials-labels.py`.)
+  section in `guide/05-chapter-by-chapter.tex` name other criteria. `roles` retains the simpler role-to-files mapping for existing consumers.
 - `tag_lists`: every tag list the paper declares with `\NewTagList{<environment>}{<tag>}{<Name>}{<Names>}`,
   the template's eight and any the paper adds:
   `{"contributions": {"tag": "C", "name": "Contribution"}, "assumptions": {"tag": "AS", "name": "Assumption"}, ...}`.
@@ -163,7 +166,7 @@ out of 35 when B/1 is N/A. `mode` is `premortem` (a spine, no draft) or `draft`.
 ## The record
 
 `inputs` may be left out of findings.json: `record --inputs inputs.json` takes the hashes from the
-saved output of `review.py inputs`, and an `inputs` field in findings.json wins over it.
+saved output of `review.py inputs`. If both are supplied, their hashes must agree; mismatches are refused.
 
 `review.py record findings.json --bundle <dir> [--inputs inputs.json]` verifies the bundle again,
 checks that its manifest names the commit findings.json names and that the persona input hashes

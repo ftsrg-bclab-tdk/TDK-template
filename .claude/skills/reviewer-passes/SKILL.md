@@ -6,8 +6,8 @@ description: Read the TDK paper the way its reviewers will, before they do, on t
 # Reviewer passes
 
 Two reviewers read a TDK paper in an evening each, and a section jury that is mostly out of field
-hears the talk. A pass is one reading by one simulated reader with a narrow brief. Passes are cheap,
-so run them early and repeat them. A persona is not a reviewer, though: it misses things and invents
+hears the talk. A pass is one reading by one simulated reader with a narrow brief. Use focused
+passes early and reuse their results while the reviewed inputs remain unchanged. A persona is not a reviewer, though: it misses things and invents
 things, and what it produces is a list of objections to check, not a score.
 
 ## The panel
@@ -59,7 +59,7 @@ bundle of one commit (`scripts/review/README.md` describes the bundle).
 ## Procedure
 
 1. Name the commit: the one the student names, otherwise `git rev-parse HEAD`, which must be
-   pushed, because CI builds on push. Fetch its bundle, with the repository as `<owner/name>`:
+   pushed. CI runs on main/master pushes, non-draft PRs and manual dispatch. Fetch its bundle, with the repository as `<owner/name>`:
 
    ```
    python3 scripts/review/review.py fetch --repo <owner/name> --sha <sha>
@@ -82,13 +82,18 @@ bundle of one commit (`scripts/review/README.md` describes the bundle).
 
    `inputs.json` maps each persona to its directory, the SHA-256 of each file in it, and whether a
    spine is in it.
-5. Run each persona apart from the others. Where the agent has subagents, use one per persona, in
-   parallel; otherwise run them one after another and reread the persona file each time. Give a
+5. Choose the model and concurrency explicitly, within the user's budget; use inexpensive models
+   for bounded reads. Run each persona apart from the others. Where the agent has subagents, use one per persona, in
+   batches within that concurrency limit; otherwise run them one after another and reread the persona file each time. Give a
    subagent the text of its persona file and the path of its input directory, and tell it to read
    no file outside that directory. Where a persona lists `spine` in `reads` and its entry has
    `"spine": false`, also tell it: there is no spine; judge overclaiming against the abstract and
    the introduction. No persona sees another's findings, the bundle's other files, or the
-   repository.
+   repository. Include the criterion key in every persona's prompt: A form and style;
+   B/1 figures and tables; B/2 references and literature; C the research topic;
+   D/1 novelty and contribution; D/2 technical correctness; E introduction and evaluation.
+   These names come from the bundled sheet in `guide/06-tdk-rules-and-dates.tex`.
+   They describe the output labels, not extra evidence about the paper.
 6. Each persona returns its findings in the persona format below. They stay in the conversation.
 7. Answer in the chat format below. Do not merge or reword findings. When two personas raised the
    same point, or one argued outside its slice, say so under borders: the persona files need

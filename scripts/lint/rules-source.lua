@@ -631,8 +631,7 @@ end
 -- the printed lines only, and nothing inside \verb, \lstinline or a link: a Figure~\ref in a code
 -- listing is the program's text, and no fix touches it (lintcore.lua, M.literal_spans)
 rule("crefs", "source", "check", "always", "references go through \\cref: no 'Figure~\\ref', no \\autoref, \\Cref at the start of a sentence, and no bare \\ref outside table cells", function()
-  C.each_printed_line(MAIN, function(f, n, raw)
-    local l = C.unliteral(raw)
+  C.each_editable_line(MAIN, function(f, n, l)
     if l:match("[Ff]igure~?\\ref") or l:match("[Tt]able~?\\ref") or l:match("[Ss]ection~?\\ref") or l:match("[Cc]hapter~?\\ref") or l:match("[Ll]isting~?\\ref") then fail(f, n, "a typed reference with \\ref", "write \\cref{...}", cref_fix(l, "(%a+)~?\\ref{([^}]*)}", function(w) return TYPED_REF[w:lower()] end)) end
     if l:match("\\autoref") then fail(f, n, "\\autoref", "the template uses cleveref, write \\cref", cref_fix(l, "\\(auto)ref{([^}]*)}", function() return true end)) end
     if l:match("\\figref") or l:match("\\tabref") or l:match("\\sectref") or l:match("\\listref") then fail(f, n, "the faculty template's \\figref family", "write \\cref", cref_fix(l, "\\(%a+)ref{([^}]*)}", function(w) return FACULTY_REF[w] end)) end
@@ -769,6 +768,7 @@ end
 -- the words of a {title} outside nested braces, as BibTeX reads them: { first, last, text, nested }
 -- with the bytes of the title they span (nested: a brace group sits inside the word)
 local function title_words(title)
+  title = C.unliteral(title)
   local words, cur, depth = {}, nil, 1
   for i = 2, #title - 1 do
     local c = title:sub(i, i)
@@ -870,7 +870,7 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
         end
         local tpos, title = body:match("\n%s*[tT][iI][tT][lL][eE]%s*=%s*()(%b{})")
         if title then
-          local inner = title:sub(2, -2):gsub("%b{}", "")
+          local inner = C.unliteral(title):sub(2, -2):gsub("%b{}", "")
           for w in inner:gmatch("%S+") do
             if w:match("^%a") and (w:match("^%u%u") or w:match("%l%u")) then
               -- a word that BibTeX would lowercase is wrapped in braces, on the line of the first one:
@@ -922,17 +922,17 @@ end
 -- links, as the template's overview does; its tdkYY name makes it no companion paper
 local function own_repo(entries)
   local own
-  C.each_call(C.role_files("implementation"), function(name) return name == "url" or name == "href" or name == "weblink" or (name:match("^[cC]ite") and name ~= "citeneeded") end, function(_, _, name, arg)
+  C.each_call(C.role_files("implementation"), function(name) return C.LINK_COMMANDS[name] or (name:match("^[cC]ite") and name ~= "citeneeded") end, function(_, _, name, arg)
     if own then return end
     if name:match("^[cC]ite") then
       for k in arg:gmatch("[^,%s]+") do own = own or (entries[k] and github_repo(entries[k].body)) end
-    else own = github_repo(arg) end
+    else own = github_repo((arg:gsub("%s+", ""))) end
   end)
   return own
 end
 -- what a link points at, when it is a draft or a TDK paper of the given year, other than own
 local function companion_link(url, year, own)
-  local u = url:lower()
+  local u = url:lower():gsub("%s+", "")
   if u:find("overleaf%.com/project/") or u:find("overleaf%.com/read/") then return "an Overleaf project, a draft no reviewer can open," end
   local y = u:match("tdk%.bme%.hu/conference/[^/]+/(%d%d%d%d)/sessions/")
   if y and tonumber(y) >= year then return "a paper of the " .. y .. " TDK on the portal" end
@@ -967,24 +967,28 @@ rule("companion", "source", "check", "always", "a TDK paper of the same year is 
     end
   end
   -- links, read as citations are (C.each_call): across spaces and line breaks, in the printed text only
-  C.each_call(CONTENT, function(name) return name == "url" or name == "href" or name == "weblink" end, function(f, n, _, arg)
+  C.each_call(CONTENT, function(name) return C.LINK_COMMANDS[name] end, function(f, n, _, arg)
     local what = companion_link(arg, year, own)
     if what then flag(f, n, "links " .. what .. ": a TDK paper of the same year is a companion paper, named as one, never linked") end
   end)
-  for _, f in ipairs(CONTENT) do
-    -- "a companion paper~\cite{...}" or a link whose text says companion; a citation later in the
-    -- sentence ("a companion paper verifies it in Tamarin~\cite{...}") is another source's
-    local text = table.concat(C.prose_lines(f), "\n")
-    local pats = { "\\href%s*%b{}%s*{()[^}]*[Cc]ompanion", "\\weblink%s*%b{}%s*{()[^}]*[Cc]ompanion" }
-    -- the words may close an \emph{} or \enquote{} before the citation
-    for _, cmd in ipairs({ "[cC]ite", "url", "href", "weblink" }) do pats[#pats + 1] = "()[Cc]ompanion%s*%a*}?[%s~,(%[]*\\" .. cmd end
-    for _, p in ipairs(pats) do
-      for at in text:gmatch(p) do
-        local n = 1 + C.count(text:sub(1, at), "\n")
-        if not flagged[f .. ":" .. n] then flag(f, n, "a citation or link attached to a companion paper: a companion paper is named, not cited") end
-      end
+  -- The same printed text and calls as the citation/link checks above. Known
+  -- formatting wrappers are transparent, including nested emph/enquote/textbf.
+  local formatted = {}
+  C.each_call(CONTENT, function(name)
+    return C.LINK_COMMANDS[name] or (name:match("^[cC]ite%a*%*?$") and name ~= "citeneeded")
+  end, function(f, n, name, _, start, last, text)
+    formatted[f] = formatted[f] or C.unformat(text)
+    local before = formatted[f]:sub(1, start - 1)
+    before = before:gsub("\\footnote%s*{%s*$", "")
+    local attached = before:match("[Cc]ompanion%s+paper[%s~,(%[}'\"]*$")
+    if name == "href" or name == "weblink" then
+      local label = C.balanced_group(text, last + 1)
+      attached = attached or (label and C.unformat(label):match("[Cc]ompanion%s+paper"))
     end
-  end
+    if attached and not flagged[f .. ":" .. n] then
+      flag(f, n, "a citation or link attached to a companion paper: a companion paper is named, not cited")
+    end
+  end)
 end)
 
 -- the reference list as BibTeX printed it: the \bibitem keys of the .bbl, so a citation counts
@@ -1100,7 +1104,7 @@ local UNITS = { ms = true, s = true, MB = true, GB = true, KB = true, kB = true,
 
 -- a typography fix covers every occurrence of its slip on the raw line, and goes with the line's
 -- first finding of that slip; it is safe when the raw line holds exactly the occurrences the rule
--- saw in the prose, and review when it holds more (in a \todo, a \url, maths) or fewer. A line of
+-- saw in the prose. Hidden notes and literals are masked before matching. A line of
 -- the template's skeleton gets none: the author replaces it, and a polished copy would no longer
 -- be recognised as the template's text, so it would count as the author's own words. A slip that
 -- can be meant (a doubled word, a quote, a line break) passes its tier, review
@@ -1108,7 +1112,9 @@ local function typo_fix(f, n, seen, kind, help, count, pattern, fn, tier)
   if seen[kind] then return nil end
   seen[kind] = true
   if C.skeleton_lines()[C.prose_key(C.prose_lines(f)[n] or "")] then return nil end
-  local edits = C.matches(C.raw_lines(f)[n], pattern, fn)
+  local visible = C.prose_lines(f)[n] or ""
+  if kind == "range" or kind == "unit" or kind == "quote" or kind == "eg" or kind == "etal" or kind == "double" or kind == "dots" then visible = C.word_lines(f)[n] or "" end
+  local edits = C.matches(visible, pattern, fn, C.raw_lines(f)[n])
   return C.fix(tier or (#edits == count and "safe" or "review"), help, table.unpack(edits))
 end
 -- a space before punctuation, a ratio excepted (3 : 1 keeps its spaces): at the end of the line
@@ -1137,11 +1143,8 @@ local function is_range(code, s, e) return not code:sub(s - 1, s - 1):match("[%w
 local DOUBLED_OK = { that = true, had = true }
 
 rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words, \\eg and \\ie macros, no manual line breaks in prose", function()
-  C.each_prose_line(MAIN, function(f, n, raw)
-    -- the literal spans blanked (lintcore.lua, M.literal_spans): x : Nat in \texttt{} or $k : x$
-    -- is code or a formula, not a slip, and no fix touches it
-    local l = C.unliteral(raw)
-    local p = C.prose(l)
+  C.each_prose_line(MAIN, function(f, n, l)
+    local p = C.word_lines(f)[n] or ""
     local seen = {}
     -- a range stands alone: BLS12-381 and i7-9750H are names, not ranges
     local ranges = {}
@@ -1181,8 +1184,12 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
         end, "review"))
       end
     end
-    if l:match(PUNCT) then
-      warn(f, n, "space before punctuation", typo_fix(f, n, seen, "punct", "delete the space", C.nmatch(l, PUNCT), PUNCT, function(_, _, _, c, q)
+    -- Masks preserve byte positions with spaces. A match spanning a masked URL
+    -- or note is not source punctuation; require the same bytes on disk before
+    -- reporting it, just as the fix matcher does before offering an edit.
+    local punctuation = C.matches(l, PUNCT, function(m) return m end, C.raw_lines(f)[n])
+    if #punctuation > 0 then
+      warn(f, n, "space before punctuation", typo_fix(f, n, seen, "punct", "delete the space", #punctuation, PUNCT, function(_, _, _, c, q)
         if not (q == ":" and c:match("%d")) then return c .. q end
       end))
     end
