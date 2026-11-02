@@ -318,7 +318,7 @@ For a system, specify the latency, throughput, resource or recovery budget that 
 The proof establishes the revocation bound only under its assumptions. The synthetic measurements in \cref{fig:guide:scalability} suggest adequate capacity and mean latency, but a conclusion about the combined target also needs latency measured at the specified offered load. The fault experiment must test the agreed outage and recovery condition. Even if both targets are met on the single-machine setup, geographically distributed deployment remains unvalidated. State that limit explicitly and identify the further deployment evidence needed; meeting a local target is a bounded conclusion about suitability.
 
 \subsection[Research questions]{Research questions\skimmark}\label{app:chapters:research-questions}
-Use three research questions, one for each evaluation section below. These are track S's; the first row of \cref{tab:guide:eval-tracks} words the same three for tracks F and T.
+Use three research questions, one for each evaluation section below. These are track S's; the first row of \cref{tab:guide:eval-tracks} words the same three for tracks F and T. End each section with a short paragraph opening \textbf{Answer to RQ1.}, whose first sentence answers the question and whose next ones name the evidence, so a reader skimming the evaluation finds the result.
 \begin{rqlist}
   \item\label{rq:guide:correct} \textbf{Correctness.} Does the registry reject every credential whose revocation was recorded more than $\delta$ ago, in the scenario and in the model, against both adversaries?
   \item\label{rq:guide:scale} \textbf{Scale.} How do the latency of a check and the registry's throughput grow with the number of issuers?
