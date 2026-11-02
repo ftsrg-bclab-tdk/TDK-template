@@ -1213,7 +1213,7 @@ local function is_range(code, s, e) return not code:sub(s - 1, s - 1):match("[%w
 -- doubled words that are grammar, not a slip: "the protocol that that process uses", "had had"
 local DOUBLED_OK = { that = true, had = true }
 
-rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words, \\eg and \\ie macros, no manual line breaks in prose", function()
+rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words or sentences, \\eg and \\ie macros, no manual line breaks in prose", function()
   C.each_prose_line(MAIN, function(f, n, l)
     local p = C.word_lines(f)[n] or ""
     local seen = {}
@@ -1284,6 +1284,20 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
       end))
     end
   end)
+  -- a sentence that repeats the one before it, or its end: what a merge or a large cut leaves
+  -- behind. Short ones can be meant, and the prose reader has blanked out what could make two
+  -- long ones differ
+  for _, f in ipairs(MAIN) do
+    local prev
+    local text = C.prose(table.concat(C.prose_lines(f), "\n")):gsub("%s+", " ")
+    for sentence in text:gmatch("[^%.%?!]+[%.%?!]") do
+      sentence = C.trim(sentence)
+      if prev and C.count(sentence, "%a+") >= 6 and (prev == sentence or prev:sub(-#sentence - 1) == " " .. sentence) then
+        warn(f, nil, "the same sentence twice in a row: " .. sentence:sub(1, 80), "keep one")
+      end
+      prev = sentence
+    end
+  end
 end)
 
 rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist (a hyphenated modifier before its noun, as in private-input recovery, is the open noun's own form), and British and American spellings of the known pairs are not mixed", function()

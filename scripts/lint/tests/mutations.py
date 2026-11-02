@@ -319,6 +319,8 @@ MUTATIONS = [
         lambda d: [(f).write_text(f.read_text().replace("{runningexample}", "{cvd}")) for f in (d / "content").glob("0[1-7]-*.tex")]), "intro ◔◔●◔◔◔◔◔"),
     ("hyphen range", "typography", append(BG, "This holds for pages 12-18 of the book."), "with a hyphen"),
     ("a citation on its own line of a header cell", "typography", append(BG, "\\textbf{Indy}\\newline\\cite{lamport1978time} & x"), "!\\cite without a tie"),
+    ("a sentence twice in a row", "typography", append(BG, "The earlier run used an older interface of the registry.\nThe earlier run used an older interface of the registry. It reports nothing."), "the same sentence twice in a row"),
+    ("a short sentence twice is left alone", "typography", append(BG, "It holds. It holds."), "!the same sentence twice"),
     ("a name is not a range", "typography", append(BG, "The curve BLS12-381 on an i7-9750H."), "!range 12-381"),
     ("a compound in two spellings", "terms", append(BG, "The read-set check reads the read set again."), "read-set (1) also appears as 'read set' (1)"),
     ("a three-part compound is one word", "terms", append(BG, "An atomic test-and-set makes the test and the set one step, peer-to-peer."), "!test-and"),
