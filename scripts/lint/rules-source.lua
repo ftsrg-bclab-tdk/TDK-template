@@ -1215,7 +1215,7 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
   end)
 end)
 
-rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist, and British and American spellings of the known pairs are not mixed", function()
+rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist (a hyphenated modifier before its noun, as in private-input recovery, is the open noun's own form), and British and American spellings of the known pairs are not mixed", function()
   local text = {}
   for _, f in ipairs(MAIN) do text[#text + 1] = C.prose(table.concat(C.prose_lines(f), "\n")) end
   local all = table.concat(text, "\n")
@@ -1232,6 +1232,15 @@ rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, o
     local open = select(2, all:gsub("%f[%a]" .. a .. " " .. b .. "%f[%A]", ""))
     local closed = select(2, all:gsub("%f[%a]" .. a .. b .. "%f[%A]", ""))
     local hy = select(2, all:gsub("%f[%a]" .. a .. "%-" .. b .. "%f[%A]", ""))
+    -- the hyphenated uses standing as a noun: not before a word, which makes them a modifier
+    -- (private-input recovery next to the private input), and not inside a longer chain
+    -- (state-of-the-art, peer-to-peer). A noun before a verb (the read-set grows) reads as a modifier
+    -- and goes unreported: this advice has no parts of speech, and silence costs less than noise
+    local noun = 0
+    for at, after in all:gmatch("()%f[%a]" .. a .. "%-" .. b .. "%f[%A]()") do
+      if all:sub(at - 1, at - 1) ~= "-" and not all:match("^%-", after) and not all:match("^%s+%l", after) then noun = noun + 1 end
+    end
+    if noun == 0 then open = 0 end
     if open > 0 or closed > 0 then n = n + 1; warn(nil, nil, string.format("%s (%d) also appears as %s%s", h, hy, open > 0 and string.format("'%s %s' (%d)", a, b, open) or "", closed > 0 and string.format("%s'%s%s' (%d)", open > 0 and " and " or "", a, b, closed) or ""), "pick one") end
   end
   -- British/American pairs that a spell checker would not catch together

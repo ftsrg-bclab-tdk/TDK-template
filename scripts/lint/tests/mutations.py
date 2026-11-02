@@ -270,6 +270,14 @@ MUTATIONS = [
     ("file not NN-name", "frame", rename("content/02-background.tex", "content/background.tex"), "NN-name.tex"),
     ("bib entry without title", "bib", drop_line("bib/references.bib", "{Time, Clocks, and the Ordering"), "lamport1978time: no title"),
     ("cited key missing", "bib", append(BG, "See~\\cite{nosuchref}."), "nosuchref is in no .bib file"),
+    # a web source is a page, not a paper that has a link: a published paper or an archived preprint needs no access date
+    ("a web page without its access date", "bib", append("bib/references.bib", "@misc{somepage,\n  author = {{Some Owner}},\n  title = {Some Page},\n  year = {2026},\n  url = {https://example.org/page}\n}"), "somepage: a web source needs its access date"),
+    ("an ePrint preprint needs no access date", "bib", append("bib/references.bib", "@misc{someeprint,\n  author = {Doe, Jane},\n  title = {Some Preprint},\n  howpublished = {Cryptology ePrint Archive, Paper 2020/1},\n  year = {2020},\n  url = {https://eprint.iacr.org/2020/1}\n}"), "!someeprint: a web source"),
+    ("a published paper with a link needs no access date", "bib", append("bib/references.bib", "@inproceedings{somepaper,\n  author = {Doe, Jane},\n  title = {Some Paper},\n  booktitle = {Some Conference},\n  year = {2020},\n  url = {https://example.org/paper.pdf}\n}"), "!somepaper: a web source"),
+    # a hyphenated modifier before its noun is the open noun's own form; the same compound as a noun in two spellings is not
+    ("a compound as a noun in two spellings", "terms", append(BG, "We grow the read-set. The read set shrinks."), "read-set (1) also appears as 'read set' (1)"),
+    ("a hyphenated modifier next to its open noun", "terms", append(BG, "The private-input recovery reads the private input."), "!private-input"),
+    ("a chain of hyphens is one word", "terms", append(BG, "A state-of-the-art tool is the state of play."), "!state-of"),
     ("unicode lstinline", "code", append(BG, "The rule \\lstinline{∀x} holds."), "ASCII"),
     ("label prefix wrong", "labels", append(BG, "\\begin{table}\\caption{A table for the test.}\\label{fig:wrong}\\end{table}"), "expected prefix tab:"),
     ("running example missing from a chapter", "essentials", both(NAMED, OWN_BOX, lambda d: (d / BG).write_text(re.sub(r"\\begin\{runningexample\}.*?\\end\{runningexample\}", "", (d / BG).read_text(), flags=re.S))), "no example box in 02-background"),
