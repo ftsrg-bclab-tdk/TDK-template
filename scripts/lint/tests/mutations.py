@@ -235,6 +235,8 @@ MUTATIONS = [
     ("gap matrix rows short", "essentials", both(filled_gap, drop_line("content/06-related-work.tex", "\\ref{req:third}  & Auditable")), "req:third has no row in the gap matrix"),
     ("a gap matrix row twice", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\ref{req:second} & Unlinkable", "\\ref{req:first} & Unlinkable")), "req:first has two rows"),
     ("this work without a result pointer", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{sec:scalability})", "\\gapyes")), "points at no evaluation result"),
+    ("an essential figure moved to an appendix", "essentials", both(sub("content/03-approach.tex", "\\label{fig:architecture}", "\\label{fig:architecture-old}"),
+        append("content/10-appendices.tex", "\\begin{figure}\\caption{The approach end to end.}\\label{fig:architecture}\\end{figure}")), "fig:architecture is outside the main text"),
     ("guarantee not in the correctness table", "essentials", both(own_items("content/03-approach.tex", "g"), drop_line("content/05-evaluation.tex", "\\ref{g:example} &")), "g:example is not checked in the evaluation"),
     ("contribution not restated", "essentials", own_items("content/01-introduction.tex", "c"), "c:method is not restated"),
     ("a headline number the evaluation lacks", "numbers", append("content/01-introduction.tex", "The ledger confirms a payment in 73 seconds."), "number 73 does not occur"),

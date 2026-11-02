@@ -465,7 +465,12 @@ local FLOAT_USED = {
 
 local function eval_float(row, r)
   local fl = find_float(C.main_chapters(), row.label)
-  if not fl then return 0, row.add end
+  if not fl then
+    -- moved out of the main text, typically to an appendix to meet the page limit
+    local elsewhere = find_float(C.CONTENT, row.label)
+    if elsewhere then return 0, string.format("%s is outside the main text (%s:%d); the reviewer looks for it in the %s: move it back", row.label, elsewhere.file, elsewhere.line, C.ROLE_NAME[row.role] or row.role) end
+    return 0, row.add
+  end
   r.where = place(fl.file, fl.line, fl.last)
   local body, cap = float_parts(fl, row.label)
   local sk = find_float(C.skeleton_files(), row.label)
