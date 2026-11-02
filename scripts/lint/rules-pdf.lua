@@ -194,18 +194,23 @@ rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to 
   return string.format("runs<8pt=%d pages=%d", total, #pages)
 end)
 
--- the position of the first numbered chapter among the .toc's chapter lines; nil without a .toc.
--- hyperref writes a bookmark for every \contentsline of the toc, so the outline's depth-1 items
--- are these lines in order, and the position maps the chapter to its PDF page whatever its title
-local function first_numbered_chapter()
-  local i = 0
+-- the positions of the first numbered chapter and of the first unnumbered chapter after it (the
+-- back matter: the acknowledgements, the glossary, the bibliography) among the .toc's chapter
+-- lines; nil without a .toc. hyperref writes a bookmark for every \contentsline of the toc, so the
+-- outline's depth-1 items are these lines in order, and the position maps the chapter to its PDF
+-- page whatever its title
+local function numbered_chapters()
+  local i, first = 0, nil
   for _, l in ipairs(C.lines(C.bpath(C.opts.doc .. ".toc"))) do
     local title = l:match("^\\contentsline%s*{chapter}(%b{})")
     if title then
       i = i + 1
-      if title:find("\\numberline", 1, true) then return i end
+      local numbered = title:find("\\numberline", 1, true) ~= nil
+      if numbered and not first then first = i end
+      if first and not numbered then return first, i end
     end
   end
+  return first
 end
 
 rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PDF outline, first chapter to the page before the back matter: 30-35 for the TDK", function()
@@ -216,7 +221,7 @@ rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PD
   -- the main text starts at the .toc's first numbered chapter; without a .toc, at the chapter
   -- numbered 1 or called Introduction
   local start, stop
-  local first = first_numbered_chapter()
+  local first, back = numbered_chapters()
   local from = first and chapters[first] and first
   if not from then
     for i, it in ipairs(chapters) do
@@ -226,7 +231,8 @@ rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PD
   end
   if not from then fail(nil, nil, "no first chapter in the PDF outline: cannot count the main text (hyperref bookmarks missing, or no numbered chapter in " .. C.opts.doc .. ".toc?)"); return end
   start = chapters[from].page
-  for i = from + 1, #chapters do
+  if back and chapters[back] then stop = chapters[back].page - 1 end
+  for i = from + 1, stop and 0 or #chapters do
     local t = chapters[i].title
     if t:match("Acknowledg") or t:match("Köszönet") or t:match("List of Figures") or t:match("Ábrák") or t:match("Bibliograph") or t:match("References") or t:match("Irodalom") or t:match("Appendi") or t:match("Függelék") or t:match("Hallgatói nyilatkozat") or t:match("Acronyms") then stop = chapters[i].page - 1; break end
   end
