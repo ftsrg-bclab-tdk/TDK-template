@@ -402,6 +402,8 @@ MUTATIONS = [
     ("a PDF rule without a PDF is skipped", "pdf-margins", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     ("json carries the findings of every rule", "bib", append(BG, "See~\\cite{nosuchref}."), '"msg":"cited key nosuchref is in no .bib file","rule":"bib"', {"args": "all --doc reviewer --phase submit --json", "exit": 1}),
     # fixes never edit literal text: code listings, inline verbatim, links, maths
+    ("a tilde used for about", "typography", append(BG, "Each record costs ~5,600 cycles."), "prints a space, not 'about'"),
+    ("a tie before a number is a tie", "typography", append(BG, "See Table~3 and page~12."), "!prints a space, not 'about'"),
     ("a code listing's Figure~\\ref is the program's text", "crefs", append(BG, "\\begin{lstlisting}\nFigure~\\ref{fig:overview}\n\\end{lstlisting}"), "!typed reference"),
     ("inline verbatim is the program's text", "crefs", append(BG, "The macro \\verb|Figure~\\ref{fig:overview}| is typed as text."), "!typed reference"),
     ("a quote inside verbatim is not rewritten", "typography", append(BG, 'The string \\verb|"abc"| is a literal; "quoted" text follows.'), '!\\verb|\\enquote{abc}|'),

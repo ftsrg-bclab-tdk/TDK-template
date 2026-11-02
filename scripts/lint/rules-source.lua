@@ -1213,10 +1213,12 @@ local function is_range(code, s, e) return not code:sub(s - 1, s - 1):match("[%w
 -- doubled words that are grammar, not a slip: "the protocol that that process uses", "had had"
 local DOUBLED_OK = { that = true, had = true }
 
-rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words or sentences, \\eg and \\ie macros, no manual line breaks in prose", function()
+rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words or sentences, \\eg and \\ie macros, no manual line breaks in prose, no ~ for \"about\"", function()
   C.each_prose_line(MAIN, function(f, n, l)
     local p = C.word_lines(f)[n] or ""
     local seen = {}
+    -- ~ is a tie in LaTeX: "costs ~5,600 cycles" prints "costs 5,600 cycles", an exact-looking number
+    if l:match("^~%d") or l:match("[%s%(]~%d") then warn(f, n, "~ before a number prints a space, not 'about', so the number reads as exact", "write about 5,600 or $\\approx$5,600") end
     -- a range stands alone: BLS12-381 and i7-9750H are names, not ranges
     local ranges = {}
     for s, a, b, e in p:gmatch("()(%d+)%-(%d+)()") do
