@@ -341,6 +341,7 @@ MUTATIONS = [
     ("a numbered label", "labels", append(BG, "\\section{Extra}\\label{sec:3.4}"), "encodes a number"),
     ("an appendix chapter labelled app:", "labels", append(BG, "\\appendix\n\\chapter{Proofs}\\label{app:proofs}\n\\section{Lemmas}\\label{app:proofs:lemmas}"), "!label app:proofs"),
     ("a body section labelled app:", "labels", append(BG, "\\section{Extra}\\label{app:extra}"), "label app:extra inside sec"),
+    ("one section under a heading", "outline", sub("content/02-background.tex", "\\section{", "\\subsection{Only one}\n\\section{"), "a lone \\subsection"),
     ("a chapter label that names no role", "roles", sub("content/04-implementation.tex", "\\label{ch:implementation}", "\\label{ch:impl}"), "names no role"),
     ("a chapter without a label", "roles", sub(BG, "\\chapter{Background}\\label{ch:background}", "\\chapter{Background}"), "no role label"),
     ("a named role label counts", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:approach:method}"), "!no approach chapter"),

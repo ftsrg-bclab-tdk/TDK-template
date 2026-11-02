@@ -421,7 +421,7 @@ end)
 -- the argument ---------------------------------------------------------------------------
 -- what a paper must contain, and whether it is used where the argument needs it, is the
 -- essentials rule (rules-essentials.lua); here only the outline's own conventions
-rule("outline", "source", "check", "draft", "the outline is final: chapters renamed where the template says so, no TODO heading, no third level of headings, every chapter file has its \\chapter", function()
+rule("outline", "source", "check", "draft", "the outline is final: chapters renamed where the template says so, no TODO heading, no third level of headings, no lone subdivision (a chapter with sections has at least two, a section with subsections at least two), every chapter file has its \\chapter", function()
   if #MAIN == 0 then fail(nil, nil, "no chapter files"); return end
   for _, f in ipairs(MAIN) do
     if not C.file_has(f, "\\chapter") then fail(f, 1, "no \\chapter in a chapter file") end
@@ -444,6 +444,30 @@ rule("outline", "source", "check", "draft", "the outline is final: chapters rena
     if t and t:match("TODO") then fail(file, n, "heading still a TODO: " .. t) end
     if l:match("\\subsubsection") then warn(file, n, "a subsubsection: three levels of headings in 35 pages is one too many") end
   end)
+  -- a subdivision divides: one child of a heading is the heading again. \paragraph is a run-in label
+  -- and may stand alone
+  local LEVELS = { section = 1, subsection = 2, subsubsection = 3 }
+  local PARENT = { "chapter", "section", "subsection" }
+  for _, f in ipairs(MAIN) do
+    local count, first, names = {}, {}, {}
+    local function close(from)
+      for d = from, 3 do
+        if count[d] == 1 then warn(f, first[d], "a lone \\" .. names[d] .. ": a " .. PARENT[d] .. " divided at all has at least two", "add a second one, or drop the heading") end
+        count[d] = 0
+      end
+    end
+    C.each_line({ f }, function(_, n, l)
+      local cmd = l:match("\\(%a+)%*?%s*[%[{]")
+      if cmd == "chapter" then close(1)
+      elseif LEVELS[cmd] then
+        local d = LEVELS[cmd]
+        close(d + 1)
+        count[d] = (count[d] or 0) + 1
+        if count[d] == 1 then first[d], names[d] = n, cmd end
+      end
+    end)
+    close(1)
+  end
 end)
 
 rule("figures", "source", "check", "always", "every figure, table, listing, algorithm and numbered equation is referenced from the text; floats have captions and labels; raster images are flagged", function()
