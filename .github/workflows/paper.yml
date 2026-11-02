@@ -1,4 +1,4 @@
-# Builds the draft and the reviewer PDF on every push to main and on every pull request that is
+# Builds the draft and the final PDF on every push to main and on every pull request that is
 # not a draft (mark it ready to run it), and runs every lint rule as its own step,
 # so the run page lists the rules with a check or a cross each, findings appear as annotations
 # on the files, and the job summary ends with one table. Gates fail the run; report rules only
@@ -18,7 +18,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 env:
-  LINT_PROFILE: tdk   # thesis: the faculty's thesis guide instead of the TDK call; the phase comes from \lintphase in thesis.tex
+  LINT_PROFILE: tdk   # thesis: the faculty's thesis guide instead of the TDK call; the phase comes from \lintphase in draft.tex
 jobs:
   image:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
@@ -80,12 +80,12 @@ jobs:
         id: draft
         if: always()
         run: rc=0; make all || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
-      - name: Build the reviewer PDF
-        id: reviewer
+      - name: Build the final PDF
+        id: final
         if: always()
-        run: rc=0; make reviewer || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
+        run: rc=0; make final || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
       - name: template / the lint catches each mutation of the skeleton (the template's repository only)
-        if: always() && github.repository == 'BlackLight54/TDK-template' && hashFiles('reviewer.aux') != ''
+        if: always() && github.repository == 'BlackLight54/TDK-template' && hashFiles('final.aux') != ''
         run: make test-lint
       - name: source / essentials (check)
         if: always()
@@ -119,10 +119,10 @@ jobs:
         run: texlua scripts/lint.lua spine
       - name: source / build (check)
         if: always()
-        run: texlua scripts/lint.lua build --doc reviewer
+        run: texlua scripts/lint.lua build --doc final
       - name: source / overfull (check)
         if: always()
-        run: texlua scripts/lint.lua overfull --doc reviewer
+        run: texlua scripts/lint.lua overfull --doc final
       - name: source / preamble (check)
         if: always()
         run: texlua scripts/lint.lua preamble
@@ -155,16 +155,16 @@ jobs:
         run: texlua scripts/lint.lua companion
       - name: source / sources (advice)
         if: always()
-        run: texlua scripts/lint.lua sources --doc reviewer
+        run: texlua scripts/lint.lua sources --doc final
       - name: source / code (check)
         if: always()
         run: texlua scripts/lint.lua code
       - name: tools / checkcites (count)
         if: always()
-        run: texlua scripts/lint.lua checkcites --doc reviewer
+        run: texlua scripts/lint.lua checkcites --doc final
       - name: tools / bibtex-log (count)
         if: always()
-        run: texlua scripts/lint.lua bibtex-log --doc reviewer
+        run: texlua scripts/lint.lua bibtex-log --doc final
       - name: tools / links (advice)
         if: always()
         run: texlua scripts/lint.lua links
@@ -195,7 +195,7 @@ jobs:
       - name: source / pages (check, submit)
         if: always()
         continue-on-error: ${{ github.ref_name != 'main' && github.ref_name != 'master' }}
-        run: texlua scripts/lint.lua pages --doc reviewer
+        run: texlua scripts/lint.lua pages --doc final
       - name: source / aidecl (check, submit)
         if: always()
         run: texlua scripts/lint.lua aidecl
@@ -204,26 +204,26 @@ jobs:
         run: texlua scripts/lint.lua titlepage
       - name: pdf / pdf-file (check, polish)
         if: always()
-        run: texlua scripts/lint.lua pdf-file --doc reviewer
+        run: texlua scripts/lint.lua pdf-file --doc final
       - name: pdf / pdf-font (check, polish)
         if: always()
-        run: texlua scripts/lint.lua pdf-font --doc reviewer
+        run: texlua scripts/lint.lua pdf-font --doc final
       - name: pdf / pdf-spacing (check, polish)
         if: always()
-        run: texlua scripts/lint.lua pdf-spacing --doc reviewer
+        run: texlua scripts/lint.lua pdf-spacing --doc final
       - name: pdf / pdf-margins (check, polish)
         if: always()
-        run: texlua scripts/lint.lua pdf-margins --doc reviewer
+        run: texlua scripts/lint.lua pdf-margins --doc final
       - name: pdf / pdf-smalltext (advice, polish)
         if: always()
-        run: texlua scripts/lint.lua pdf-smalltext --doc reviewer
+        run: texlua scripts/lint.lua pdf-smalltext --doc final
       - name: pdf / pdf-pages (check, submit)
         if: always()
         continue-on-error: ${{ github.ref_name != 'main' && github.ref_name != 'master' }}
-        run: texlua scripts/lint.lua pdf-pages --doc reviewer
+        run: texlua scripts/lint.lua pdf-pages --doc final
       - name: pdf / pdf-parts (check, submit)
         if: always()
-        run: texlua scripts/lint.lua pdf-parts --doc reviewer
+        run: texlua scripts/lint.lua pdf-parts --doc final
       - name: source / markers (check, draft)
         if: always()
         run: texlua scripts/lint.lua markers
@@ -239,7 +239,7 @@ jobs:
       # the rule prints the JSON record and then its status line: the artifact is the record alone
       - name: burn-down record
         if: always()
-        run: texlua scripts/lint.lua burndown --doc reviewer > burndown.txt; grep -m1 '^{' burndown.txt | tee burndown.json; [ -s burndown.json ]
+        run: texlua scripts/lint.lua burndown --doc final > burndown.txt; grep -m1 '^{' burndown.txt | tee burndown.json; [ -s burndown.json ]
       - name: Keep the burn-down record
         if: always()
         uses: actions/upload-artifact@v4
@@ -254,13 +254,13 @@ jobs:
         if: always()
         run: |
           rc=0
-          texlua scripts/lint.lua all --doc reviewer --json > lint.json 2> lint.stderr || rc=$?
+          texlua scripts/lint.lua all --doc final --json > lint.json 2> lint.stderr || rc=$?
           cat lint.stderr >&2
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
           [ -s lint.json ]
-      - name: Skim view of the reviewer PDF
+      - name: Skim view of the final PDF
         id: skim
-        if: always() && hashFiles('reviewer.pdf') != ''
+        if: always() && hashFiles('final.pdf') != ''
         run: rc=0; python3 scripts/skim/skim.py build . -o skim --lint lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"
       # the bundle is assembled even when a build failed or never ran, or the lint wrote no JSON:
       # the logs and the recorded exits are the evidence of that commit (review.py bundle refuses
@@ -274,14 +274,14 @@ jobs:
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           REF: ${{ github.head_ref || github.ref_name }}
           IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
-          RC_THESIS: ${{ steps.draft.outputs.rc || 1 }}
-          RC_REVIEWER: ${{ steps.reviewer.outputs.rc || 1 }}
+          RC_DRAFT: ${{ steps.draft.outputs.rc || 1 }}
+          RC_FINAL: ${{ steps.final.outputs.rc || 1 }}
           RC_LINT: ${{ steps.lintjson.outputs.rc || 2 }}
           RC_SKIM: ${{ steps.skim.outputs.rc || 1 }}
         run: |
           python3 scripts/review/review.py bundle --built . --lint lint.json --lint-stderr lint.stderr --skim skim --out review-bundle --by ci \
             --sha "$SHA" --ref "$REF" --image-ref danteev/texlive:latest --image-digest "$IMAGE_DIGEST" \
-            --exit "thesis=$RC_THESIS" --exit "reviewer=$RC_REVIEWER" --exit "lint=$RC_LINT" --exit "skim=$RC_SKIM"
+            --exit "draft=$RC_DRAFT" --exit "final=$RC_FINAL" --exit "lint=$RC_LINT" --exit "skim=$RC_SKIM"
           echo "name=review-${SHA::7}" >> "$GITHUB_OUTPUT"
       - name: Keep the review bundle for 14 days
         if: always() && steps.bundle.outcome == 'success'

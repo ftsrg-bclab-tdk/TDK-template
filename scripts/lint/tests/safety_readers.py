@@ -47,7 +47,7 @@ def fixture(d, body="", bib=ENTRY, phase=PLAN):
     for name in ("content", "bib", "include"):
         (d / name).mkdir(parents=True, exist_ok=True)
     shutil.copytree(TEMPLATE / "scripts", d / "scripts")
-    (d / "thesis.tex").write_text(
+    (d / "draft.tex").write_text(
         "\\documentclass{article}\n" + phase + "\n" + r"""\usepackage{cleveref,csquotes,glossaries-extra}
 \newcommand{\eg}{e.g.}
 \newcommand{\ie}{i.e.}

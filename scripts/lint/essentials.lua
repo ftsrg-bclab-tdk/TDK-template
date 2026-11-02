@@ -36,9 +36,9 @@ return {
     add = "add a paragraph \\paragraph{Problem.}\\label{par:problem} to the introduction" },
 
   { id = "example", role = "intro", kind = "example", title = "Running example", criterion = "A", example = "app:chapters:problem",
-    why = "one small scenario, named once in thesis.tex (\\exname) and revisited in a box in every chapter, so the reader can follow each step",
+    why = "one small scenario, named once in draft.tex (\\exname) and revisited in a box in every chapter, so the reader can follow each step",
     used = "an example box in every main chapter",
-    add = "add a running-example box to the introduction and name the example with \\exname in thesis.tex" },
+    add = "add a running-example box to the introduction and name the example with \\exname in draft.tex" },
 
   { id = "rationale", role = "intro", kind = "text", title = "Research rationale", criterion = "C", example = "app:chapters:rationale", key = "rationale", label = "sec:rationale",
     headings = { "research rationale", "rationale" }, words = 100,

@@ -1,6 +1,6 @@
 ---
 name: mean-mathematician
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper has a definition, a theorem, a lemma or a proof
 ---
 

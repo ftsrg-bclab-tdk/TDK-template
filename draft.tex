@@ -67,8 +67,8 @@
 
 \selectthesislanguage
 
-% The todo list and Checks open the draft. The reviewer PDF starts with its title page.
-\ifdefined\reviewermode\else\listoftodos\lintchecks\fi
+% The todo list and Checks open the draft. The final PDF starts with its title page.
+\ifdefined\finalmode\else\listoftodos\lintchecks\fi
 
 %TODO Titlepage -- choose one from below
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,9 +131,9 @@
 
 % The guide: how we work, the TDK lifecycle, and how to use this template
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-% Nothing to delete before submission: reviewer.tex builds the paper without the guide and
+% Nothing to delete before submission: final.tex builds the paper without the guide and
 % the notes. guide/guide.tex lists the guide's chapters; a template update replaces it.
-\ifdefined\reviewermode\else
+\ifdefined\finalmode\else
 \input{guide/guide}
 \fi
 

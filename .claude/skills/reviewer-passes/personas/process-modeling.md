@@ -1,6 +1,6 @@
 ---
 name: process-modeling
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper has BPMN, workflow, choreography, sequence or state diagrams
 ---
 

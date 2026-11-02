@@ -26,7 +26,7 @@ for rule, filename in (("essentials", "rules-essentials.lua"), ("placeholders", 
         folder = Path(tmp)
         for name in ("scripts", "content", "include", "bib", "guide"):
             shutil.copytree(ROOT / name, folder / name, ignore=shutil.ignore_patterns("__pycache__"))
-        shutil.copy2(ROOT / "thesis.tex", folder / "thesis.tex")
+        shutil.copy2(ROOT / "draft.tex", folder / "draft.tex")
         source = folder / "scripts/lint" / filename
         text = source.read_text()
         start = text.index(f'rule("{rule}",')

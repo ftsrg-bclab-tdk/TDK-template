@@ -1,6 +1,6 @@
 ---
 name: cryptographer
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper uses cryptography or claims security, credentials or privacy
 ---
 

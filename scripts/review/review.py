@@ -22,12 +22,12 @@ import sys
 import tempfile
 from pathlib import Path, PurePosixPath
 
-SCHEMA = 1
-DOCS = ("thesis", "reviewer")
+SCHEMA = 2
+DOCS = ("draft", "final")
 CRITERIA = ("A", "B/1", "B/2", "C", "D/1", "D/2", "E")
 SEVERITIES = ("blocker", "major", "minor")
 MODES = ("premortem", "draft")
-READS = ("reviewer-pdf", "skim-view", "spine")
+READS = ("final-pdf", "skim-view", "spine")
 HEX40 = re.compile(r"[0-9a-f]{40}")
 HEX64 = re.compile(r"[0-9a-f]{64}")
 BODY_LIMIT = 65000  # GitHub refuses an issue body of 65536 characters
@@ -192,9 +192,9 @@ def count_pages(pdf):
 def parse_exits(items):
     exits = {}
     for item in items or []:
-        m = re.fullmatch(r"(thesis|reviewer|lint|skim)=(\d+)", item)
+        m = re.fullmatch(r"(draft|final|lint|skim)=(\d+)", item)
         if not m:
-            raise Fail(f"--exit takes thesis=N, reviewer=N, lint=N or skim=N, not {item!r}")
+            raise Fail(f"--exit takes draft=N, final=N, lint=N or skim=N, not {item!r}")
         exits[m.group(1)] = int(m.group(2))
     for doc in DOCS:
         if doc not in exits:
@@ -261,7 +261,7 @@ def cmd_bundle(a):
             raise ValueError("expected a JSON object")
     except (OSError, ValueError) as e:
         if not exits.get("lint"):
-            raise Fail(f"--lint {lint} is not readable JSON ({e}): pass the output of texlua scripts/lint.lua all --doc reviewer --json")
+            raise Fail(f"--lint {lint} is not readable JSON ({e}): pass the output of texlua scripts/lint.lua all --doc final --json")
         lint_error = str(e)
         lint_doc = {}
         print(f"review.py: warning: lint exited {exits['lint']} without readable JSON; keeping build diagnostics", file=sys.stderr)
@@ -431,8 +431,8 @@ def cmd_inputs(a):
         raise Fail(f"{tempfile.gettempdir()} is inside a git repository; point TMPDIR elsewhere")
     reads = {p: persona_reads(personas_dir, p) for p in a.personas}  # all personas checked before any directory exists
     for p, r in reads.items():
-        if "reviewer-pdf" in r and "reviewer.pdf" not in files:
-            raise Fail(f"{p} reads the reviewer PDF, but the bundle has none (did the reviewer build fail?)")
+        if "final-pdf" in r and "final.pdf" not in files:
+            raise Fail(f"{p} reads the final PDF, but the bundle has none (did the final build fail?)")
         if "skim-view" in r and "skim/skim.md" not in files:
             raise Fail(f"{p} reads the skim view, but the bundle has none (did the skim fail?)")
 
@@ -440,8 +440,8 @@ def cmd_inputs(a):
     for p, r in reads.items():
         d = Path(tempfile.mkdtemp(prefix=f"review-{p}-"))
         copies = []  # (source, name inside the directory)
-        if "reviewer-pdf" in r:
-            copies.append((Path(a.bundle, "reviewer.pdf"), "reviewer.pdf"))
+        if "final-pdf" in r:
+            copies.append((Path(a.bundle, "final.pdf"), "final.pdf"))
         if "skim-view" in r:
             copies.append((Path(a.bundle, "skim/skim.md"), "skim.md"))
             copies += [(Path(a.bundle, n), n[len("skim/"):]) for n in sorted(files) if n.startswith("skim/assets/")]
@@ -528,7 +528,7 @@ def validate_findings(f, panel_inputs):
 
 def bundle_name(input_name):
     """Where a persona's input file came from in the bundle, or None for the spine."""
-    if input_name == "reviewer.pdf":
+    if input_name == "final.pdf":
         return input_name
     if input_name == "skim.md" or input_name.startswith("assets/"):
         return "skim/" + input_name
@@ -656,19 +656,19 @@ def parser():
 
     p = sub.add_parser("bundle", help="assemble the evidence bundle of one commit from a built paper",
                        description="Assemble review-<sha7>/ (README.md, 'The bundle') from a built paper directory "
-                       "holding thesis.pdf, reviewer.pdf, thesis.log and reviewer.log. In CI the commit comes from "
+                       "holding draft.pdf, final.pdf, draft.log and final.log. In CI the commit comes from "
                        "GITHUB_REPOSITORY, GITHUB_SHA, GITHUB_REF_NAME, GITHUB_SERVER_URL, GITHUB_RUN_ID and GITHUB_RUN_ATTEMPT; "
                        "locally from git, and a dirty tree is refused. Locally, `docker image inspect --format "
                        "'{{index .RepoDigests 0}}' <image>` prints the image digest after the '@'.")
     p.add_argument("--built", required=True, metavar="DIR", help="the directory the paper was built in")
-    p.add_argument("--lint", required=True, metavar="FILE", help="lint.json: texlua scripts/lint.lua all --doc reviewer --json")
+    p.add_argument("--lint", required=True, metavar="FILE", help="lint.json: texlua scripts/lint.lua all --doc final --json")
     p.add_argument("--lint-stderr", metavar="FILE", help="stderr captured from the lint command, including startup failures")
     p.add_argument("--skim", required=True, metavar="DIR", help="the skim output directory (skim.md, skim.html, skim.json, assets/)")
     p.add_argument("--out", required=True, metavar="DIR", help="the bundle directory to create (must be empty or absent)")
     p.add_argument("--by", choices=("ci", "local"), help="who built it (default: ci inside GitHub Actions, else local)")
     p.add_argument("--allow-dirty", action="store_true", help="local only: bundle a dirty tree and record dirty: true")
     p.add_argument("--exit", action="append", metavar="NAME=N",
-                   help="exit code of a step: thesis=N and reviewer=N (latexmk) are required; lint=N and skim=N are recorded when given")
+                   help="exit code of a step: draft=N and final=N (latexmk) are required; lint=N and skim=N are recorded when given")
     p.add_argument("--sha", help="the commit (default GITHUB_SHA or git HEAD); on pull_request runs GITHUB_SHA is the merge commit")
     p.add_argument("--ref", help="the branch or tag (default GITHUB_REF_NAME or the current branch)")
     p.add_argument("--repo", help="owner/name (default GITHUB_REPOSITORY or the origin remote)")

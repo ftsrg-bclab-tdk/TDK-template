@@ -53,17 +53,17 @@ class Workdir(unittest.TestCase):
     def make_bundle(self, name="bundle", extra=()):
         """A CI bundle made by `review.py bundle` from a fake build."""
         built = self.tmp / f"{name}-built"
-        for doc in ("thesis", "reviewer"):
+        for doc in ("draft", "final"):
             write(built / f"{doc}.pdf", b"%PDF-1.4\n1 0 obj << /Type /Page >> endobj\n2 0 obj << /Type /Pages >> endobj\n")
             write(built / f"{doc}.log", LOG)
-        write(self.tmp / f"{name}-lint.json", json.dumps({"phase": "polish", "phase_source": "\\lintphase in thesis.tex", "profile": "tdk"}))
+        write(self.tmp / f"{name}-lint.json", json.dumps({"phase": "polish", "phase_source": "\\lintphase in draft.tex", "profile": "tdk"}))
         write(self.tmp / f"{name}-skim" / "skim.md", "# skim\n![Figure 1](assets/fig1.png)\n")
         write(self.tmp / f"{name}-skim" / "skim.html", "<html></html>")
         write(self.tmp / f"{name}-skim" / "assets" / "fig1.png", b"png1")
         write(self.tmp / f"{name}-skim" / "assets" / "page-001.png", b"png2")
         out = self.tmp / name
         args = ["bundle", "--built", built, "--lint", self.tmp / f"{name}-lint.json", "--skim", self.tmp / f"{name}-skim",
-                "--out", out, "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "lint=1", "--exit", "skim=0",
+                "--out", out, "--exit", "draft=0", "--exit", "final=0", "--exit", "lint=1", "--exit", "skim=0",
                 "--image-ref", "texlive/texlive:latest", "--image-digest", DIGEST, *extra]
         with mock.patch.dict(os.environ, CI_ENV):
             code, _, err = call(*args)
@@ -78,42 +78,42 @@ class TestBundle(Workdir):
 
     def test_manifest_has_every_field_of_the_contract(self):
         m = review.load_manifest(self.make_bundle())
-        self.assertEqual([m["schema"], m["repo"], m["sha"], m["ref"]], [1, "BlackLight54/TDK26-Example", SHA, "main"])
+        self.assertEqual([m["schema"], m["repo"], m["sha"], m["ref"]], [2, "BlackLight54/TDK26-Example", SHA, "main"])
         self.assertEqual(m["built"], {"by": "ci", "run_url": "https://github.com/BlackLight54/TDK26-Example/actions/runs/42", "run_attempt": 2})
         self.assertEqual(m["image"], {"ref": "texlive/texlive:latest", "digest": DIGEST})
-        self.assertEqual([m["phase"], m["phase_source"], m["profile"]], ["polish", "\\lintphase in thesis.tex", "tdk"])
-        self.assertEqual(m["builds"][1], {"doc": "reviewer", "engine": "xelatex", "latexmk_exit": 0, "started": True, "errors": 2, "undefined": 2, "pages": 1})
+        self.assertEqual([m["phase"], m["phase_source"], m["profile"]], ["polish", "\\lintphase in draft.tex", "tdk"])
+        self.assertEqual(m["builds"][1], {"doc": "final", "engine": "xelatex", "latexmk_exit": 0, "started": True, "errors": 2, "undefined": 2, "pages": 1})
         self.assertEqual([m["lint"], m["skim"]], [{"exit": 1}, {"exit": 0}])
-        self.assertEqual(set(m["files"]), {"thesis.pdf", "reviewer.pdf", "logs/thesis.log", "logs/reviewer.log", "lint.json",
+        self.assertEqual(set(m["files"]), {"draft.pdf", "final.pdf", "logs/draft.log", "logs/final.log", "lint.json",
                                            "skim/skim.md", "skim/skim.html", "skim/assets/fig1.png", "skim/assets/page-001.png"})
 
     def test_a_build_that_never_started_is_recorded_not_refused(self):
         built = self.tmp / "half-built"
         # This stale PDF must not become evidence for a build that has no log.
-        write(built / "thesis.pdf", b"%PDF-1.4 stale")
-        write(built / "reviewer.pdf", b"%PDF-1.4\n1 0 obj << /Type /Page >> endobj\n")
-        write(built / "reviewer.log", LOG)
+        write(built / "draft.pdf", b"%PDF-1.4 stale")
+        write(built / "final.pdf", b"%PDF-1.4\n1 0 obj << /Type /Page >> endobj\n")
+        write(built / "final.log", LOG)
         write(self.tmp / "half-lint.json", "{}")
         write(self.tmp / "half-skim" / "skim.md", "x")
         args = ["bundle", "--built", built, "--lint", self.tmp / "half-lint.json", "--skim", self.tmp / "half-skim", "--out", self.tmp / "half",
-                "--exit", "thesis=1", "--exit", "reviewer=0", "--exit", "lint=2", "--exit", "skim=1"]
+                "--exit", "draft=1", "--exit", "final=0", "--exit", "lint=2", "--exit", "skim=1"]
         with mock.patch.dict(os.environ, CI_ENV):
             code, _, err = call(*args)
         self.assertEqual(code, 0, err)
-        self.assertIn("thesis build is recorded as not started", err)
+        self.assertIn("draft build is recorded as not started", err)
         m = review.load_manifest(self.tmp / "half")
-        self.assertEqual(m["builds"][0], {"doc": "thesis", "engine": None, "latexmk_exit": 1, "started": False, "errors": None, "undefined": None, "pages": None})
+        self.assertEqual(m["builds"][0], {"doc": "draft", "engine": None, "latexmk_exit": 1, "started": False, "errors": None, "undefined": None, "pages": None})
         self.assertTrue(m["builds"][1]["started"])
-        self.assertEqual(set(m["files"]), {"reviewer.pdf", "logs/reviewer.log", "lint.json", "skim/skim.md"})
+        self.assertEqual(set(m["files"]), {"final.pdf", "logs/final.log", "lint.json", "skim/skim.md"})
         # a success without a log is a contradiction, and no log at all is no evidence
         base = ["bundle", "--built", built, "--lint", self.tmp / "half-lint.json", "--skim", self.tmp / "half-skim"]
         with mock.patch.dict(os.environ, CI_ENV):
-            code, _, err = call(*base, "--out", self.tmp / "half2", "--exit", "thesis=0", "--exit", "reviewer=0")
+            code, _, err = call(*base, "--out", self.tmp / "half2", "--exit", "draft=0", "--exit", "final=0")
         self.assertEqual(code, 1)
-        self.assertIn("thesis=0 says the build succeeded", err)
-        (built / "reviewer.log").unlink()
+        self.assertIn("draft=0 says the build succeeded", err)
+        (built / "final.log").unlink()
         with mock.patch.dict(os.environ, CI_ENV):
-            code, _, err = call(*base, "--out", self.tmp / "half3", "--exit", "thesis=1", "--exit", "reviewer=1")
+            code, _, err = call(*base, "--out", self.tmp / "half3", "--exit", "draft=1", "--exit", "final=1")
         self.assertEqual(code, 1)
         self.assertIn("neither build left a log", err)
 
@@ -124,7 +124,7 @@ class TestBundle(Workdir):
         write(stderr, "lint: unknown phase 'finall'\n")
         base = ["bundle", "--built", self.tmp / "bundle-built", "--lint", lint,
                 "--lint-stderr", stderr,
-                "--skim", self.tmp / "no-skim", "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "skim=1"]
+                "--skim", self.tmp / "no-skim", "--exit", "draft=0", "--exit", "final=0", "--exit", "skim=1"]
         for name, raw in (("empty", ""), ("broken", "not JSON"), ("array", "[]"), ("missing", None)):
             with self.subTest(name=name):
                 if raw is None:
@@ -140,8 +140,8 @@ class TestBundle(Workdir):
                 self.assertEqual(manifest["lint"]["exit"], 2)
                 self.assertEqual(manifest["lint"]["status"], "unavailable")
                 self.assertIsNone(manifest["phase"])
-                self.assertIn("logs/reviewer.log", manifest["files"])
-                self.assertIn("reviewer.pdf", manifest["files"])
+                self.assertIn("logs/final.log", manifest["files"])
+                self.assertIn("final.pdf", manifest["files"])
                 self.assertNotIn("lint.json", manifest["files"])
                 self.assertIn("logs/lint-stderr.txt", manifest["files"])
                 self.assertEqual((out / "logs/lint-stderr.txt").read_text(), stderr.read_text())
@@ -160,13 +160,13 @@ class TestBundle(Workdir):
     def test_a_digest_is_recorded_as_given_and_checked_for_its_form(self):
         built = self.tmp / "b"
         code, _, err = call("bundle", "--built", built, "--lint", "x", "--skim", "x", "--out", self.tmp / "o",
-                            "--exit", "thesis=0", "--exit", "reviewer=0", "--image-digest", "latest")
+                            "--exit", "draft=0", "--exit", "final=0", "--image-digest", "latest")
         self.assertEqual(code, 1)
         self.assertIn("sha256:<hex>", err)
 
     def test_a_missing_or_empty_lint_file_is_recorded_as_lint_exit_2(self):
         built = self.tmp / "nolint-built"
-        for doc in ("thesis", "reviewer"):
+        for doc in ("draft", "final"):
             write(built / f"{doc}.pdf", b"%PDF-1.4 /Type /Page")
             write(built / f"{doc}.log", LOG)
         write(self.tmp / "nolint-skim" / "skim.md", "x")
@@ -174,7 +174,7 @@ class TestBundle(Workdir):
             out = self.tmp / f"out-{lint.stem}"
             with mock.patch.dict(os.environ, CI_ENV):
                 code, _, err = call("bundle", "--built", built, "--lint", lint, "--skim", self.tmp / "nolint-skim", "--out", out,
-                                    "--exit", "thesis=0", "--exit", "reviewer=0", "--exit", "lint=2", "--exit", "skim=0")
+                                    "--exit", "draft=0", "--exit", "final=0", "--exit", "lint=2", "--exit", "skim=0")
             self.assertEqual(code, 0, err)
             self.assertIn("lint exited 2", err)
             m = review.load_manifest(out)
@@ -187,20 +187,20 @@ class TestBundle(Workdir):
         write(self.tmp / "garbage.json", "not json")
         with mock.patch.dict(os.environ, CI_ENV):
             code, _, err = call("bundle", "--built", built, "--lint", self.tmp / "garbage.json", "--skim", self.tmp / "nolint-skim",
-                                "--out", self.tmp / "out-garbage", "--exit", "thesis=0", "--exit", "reviewer=0")
+                                "--out", self.tmp / "out-garbage", "--exit", "draft=0", "--exit", "final=0")
         self.assertEqual(code, 1)
         self.assertIn("not readable JSON", err)
 
     def test_a_build_outside_git_is_recorded_as_unverified(self):
         built = self.tmp / "nogit"
-        for doc in ("thesis", "reviewer"):
+        for doc in ("draft", "final"):
             write(built / f"{doc}.pdf", b"%PDF-1.4 /Type /Page")
             write(built / f"{doc}.log", LOG)
         write(self.tmp / "nogit-lint.json", "{}")
         write(self.tmp / "nogit-skim" / "skim.md", "x")
         self.assertIsNone(review.git(built, "rev-parse", "HEAD"))  # the test's premise: no checkout here
         code, _, err = call("bundle", "--built", built, "--lint", self.tmp / "nogit-lint.json", "--skim", self.tmp / "nogit-skim",
-                            "--out", self.tmp / "nogit-out", "--exit", "thesis=0", "--exit", "reviewer=0", "--by", "local",
+                            "--out", self.tmp / "nogit-out", "--exit", "draft=0", "--exit", "final=0", "--by", "local",
                             "--repo", "a/b", "--ref", "main", "--sha", SHA)
         self.assertEqual(code, 0, err)
         self.assertIn("unverified", err)
@@ -213,17 +213,17 @@ class TestBundle(Workdir):
         git = lambda *a: subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", *a], check=True, capture_output=True)
         repo.mkdir()
         git("init", "-q")
-        write(repo / "thesis.tex", "x")
-        git("add", "thesis.tex")
+        write(repo / "draft.tex", "x")
+        git("add", "draft.tex")
         git("commit", "-q", "-m", "x")
-        for doc in ("thesis", "reviewer"):
+        for doc in ("draft", "final"):
             write(repo / f"{doc}.log", LOG)
             write(repo / f"{doc}.pdf", b"%PDF-1.4 /Type /Page")
         write(self.tmp / "lint.json", "{}")
         write(self.tmp / "skim" / "skim.md", "x")
-        write(repo / "thesis.tex", "edited")
-        args = ["bundle", "--built", repo, "--lint", self.tmp / "lint.json", "--skim", self.tmp / "skim", "--exit", "thesis=0",
-                "--exit", "reviewer=0", "--by", "local", "--repo", "a/b"]
+        write(repo / "draft.tex", "edited")
+        args = ["bundle", "--built", repo, "--lint", self.tmp / "lint.json", "--skim", self.tmp / "skim", "--exit", "draft=0",
+                "--exit", "final=0", "--by", "local", "--repo", "a/b"]
         code, _, err = call(*args, "--out", self.tmp / "o1")
         self.assertEqual(code, 1)
         self.assertIn("dirty", err)
@@ -265,10 +265,10 @@ class TestFetch(Workdir):
 
     def test_a_changed_file_fails_the_verification_and_is_named(self):
         bundle = self.make_bundle()
-        write(bundle / "reviewer.pdf", b"another build")
+        write(bundle / "final.pdf", b"another build")
         code, _, err = self.fetch(self.fake_gh(bundle))
         self.assertEqual(code, 1)
-        self.assertIn("reviewer.pdf: SHA-256 differs", err)
+        self.assertIn("final.pdf: SHA-256 differs", err)
 
     def test_an_unlisted_or_missing_file_fails_the_verification(self):
         bundle = self.make_bundle()
@@ -321,18 +321,18 @@ class TestInputs(Workdir):
 
         skim = Path(r["skim"]["dir"])
         self.assertEqual(sorted(r["skim"]["files"]), ["assets/fig1.png", "assets/page-001.png", "skim.md"])
-        self.assertFalse((skim / "reviewer.pdf").exists())
+        self.assertFalse((skim / "final.pdf").exists())
         self.assertFalse((skim / "spine.md").exists())
         self.assertFalse(r["skim"]["spine"])
 
-        self.assertEqual(sorted(r["cryptographer"]["files"]), ["reviewer.pdf", "spine.md"])
+        self.assertEqual(sorted(r["cryptographer"]["files"]), ["final.pdf", "spine.md"])
         self.assertTrue(r["cryptographer"]["spine"])
-        self.assertEqual(review.walk_files(r["cryptographer"]["dir"]), ["reviewer.pdf", "spine.md"])
+        self.assertEqual(review.walk_files(r["cryptographer"]["dir"]), ["final.pdf", "spine.md"])
 
         self.assertEqual(len({r[p]["dir"] for p in r}), 3)  # one directory each
         self.assertFalse(review.inside_repo(r["champion"]["dir"]))
         m = review.load_manifest(bundle)
-        self.assertEqual(r["cryptographer"]["files"]["reviewer.pdf"], m["files"]["reviewer.pdf"])
+        self.assertEqual(r["cryptographer"]["files"]["final.pdf"], m["files"]["final.pdf"])
 
     def test_each_persona_directory_names_the_persona_file_it_was_made_for(self):
         bundle = self.make_bundle()
@@ -346,7 +346,7 @@ class TestInputs(Workdir):
     def test_without_a_spine_the_entry_says_so(self):
         r = self.inputs(self.make_bundle(), "cryptographer")
         self.assertFalse(r["cryptographer"]["spine"])
-        self.assertEqual(review.walk_files(r["cryptographer"]["dir"]), ["reviewer.pdf"])
+        self.assertEqual(review.walk_files(r["cryptographer"]["dir"]), ["final.pdf"])
 
     def test_a_tampered_bundle_yields_no_directories(self):
         bundle = self.make_bundle()
@@ -392,7 +392,7 @@ class TestRecord(Workdir):
         self.assertIn("https://github.com/BlackLight54/TDK26-Example/actions/runs/42", out)
         manifest = review.load_manifest(self.bundle)
         self.assertIn(json.dumps(manifest, indent=2), out)
-        self.assertIn(manifest["files"]["reviewer.pdf"], out)  # in the manifest block and in the inputs block
+        self.assertIn(manifest["files"]["final.pdf"], out)  # in the manifest block and in the inputs block
 
     def test_the_issue_names_the_persona_versions(self):
         code, out, err = self.record("--dry-run")
@@ -410,7 +410,7 @@ class TestRecord(Workdir):
 
     def test_inline_inputs_cannot_borrow_versions_from_different_inputs(self):
         self.findings["inputs"] = {p: dict(v["files"]) for p, v in self.inputs.items()}
-        self.findings["inputs"]["cryptographer"]["reviewer.pdf"] = "0" * 64
+        self.findings["inputs"]["cryptographer"]["final.pdf"] = "0" * 64
         code, _, err = self.record("--dry-run")
         self.assertEqual(code, 1)
         self.assertIn("differs between findings.json and --inputs", err)
@@ -506,11 +506,11 @@ class TestRecord(Workdir):
         self.assertIn("score_na_reasons:", err)
 
     def test_input_hashes_must_come_from_the_bundle(self):
-        self.inputs["cryptographer"]["files"]["reviewer.pdf"] = "0" * 64
+        self.inputs["cryptographer"]["files"]["final.pdf"] = "0" * 64
         write(self.tmp / "inputs.json", json.dumps(self.inputs))
         code, _, err = self.record("--dry-run")
         self.assertEqual(code, 1)
-        self.assertIn("cryptographer/reviewer.pdf", err)
+        self.assertIn("cryptographer/final.pdf", err)
 
     def test_filing_runs_gh_issue_create_and_prints_the_url(self):
         seen = {}

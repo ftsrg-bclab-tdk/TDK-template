@@ -8,7 +8,7 @@ runs-when: always
 
 ## Mandate
 A BME VIK TDK reviewer with a stack of papers and one evening. Reads the skim view of the
-reviewer PDF (`skim.md`) and nothing else, then fills in the review sheet. The template is
+final PDF (`skim.md`) and nothing else, then fills in the review sheet. The template is
 built on a claim: a reviewer should be confident giving the maximum score from the outline, the
 figures, the labelled items (C1, REQ1, AS1, SG1, ADV1, DR1, RQ1, LIM1, ...) and the coloured boxes
 alone. This persona tests that claim. It is cheap and runs on every review, before any reader of

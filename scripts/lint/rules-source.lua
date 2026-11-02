@@ -10,8 +10,8 @@ local MAIN, CONTENT = C.MAIN, C.CONTENT
 -- a path for a shell command, quoted when it needs it
 local function sh(x) return x:match("^[%w%._/%-]+$") and x or "'" .. x:gsub("'", "'\\''") .. "'" end
 -- the fix of a content file that is not named NN-name.tex: git mv it to the number it has in the
--- reading order, and write the new name where thesis.tex includes it. It holds a command, so it is
--- shown and never written; no fix when thesis.tex does not include the file itself, or the new
+-- reading order, and write the new name where draft.tex includes it. It holds a command, so it is
+-- shown and never written; no fix when draft.tex does not include the file itself, or the new
 -- name is taken
 local function renumber_fix(f, num)
   local dir, base = f:match("^(.-)([^/]+)%.tex$")
@@ -19,20 +19,20 @@ local function renumber_fix(f, num)
   local new = dir .. string.format("%02d-", num) .. name .. ".tex"
   if name == "" or C.exists(new) then return nil end
   local stem = f:gsub("%.tex$", "")
-  for n, raw in ipairs(C.raw_lines("thesis.tex")) do
+  for n, raw in ipairs(C.raw_lines("draft.tex")) do
     local code = C.strip_comment(raw)
     for _, arg in ipairs({ stem, f }) do
       local old = "{" .. arg .. "}"
       if code:find("\\include%s*" .. C.escape(old)) or code:find("\\input%s*" .. C.escape(old)) then
         local to = arg == stem and new:gsub("%.tex$", "") or new
-        return C.fix("review", "number the file " .. string.format("%02d", num), C.command("git mv " .. sh(f) .. " " .. sh(new)), C.replace_at("thesis.tex", n, old, "{" .. to .. "}"))
+        return C.fix("review", "number the file " .. string.format("%02d", num), C.command("git mv " .. sh(f) .. " " .. sh(new)), C.replace_at("draft.tex", n, old, "{" .. to .. "}"))
       end
     end
   end
 end
 
 rule("frame", "source", "check", "always", "the template's frame is still there: its files, the chapter roles the essentials need, the preamble's macros, the packages, the class options, the spacing, the phase and the running example's name; what a paper must contain is the essentials' job", function()
-  -- the files thesis.tex includes are named NN-name.tex, numbered in reading order (00-abstract,
+  -- the files draft.tex includes are named NN-name.tex, numbered in reading order (00-abstract,
   -- 01-introduction, ...); the glossary, loaded by the preamble, has no number
   -- the message names the number after the last numbered file, the same for a run of files
   -- without one; the fix numbers such a run one file after the other
@@ -49,15 +49,15 @@ rule("frame", "source", "check", "always", "the template's frame is still there:
     end
   end
   if not C.roles_ok({ "approach", "conclusion", "evaluation", "intro", "related" }) then return end
-  for _, f in ipairs({ "thesis.tex", "reviewer.tex", "include/packages.tex", "include/preamble.tex", "include/thesis-en.tex", "include/titlepage-tdk.tex", "include/macros.tex", C.FILES.glossary or "content/glossary.tex", "include/glossary-common.tex", C.FILES.abstract, C.FILES.aidecl, "scripts/lint.lua", "docs/TDK2025_biralati_pontozolap_hallgatoi.pdf" }) do
+  for _, f in ipairs({ "draft.tex", "final.tex", "include/packages.tex", "include/preamble.tex", "include/thesis-en.tex", "include/titlepage-tdk.tex", "include/macros.tex", C.FILES.glossary or "content/glossary.tex", "include/glossary-common.tex", C.FILES.abstract, C.FILES.aidecl, "scripts/lint.lua", "docs/TDK2025_biralati_pontozolap_hallgatoi.pdf" }) do
     if not C.exists(f) then fail(nil, nil, "missing from the template: " .. f) end
   end
-  for _, b in ipairs(C.BIB) do if not C.exists(b) then fail("thesis.tex", nil, "\\bibliography names " .. b .. ", which does not exist") end end
-  if #MAIN == 0 then fail(nil, nil, "no chapter files: no file thesis.tex includes has a numbered \\chapter"); return end
+  for _, b in ipairs(C.BIB) do if not C.exists(b) then fail("draft.tex", nil, "\\bibliography names " .. b .. ", which does not exist") end end
+  if #MAIN == 0 then fail(nil, nil, "no chapter files: no file draft.tex includes has a numbered \\chapter"); return end
   if not C.FILES.abstract then fail(nil, nil, "no abstract file (a content file with \\chapter*{Abstract})") end
   if not C.FILES.aidecl then fail(nil, nil, "no AI declaration file (\\label{aidecl})") end
-  if not C.FILES.glossary then fail(nil, nil, "no glossary file (\\newabbreviation or \\newglossaryentry in a file thesis.tex loads)") end
-  if not C.setting("lintphase") then fail("thesis.tex", nil, "no \\lintphase in thesis.tex: the lint needs the phase (topic, setup, research, plan, draft, polish or submit)") end
+  if not C.FILES.glossary then fail(nil, nil, "no glossary file (\\newabbreviation or \\newglossaryentry in a file draft.tex loads)") end
+  if not C.setting("lintphase") then fail("draft.tex", nil, "no \\lintphase in draft.tex: the lint needs the phase (topic, setup, research, plan, draft, polish or submit)") end
   local pre = C.readfile("include/preamble.tex") or ""
   for _, m in ipairs({ "runningexample", "NewTagList", "beat", "gapyes", "atodo" }) do
     if not pre:find(m, 1, true) then fail("include/preamble.tex", nil, "the preamble no longer defines " .. m) end
@@ -66,12 +66,12 @@ rule("frame", "source", "check", "always", "the template's frame is still there:
   for _, m in ipairs({ "TeX Gyre Termes", "cleveref", "natbib", "todonotes", "glossaries-extra", "minted", "booktabs", "pgfplots" }) do
     if not pk:find(m, 1, true) then fail("include/packages.tex", nil, "packages.tex no longer sets up " .. m) end
   end
-  local th = C.readfile("thesis.tex") or ""
-  if not th:match("\\documentclass%[[^%]]*12pt") then fail("thesis.tex", 1, "the class options no longer say 12pt") end
-  if not th:match("\\documentclass%[[^%]]*a4paper") then fail("thesis.tex", 1, "the class options no longer say a4paper") end
-  if not th:find("\\singlespacing", 1, true) then fail("thesis.tex", nil, "\\singlespacing is gone") end
-  if not th:match("\\marginsize{15mm}{15mm}{15mm}{15mm}") then warn("thesis.tex", nil, "the margins are not the template's 15 mm; the call allows 1.5-3.5 cm, pdf-margins measures the result") end
-  if not th:find("\\exname", 1, true) then fail("thesis.tex", nil, "\\exname (the running example's name) is not defined") end
+  local th = C.readfile("draft.tex") or ""
+  if not th:match("\\documentclass%[[^%]]*12pt") then fail("draft.tex", 1, "the class options no longer say 12pt") end
+  if not th:match("\\documentclass%[[^%]]*a4paper") then fail("draft.tex", 1, "the class options no longer say a4paper") end
+  if not th:find("\\singlespacing", 1, true) then fail("draft.tex", nil, "\\singlespacing is gone") end
+  if not th:match("\\marginsize{15mm}{15mm}{15mm}{15mm}") then warn("draft.tex", nil, "the margins are not the template's 15 mm; the call allows 1.5-3.5 cm, pdf-margins measures the result") end
+  if not th:find("\\exname", 1, true) then fail("draft.tex", nil, "\\exname (the running example's name) is not defined") end
 end)
 
 -- build log ------------------------------------------------------------------------------
@@ -195,7 +195,7 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
 end)
 
 -- a gap is a \tbd or \citeneeded marker, which the draft shows and the todo list counts; typed
--- markers (TBD, [CITE: ...], [?], [forrás?], [link?], XXX, FIXME) print in the reviewer PDF
+-- markers (TBD, [CITE: ...], [?], [forrás?], [link?], XXX, FIXME) print in the final PDF
 local TYPED = { { "%f[%w]TBD%f[%W]", "TBD" }, { "%[[Cc][Ii][Tt][Ee]", "[CITE" }, { "%[%?%]", "[?]" },
   { "%[forrás%?%]", "[forrás?]" }, { "%[link%?%]", "[link?]" }, { "%f[%w]XXX+%f[%W]", "XXX" }, { "%f[%w]FIXME%f[%W]", "FIXME" } }
 -- the fix of a typed marker: \tbd{<what is missing>} or \citeneeded[<which source>] for the author
@@ -223,14 +223,14 @@ local function marker_fix(f, n, l, t)
   return C.fix(known and "review" or "placeholder", gap and "write \\tbd" or "write \\citeneeded", table.unpack(edits))
 end
 
-rule("markers", "source", "check", "draft", "gaps are marked with \\tbd{...} or \\citeneeded[...], which the draft shows and the reviewer build hides: never typed as TBD, [CITE], [?] or XXX; at the submit phase no marker is left", function()
+rule("markers", "source", "check", "draft", "gaps are marked with \\tbd{...} or \\citeneeded[...], which the draft shows and the final build hides: never typed as TBD, [CITE], [?] or XXX; at the submit phase no marker is left", function()
   local final = C.phase_reached("submit")
   local gaps = 0
   for _, f in ipairs(CONTENT) do
     for n, raw in ipairs(C.prose_lines(f)) do
       local l = C.unliteral(raw) -- a TBD in \verb|..| is the program's text
       for _, t in ipairs(TYPED) do
-        if l:find(t[1]) then fail(f, n, "a typed " .. t[2] .. " prints in the reviewer PDF", "write \\tbd{what is missing} or \\citeneeded[which source] instead", marker_fix(f, n, l, t)) end
+        if l:find(t[1]) then fail(f, n, "a typed " .. t[2] .. " prints in the final PDF", "write \\tbd{what is missing} or \\citeneeded[which source] instead", marker_fix(f, n, l, t)) end
       end
       for m in l:gmatch("\\(%a+)") do
         if m == "tbd" or m == "citeneeded" then
@@ -256,7 +256,7 @@ rule("chapters", "source", "check", "always", "one chapter per file: no file hol
   end
 end)
 
-rule("orphans", "source", "advice", "always", "every .tex file of the paper is included: a file thesis.tex never reaches is text no reader sees", function()
+rule("orphans", "source", "advice", "always", "every .tex file of the paper is included: a file draft.tex never reaches is text no reader sees", function()
   local reached = {}
   for _, f in ipairs(CONTENT) do reached[f] = true end
   local skip = { include = true, guide = true, scripts = true, docs = true, ["svg-inkscape"] = true }
@@ -1290,16 +1290,16 @@ rule("aidecl", "source", "check", "submit", "the AI declaration is filled in: ex
 end)
 
 rule("titlepage", "source", "check", "submit", "the title page variables are filled in: title, author, year, the second author where there is one", function()
-  local th = C.readfile("thesis.tex") or ""
+  local th = C.readfile("draft.tex") or ""
   local title = th:match("\\newcommand{\\vikcim}{([^}]*)}") or ""
-  if title == "" or title:match("TODO") then fail("thesis.tex", nil, "\\vikcim (the title) is not set") end
-  if th:match("\\vikszerzoVezeteknev}{Gipsz}") then fail("thesis.tex", nil, "the author is still Gipsz Jakab") end
+  if title == "" or title:match("TODO") then fail("draft.tex", nil, "\\vikcim (the title) is not set") end
+  if th:match("\\vikszerzoVezeteknev}{Gipsz}") then fail("draft.tex", nil, "the author is still Gipsz Jakab") end
   local tv = C.readfile("include/tdk-variables.tex") or ""
   local second = tv:match("\\newcommand{\\tdkszerzoB}{([^}]*)}") or ""
-  if second ~= "" and not th:match("\\szerzoMeta}{[^}]*\\tdkszerzoB") then warn("thesis.tex", nil, "there is a second author but \\szerzoMeta (the PDF metadata) names only the first") end
+  if second ~= "" and not th:match("\\szerzoMeta}{[^}]*\\tdkszerzoB") then warn("draft.tex", nil, "there is a second author but \\szerzoMeta (the PDF metadata) names only the first") end
   local year = tv:match("\\newcommand{\\tdkev}{([^}]*)}") or ""
   if year ~= "" and not year:match("\\the\\year") and tonumber(year) and tonumber(year) ~= tonumber(os.date("%Y")) then warn("include/tdk-variables.tex", nil, "\\tdkev is " .. year .. ", not this year") end
-  if th:match("\\vikdoktipus}{\\tdk}") and th:match("\n\\include{include/declaration}") then warn("thesis.tex", nil, "the student declaration is included; the TDK call says to leave it out") end
+  if th:match("\\vikdoktipus}{\\tdk}") and th:match("\n\\include{include/declaration}") then warn("draft.tex", nil, "the student declaration is included; the TDK call says to leave it out") end
 end)
 
 -- burn-down --------------------------------------------------------------------------------
@@ -1307,7 +1307,7 @@ rule("placeholders", "source", "count", "submit", "what the template left for yo
   local todo, ph = 0, 0
   local files = {}
   for _, f in ipairs(CONTENT) do files[#files + 1] = f end
-  files[#files + 1] = "thesis.tex"
+  files[#files + 1] = "draft.tex"
   for _, b in ipairs(C.BIB) do files[#files + 1] = b end
   for _, f in ipairs(files) do
     local t, p, first = 0, 0, nil

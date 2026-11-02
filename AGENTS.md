@@ -2,15 +2,15 @@
 
 This repository is a TDK paper built from the FTSRG template. The paper belongs to the student.
 This file tells an agent how to build, check and change it, and where the rules are. Students
-can read it too. The rules themselves are in the guide, which `thesis.tex` builds after the
+can read it too. The rules themselves are in the guide, which `draft.tex` builds after the
 paper's appendices; the table at the end points into it.
 
 ## Build and check
 
-- `make all` builds the draft, `thesis.pdf`: the paper with its notes, the Checks page and the guide.
-- `make reviewer` builds `reviewer.pdf`, the submission format, with no notes and no guide. On
-  Overleaf, open `reviewer.tex` and choose *Recompile from this file*.
-- `make check-reviewer` builds the reviewer PDF and runs every lint rule on it. CI
+- `make all` builds the draft, `draft.pdf`: the paper with its notes, the Checks page and the guide.
+- `make final` builds `final.pdf`, the submission format, with no notes and no guide. On
+  Overleaf, open `final.tex` and choose *Recompile from this file*.
+- `make check-final` builds the final PDF and runs every lint rule on it. CI
   (`.github/workflows/paper.yml`) judges this build. Prefer it to `make check`, which lints
   the draft build. `make check-submit` does the same at the `submit` phase whatever
   `\lintphase` says: the check before upload.
@@ -21,7 +21,7 @@ paper's appendices; the table at the end points into it.
 
 ## The phase
 
-`\lintphase` in `thesis.tex` is the student's phase in the lifecycle: `topic`, `setup`,
+`\lintphase` in `draft.tex` is the student's phase in the lifecycle: `topic`, `setup`,
 `research`, `plan`, `draft`, `polish` or `submit`. Checks become required as the phase
 advances, and any other value stops the lint. Change it only when the student asks. The phases
 and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
@@ -29,12 +29,12 @@ and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
 ## Files
 
 - The student's: `content/` (chapters, abstract, glossary, AI declaration), `bib/references.bib`,
-  `figures/`, `include/macros.tex` and `include/tdk-variables.tex`. `thesis.tex` is shared: the
+  `figures/`, `include/macros.tex` and `include/tdk-variables.tex`. `draft.tex` is shared: the
   student sets the title, `\lintphase` and the chapter list; template updates change the rest.
 - `bib/zotero.bib` comes from the Zotero group library through Overleaf, and *Refresh*
   overwrites it. Correct entries in Zotero, not in this file.
 - The template's, replaced by template updates: `guide/`, the rest of `include/`, `scripts/`,
-  `.github/`, `.claude/skills/`, `docs/`, `reviewer.tex`, `Makefile`, `tdkieee.bst`, `README.md`
+  `.github/`, `.claude/skills/`, `docs/`, `final.tex`, `Makefile`, `tdkieee.bst`, `README.md`
   and this file.
 - Generated, never edited by hand: `guide/essentials.tex`, `guide/guide.bbl`, `lint-checks.tex`
   and `scripts/lint/skeleton/`.

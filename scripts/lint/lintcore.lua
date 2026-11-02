@@ -6,8 +6,8 @@ M.balanced_group = T.group
 M.unformat = T.unformat
 M.LINK_COMMANDS = T.LINK
 
-M.opts = { dir = ".", doc = "thesis", profile = os.getenv("LINT_PROFILE") or "tdk", tex = false, json = false }
--- the manual phase in thesis.tex is the lifecycle phase; the four before draft share the checks' first level
+M.opts = { dir = ".", doc = "draft", profile = os.getenv("LINT_PROFILE") or "tdk", tex = false, json = false }
+-- the manual phase in draft.tex is the lifecycle phase; the four before draft share the checks' first level
 M.PHASE_ORDER = { "topic", "setup", "research", "plan", "draft", "polish", "submit" }
 M.PHASES = { topic = 1, setup = 1, research = 1, plan = 1, draft = 2, polish = 3, submit = 4 }
 
@@ -30,10 +30,10 @@ function M.escape(s) return (s:gsub("%p", "%%%0")) end
 function M.trim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 function M.count(s, pat) return select(2, s:gsub(pat, "")) end
 
--- the content files are the ones thesis.tex reaches through \include, \input and
+-- the content files are the ones draft.tex reaches through \include, \input and
 -- \loadglsentries, in the order it reaches them; the frame under include/ is followed but not
 -- counted, the guide is skipped, and commented-out lines do not count. M.BIB holds the .bib
--- files of \bibliography. A paper without a thesis.tex that includes anything falls back to the
+-- files of \bibliography. A paper without a draft.tex that includes anything falls back to the
 -- files in content/. The main-text chapters are the ones with a numbered \chapter; chapters are
 -- found by role through their label, never by file name or folder, so a student may rename,
 -- move or merge files. A chapter has role R if it carries \label{ch:R} or \label{ch:R:<name>}:
@@ -60,7 +60,7 @@ do
     local s = M.readfile(f)
     if not s then return end
     M.REACHED[#M.REACHED + 1] = f
-    if f ~= "thesis.tex" and not under(f, "include/") then M.CONTENT[#M.CONTENT + 1] = f end
+    if f ~= "draft.tex" and not under(f, "include/") then M.CONTENT[#M.CONTENT + 1] = f end
     for l in s:gmatch("[^\n]*") do
       for cmd, arg in M.strip_comment(l):gmatch("\\(%a+)%s*(%b{})") do
         arg = M.trim(arg:sub(2, -2))
@@ -77,7 +77,7 @@ do
       end
     end
   end
-  follow("thesis.tex")
+  follow("draft.tex")
   if #M.CONTENT == 0 and M.exists("content") then
     for f in lfs.dir("content") do if f:match("%.tex$") then M.CONTENT[#M.CONTENT + 1] = "content/" .. f end end
     table.sort(M.CONTENT)
@@ -102,7 +102,7 @@ do
     if body:match("\\DeclareAcronym") or body:match("\\newabbreviation") or body:match("\\newacronym") or body:match("\\newglossaryentry") then M.FILES.glossary = f end
   end
 end
--- whether a file thesis.tex reaches, the frame included, loads package p, or defines the macro
+-- whether a file draft.tex reaches, the frame included, loads package p, or defines the macro
 -- \m: a fix that writes \cref or \eg is only offered to a paper that has it, since a paper that
 -- left the template may not load cleveref
 local loads_cache, defines_cache = {}, {}
@@ -136,7 +136,7 @@ function M.defines(m)
 end
 
 -- the tag lists the paper declares, the template's and any of its own: every
--- \NewTagList{<environment>}{<tag>}{<Name>}{<Names>} in a file thesis.tex reaches, as
+-- \NewTagList{<environment>}{<tag>}{<Name>}{<Names>} in a file draft.tex reaches, as
 -- { assumptions = { tag = "AS", name = "Assumption" }, ... }
 function M.tag_lists()
   local t = {}
@@ -190,7 +190,7 @@ function M.main_chapters()
   end
   return out
 end
--- the environment of the running example's boxes: \lintexamplebox in thesis.tex, or the template's
+-- the environment of the running example's boxes: \lintexamplebox in draft.tex, or the template's
 function M.example_box()
   local value, err = M.setting("lintexamplebox")
   if err then error(err) end
@@ -252,12 +252,12 @@ function M.roles_ok(list)
   return ok
 end
 
--- Settings are literal, zero-argument declarations in thesis.tex, in source order.
+-- Settings are literal, zero-argument declarations in draft.tex, in source order.
 -- Support new/renew/providecommand (starred, multiline, optionally [0]) and def.
 -- No expansion, included settings, local groups or conditional evaluation. A
 -- declaration outside this subset is an error rather than a fallback to plan.
 function M.setting(name)
-  local text = T.mask(M.readfile("thesis.tex") or "", "settings")
+  local text = T.mask(M.readfile("draft.tex") or "", "settings")
   local pos, depth, conditional, value = 1, 0, 0, nil
   while pos <= #text do
     local c = text:sub(pos, pos)
@@ -275,7 +275,7 @@ function M.setting(name)
         local target, last = T.group(text, at)
         if not last then target, last = text:match("^(\\[%a@]+)()", at); if last then last = last - 1 end end
         if target and M.trim(target) == "\\" .. name then
-          local function unsupported() return nil, "unsupported declaration of \\" .. name .. " in thesis.tex: use a top-level literal zero-argument newcommand/renewcommand/providecommand or def" end
+          local function unsupported() return nil, "unsupported declaration of \\" .. name .. " in draft.tex: use a top-level literal zero-argument newcommand/renewcommand/providecommand or def" end
           if depth > 0 or conditional > 0 or bare == "gdef" or bare == "edef" or bare == "let" or bare == "xdef" or bare:match("DocumentCommand$") then return unsupported() end
           at = T.space(text, last + 1)
           if text:sub(at, at) == "[" then
@@ -293,7 +293,7 @@ function M.setting(name)
   end
   return value
 end
--- the manual phase: --phase, else LINT_PHASE, else \lintphase in thesis.tex, else plan. A value
+-- the manual phase: --phase, else LINT_PHASE, else \lintphase in draft.tex, else plan. A value
 -- that is none of the seven (final included: the lint has no aliases) is an error, never read as
 -- plan: lint.lua stops on it before any rule
 function M.resolve_phase()
@@ -304,7 +304,7 @@ function M.resolve_phase()
   end
   if not p then
     local err
-    p, err = M.setting("lintphase"); src = "\\lintphase in thesis.tex"
+    p, err = M.setting("lintphase"); src = "\\lintphase in draft.tex"
     if err then return nil, err end
   end
   if not p then p, src = "plan", "the default" end

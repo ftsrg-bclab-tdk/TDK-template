@@ -1,6 +1,6 @@
 ---
 name: systems-modeling
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper has a metamodel, a domain model, a DSL, or a system or architecture model
 ---
 

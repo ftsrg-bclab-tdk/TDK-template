@@ -1,8 +1,8 @@
 % !TeX program = xelatex
-% The paper as the reviewer sees it: thesis.tex with every todo, beat and advisor note hidden,
+% The paper as the reviewer sees it: draft.tex with every todo, beat and advisor note hidden,
 % without the list of todos and without the guide. This is the PDF to upload.
-% On Overleaf: open this file and choose "Recompile from this file"; locally: make reviewer.
+% On Overleaf: open this file and choose "Recompile from this file"; locally: make final.
 \PassOptionsToClass{final}{report}
 \PassOptionsToPackage{disable}{todonotes} % final alone does not reach todonotes from a wrapper
-\def\reviewermode{}
-\input{thesis.tex}
+\def\finalmode{}
+\input{draft.tex}
