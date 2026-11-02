@@ -57,11 +57,13 @@ rule("checkcites", "tools", "count", "always", "checkcites: bibliography entries
   local aux = C.bpath(C.opts.doc .. ".aux")
   if not C.exists(aux) then warn(nil, nil, "no " .. aux .. ": build first"); return end
   local out = C.run("checkcites --backend bibtex " .. aux) or ""
+  -- guide: keys are the guide's citations; guide/guide.bbl resolves them, so the paper's BibTeX
+  -- run, which reads the guide's .aux files of the draft build, finds no entry for them
   local unused, undefined, mode = 0, 0, nil
   for l in out:gmatch("[^\n]+") do
     if l:match("Unused references") then mode = "unused" elseif l:match("Undefined references") then mode = "undefined" end
     local key = l:match("^%s*=>%s*(%S+)")
-    if key then
+    if key and not key:match("^guide:") then
       if mode == "unused" then unused = unused + 1; if unused <= 40 then note(nil, nil, "not cited: " .. key) end
       elseif mode == "undefined" then undefined = undefined + 1; warn(nil, nil, "cited but not in any .bib: " .. key) end
     end
@@ -75,7 +77,8 @@ rule("bibtex-log", "tools", "count", "always", "the BibTeX log: empty fields and
   local n = 0
   for _, l in ipairs(C.lines(blg)) do
     local msg = l:match("^Warning%-%-(.*)$")
-    if msg then n = n + 1; if n <= 40 then warn(nil, nil, "bibtex: " .. msg) end end
+    -- the guide's citations, as in checkcites
+    if msg and not msg:match("entry for \"guide:") then n = n + 1; if n <= 40 then warn(nil, nil, "bibtex: " .. msg) end end
   end
   return string.format("warnings=%d", n)
 end)
