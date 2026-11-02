@@ -358,6 +358,9 @@ MUTATIONS = [
     ("a citation in a comment environment is not read", "bib", append(BG, "\\begin{comment}\nSee~\\cite{nosuchref}.\n\\end{comment}"), "!nosuchref"),
     ("a citation in a picture is read", "bib", append(BG, "\\begin{tikzpicture}\\node {Prior work~\\cite{nosuchref}};\\end{tikzpicture}"), "nosuchref is in no .bib file"),
     ("a citation in a code listing is not read", "bib", append(BG, "\\begin{lstlisting}\n\\cite{nosuchref}\n\\end{lstlisting}"), "!nosuchref"),
+    ("an access date in a note after a link", "bib", append("bib/references.bib", "@misc{noteurl,\n  author = {{W3C}},\n  title = {A page},\n  year = {2025},\n  url = {https://example.org/},\n  note = {Source: \\url{https://example.org/src}; accessed 2026-10-09}\n}"), "!noteurl: a web source needs its access date"),
+    ("a web source without an access date", "bib", append("bib/references.bib", "@misc{noteurl,\n  author = {{W3C}},\n  title = {A page},\n  year = {2025},\n  url = {https://example.org/},\n  note = {Source: \\url{https://example.org/src}}\n}"), "noteurl: a web source needs its access date"),
+    ("a web source with editors", "bib", append("bib/references.bib", "@misc{edited,\n  editor = {Ann Editor},\n  title = {A specification},\n  year = {2025},\n  url = {https://example.org/},\n  urldate = {2026-10-09}\n}"), "!edited: a web source names the page's owner"),
     # the phase is one of the lifecycle's seven, wherever it comes from; final is no alias of submit
     ("an old phase name is no alias", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'final'", {"args": "--doc reviewer --phase final", "exit": 2, "fresh": True}),
     ("the first four phases share a level", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc reviewer --phase research", "fresh": True}),

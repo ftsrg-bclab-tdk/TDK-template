@@ -854,14 +854,16 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
         if not has("title") then efail(b, line, key .. ": no title") end
         if not has("year") and not has("date") then efail(b, line, key .. ": no year", add("  year = {<year>},", "the year")) end
         if not (has("author") or has("editor") or k == "misc" or k == "manual" or k == "online") then efail(b, line, key .. ": no author") end
-        local hasdate = has("urldate") or (body:match("\n%s*note%s*=%s*[{\"][^}\"]*[Aa]ccessed") ~= nil)
+        -- the note as a whole, braces and all: a \url{} or \texttt{} before "accessed" ends no field
+        local note = body:match("\n%s*[nN][oO][tT][eE]%s*=%s*(%b{})") or body:match("\n%s*[nN][oO][tT][eE]%s*=%s*(\"[^\"]*\")") or ""
+        local hasdate = has("urldate") or note:match("[Aa]ccessed") ~= nil
         -- a paper with a link is not a web source: one published at a venue or by a publisher, or a
         -- preprint in an archive that keeps every version (arXiv, the IACR ePrint archive)
         local paper = has("booktitle") or has("journal") or has("publisher") or has("institution") or has("school")
           or body:lower():match("\n%s*url%s*=%s*[{\"]%s*https?://[%w.]*arxiv%.org/") ~= nil
           or body:lower():match("\n%s*url%s*=%s*[{\"]%s*https?://eprint%.iacr%.org/") ~= nil
         if has("url") and not has("doi") and not hasdate and not paper then ewarn(b, line, key .. ": a web source needs its access date (urldate); Zotero records it, the faculty's guideline asks for it", add("  urldate = {<YYYY-MM-DD>},", "the day you read it")) end
-        if (k == "misc" or k == "online") and has("url") and not has("author") then ewarn(b, line, key .. ": a web source names the page's owner as author, in double braces", add("  author = {{<the page's owner>}},", "the owner")) end
+        if (k == "misc" or k == "online") and has("url") and not (has("author") or has("editor")) then ewarn(b, line, key .. ": a web source names the page's owner as author, in double braces", add("  author = {{<the page's owner>}},", "the owner")) end
         local doi = body:match("\n%s*[dD][oO][iI]%s*=%s*[{\"]([^}\"]*)")
         -- the doi field's own line: the first line of the entry that starts it
         local doiline
