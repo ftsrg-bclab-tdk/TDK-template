@@ -1350,12 +1350,26 @@ rule("placeholders", "source", "count", "submit", "what the template left for yo
   for _, f in ipairs(CONTENT) do files[#files + 1] = f end
   files[#files + 1] = "thesis.tex"
   for _, b in ipairs(C.BIB) do files[#files + 1] = b end
+  -- the skeleton's gap matrix cites lamport1978time and w3c2025vcdm for its sample approaches; a
+  -- paper may cite either for what it is, so only a citation inside the gap matrix's float is left over
+  local function matrix_span(f)
+    local ls = C.lines(f)
+    for n, l in ipairs(ls) do
+      if C.strip_comment(l):match("\\label%s*{tab:related}") then
+        local a, b = n, n
+        while a > 1 and not ls[a]:match("\\begin%s*{table") do a = a - 1 end
+        while b < #ls and not ls[b]:match("\\end%s*{table") do b = b + 1 end
+        return a, b
+      end
+    end
+  end
   for _, f in ipairs(files) do
     local t, p, first = 0, 0, nil
+    local ma, mb = matrix_span(f)
     C.each_line({ f }, function(_, n, l)
       local c = C.count(l, "TODO"); if c > 0 then t = t + c; first = first or n end
       if l:match("[Pp]laceholder") then p = p + 1 end
-      if l:match("lamport1978time") or l:match("w3c2025vcdm") then warn(f, n, "sample citation from the template still used") end
+      if ma and n >= ma and n <= mb and (l:match("lamport1978time") or l:match("w3c2025vcdm")) then warn(f, n, "sample citation from the template still used in the gap matrix") end
     end)
     todo, ph = todo + t, ph + p
     if t + p > 0 then warn(f, first, string.format("%d TODO, %d placeholder figure or table", t, p)) end

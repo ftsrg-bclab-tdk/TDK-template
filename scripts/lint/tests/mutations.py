@@ -335,6 +335,8 @@ MUTATIONS = [
     # the citation reader: spaces and line breaks where TeX allows them, nothing from notes
     ("cited key missing after a space", "bib", append(BG, "See~\\cite {nosuchref}."), "nosuchref is in no .bib file"),
     ("cited key missing after a line break", "bib", append(BG, "See~\\cite\n{nosuchref}."), "nosuchref is in no .bib file"),
+    ("a sample source cited for itself", "placeholders", both(sub("content/06-related-work.tex", "\\\\\\cite{lamport1978time}", ""), sub("content/06-related-work.tex", "\\\\\\cite{w3c2025vcdm}", ""),
+        append(BG, "Clocks follow~\\cite{lamport1978time}.")), "!sample citation"),
     ("cited key missing on the next line", "bib", append(BG, "See~\\cite{lamport1978time,\n  nosuchref}."), "nosuchref is in no .bib file"),
     ("cited key missing after an optional argument and a space", "bib", append(BG, "See~\\citep[Section 2] {nosuchref}."), "nosuchref is in no .bib file"),
     ("a citation in a comment environment is not read", "bib", append(BG, "\\begin{comment}\nSee~\\cite{nosuchref}.\n\\end{comment}"), "!nosuchref"),
