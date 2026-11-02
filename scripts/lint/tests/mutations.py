@@ -525,6 +525,7 @@ MUTATIONS = [
         sub("content/09-ai-declaration.tex", "with respect to the substantive part of the work)}} & --", "with respect to the substantive part of the work)}} & 30\\%"),
         sub("content/09-ai-declaration.tex", "overall value:} TODO", "overall value:} About 35\\% of the work came from the model.")), "the overall share is 30%, its justification says 35%"),
     ("a missing AI declaration fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "Abstract Kivonat Contents Budapest University of Technology")]), "missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
+    ("an assistant's citation marker printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "Reference number: 83303. :contentReference[oaicite:0]index=0.")]), "citation marker (oaicite) is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("an AI declaration headed in English is present", "pdf-parts", pdf_with("tiny.pdf", [(700, "Declaration on the Use of Generative Artificial Intelligence")]), "!missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
     ("a gap marker printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "Proving takes [missing] on a laptop.")]), "[missing] is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a todo printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "TODO: the proving time")]), "1 TODO still printed in the PDF", {"args": "--doc tiny --phase submit"}),

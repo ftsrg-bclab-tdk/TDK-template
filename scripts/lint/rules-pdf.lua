@@ -287,6 +287,9 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   for _, m in ipairs({ "TBD", "XXX", "FIXME" }) do
     if text:find("%f[%w]" .. m .. "%f[%W]") then fail(nil, nil, m .. " is printed in the PDF: a placeholder left in the text") end
   end
+  -- ChatGPT's copy keeps :contentReference[oaicite:0]index=0 in the text, usually in a reference
+  -- field; only the inner word, because a line break can split the rest
+  if text:find("oaicite", 1, true) then fail(nil, nil, "an AI assistant's citation marker (oaicite) is printed in the PDF: text pasted from a chat; check that passage against its source") end
   -- the draft prints its todos and beats on purpose; only the reviewer build must be clean of them
   local report = C.draft_build() and note or fail
   if text:find("TODO", 1, true) then
