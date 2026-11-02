@@ -162,7 +162,7 @@ rule("repo-hygiene", "tools", "check", "always", "the repository tracks no build
   for f in (C.run_quiet("git ls-files") or ""):gmatch("[^\n]+") do
     local why
     for _, ext in ipairs(BUILD_OUTPUT) do if f:sub(-#ext - 1) == "." .. ext and f ~= "guide/guide.bbl" then why = "build output" end end
-    if f:match("%.log$") or f == "thesis.pdf" or f == "reviewer.pdf" or f == "lint-checks.tex" or f:match("^_minted") or f:match("^svg%-inkscape/") then why = "build output" end
+    if f:match("%.log$") or f == "thesis.pdf" or f == "reviewer.pdf" or f == "lint-checks.tex" or f:match("^_minted") or f:match("^_[^/]*%.data%.minted$") or f:match("^svg%-inkscape/") then why = "build output" end
     if f:match("^%.claude/settings%.local%.json$") then why = "personal settings of an AI coding agent" end
     if why then
       -- a command, so the fix is shown and never written

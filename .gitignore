@@ -24,6 +24,7 @@ lint-checks.tex
 *.xdv
 _minted/
 _minted-*/
+_*.data.minted
 svg-inkscape/
 thesis.pdf
 reviewer.pdf

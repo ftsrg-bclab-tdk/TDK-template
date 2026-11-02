@@ -319,6 +319,7 @@ MUTATIONS = [
     ("a named role label counts", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:approach:method}"), "!no approach chapter"),
     ("a role spans two chapters", "essentials", both(own_items("content/03-approach.tex", "g"), second_evaluation), "!g:example is not checked"),
     ("tracked build output", "repo-hygiene", track("reviewer.pdf"), "reviewer.pdf: FAIL build output is tracked"),
+    ("a tracked minted data file", "repo-hygiene", both(lambda d: (d / "_2EF71E68.data.minted").write_text("{}\n"), track("_2EF71E68.data.minted")), "_2EF71E68.data.minted: FAIL build output is tracked"),
     ("a typed TBD", "markers", append(BG, "The proving time is TBD for now."), "a typed TBD"),
     # sample keys match whole: a paper's own w3c2025vcdm2 is not the template's sample
     ("a key that extends a sample key", "placeholders", both(sub("content/06-related-work.tex", "{lamport1978time}", "{lamport1978time2}"), sub("content/06-related-work.tex", "{w3c2025vcdm}", "{w3c2025vcdm2}")), "!content/06-related-work.tex:32: warn sample citation"),
