@@ -173,7 +173,11 @@ end)
 rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to read in print (the call asks for 10 pt in figures and tables, labels included); listings and footnotes show up here too", function()
   local d, why = doc(); if not d then C.skip(why); return end
   local perpage, total, smallest = {}, 0, 99
+  -- the draft appends the guide, whose pages are not the paper's: stop at its first part
+  local guide = math.huge
+  for _, it in ipairs(d.outline) do if it.title:match("^Guide:") then guide = math.min(guide, it.page) end end
   for _, page in ipairs(d.pages) do
+    if page.n >= guide then break end
     for _, t in ipairs(page.texts) do
       local f = d.fonts[t.font]
       if f and f.size < 8 and #C.trim(t.text) > 0 then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
