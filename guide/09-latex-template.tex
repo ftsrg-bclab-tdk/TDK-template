@@ -75,6 +75,7 @@ Use \texttt{\textbackslash cref} for every cross-reference; it supplies the type
 Ranges compress: \cref{eq:latex:window,eq:latex:fresh,eq:latex:valid}.
 \Cref{app:latex:theorems,app:latex:tags} reference every theorem-like environment and tagged list.
 Label prefixes are listed in \texttt{include/preamble.tex}.
+Name a label after what it labels, such as \texttt{sec:setup}, never after its number, such as \texttt{sec:4.2}: the number changes when a section moves, and the lint finds the essentials (\cref{app:writing:essentials}) by the labels the skeleton gives them. A draft brought in from elsewhere often carries numbered labels; rename them when you move it into the template.
 
 Chapter labels identify their role in the argument. The lint uses labels, not filenames: \texttt{ch:intro}, \texttt{ch:background}, \texttt{ch:approach}, \texttt{ch:implementation}, \texttt{ch:evaluation}, \texttt{ch:related} or \texttt{ch:conclusion}. Every numbered chapter needs a role. If a role spans several chapters, keep the plain label on the first and add a suffix to the others, such as \texttt{ch:approach:monitors}. A chapter serving two roles needs both labels, for example \texttt{ch:implementation} and \texttt{ch:evaluation}.
 
