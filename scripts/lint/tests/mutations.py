@@ -343,6 +343,7 @@ MUTATIONS = [
     ("one section under a heading", "outline", sub("content/02-background.tex", "\\section{", "\\subsection{Only one}\n\\section{"), "a lone \\subsection"),
     ("a chapter read by its place", "roles", sub("content/03-approach.tex", "\\chapter{Approach}\\label{ch:approach}", "\\chapter{System model}"), "reads as the approach"),
     ("a role no chapter has", "roles", sub("content/04-implementation.tex", "\\label{ch:implementation}", "\\label{ch:approach:build}"), "no implementation chapter"),
+    ("AI use declared on the English form with blank rows", "aidecl", sub("content/09-ai-declaration.tex", "\\aibox\\enspace I used", "\\aiboxmarked\\enspace I used"), "every row is still the blank"),
     ("a chapter label that names no role", "roles", sub("content/04-implementation.tex", "\\label{ch:implementation}", "\\label{ch:impl}"), "names no role"),
     ("a chapter without a label", "roles", sub(BG, "\\chapter{Background}\\label{ch:background}", "\\chapter{Background}"), "no role label"),
     ("a named role label counts", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:approach:method}"), "!no approach chapter"),

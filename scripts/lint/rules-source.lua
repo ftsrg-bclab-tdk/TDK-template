@@ -1465,12 +1465,13 @@ rule("aidecl", "source", "check", "submit", "the AI declaration is filled in: ex
   local marked = C.count(body, "\\aiboxmarked")
   if marked == 0 then fail(f, nil, "no box marked in the AI declaration", "mark one with \\aiboxmarked")
   elseif marked > 1 then fail(f, nil, "two boxes marked in the AI declaration") end
-  local used = body:match("\\aiboxmarked\\enspace Használtam") ~= nil
+  -- the skeleton's English translation, or the faculty's Hungarian form in a paper that kept it
+  local used = (body:match("\\aiboxmarked\\enspace Használtam") or body:match("\\aiboxmarked\\enspace I used")) ~= nil
   if used then
     local blank = C.count(body, "\\aiuse{")
     if blank >= 9 then fail(f, nil, "AI use declared but every row is still the blank \\aiuse row") end
-    if body:match("Összesített százalékos érték[^\n]*&%s*%-%-") then fail(f, nil, "the overall share is still --") end
-    if body:match("indoklása:}%s*TODO") then fail(f, nil, "the justification of the overall share is still TODO") end
+    if body:match("Összesített százalékos érték[^\n]*&%s*%-%-") or body:match("Overall percentage[^\n]*&%s*%-%-") then fail(f, nil, "the overall share is still --") end
+    if body:match("indoklása:}%s*TODO") or body:match("overall value:}%s*TODO") then fail(f, nil, "the justification of the overall share is still TODO") end
   end
   if s:match("\\todo") then warn(f, nil, "the declaration's instructions todo is still in the file") end
 end)
