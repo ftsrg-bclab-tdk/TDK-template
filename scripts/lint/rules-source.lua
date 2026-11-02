@@ -1271,7 +1271,7 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
     if l:match("\\footnote") and l:match("%s\\footnote%f[^%a]") then -- not \footnotesize
       warn(f, n, "space before \\footnote", "the mark should sit on the word or the punctuation", typo_fix(f, n, seen, "footnote", "delete the space", C.nmatch(l, "%s+\\footnote%f[^%a]"), "%s+\\footnote%f[^%a]", function() return "\\footnote" end))
     end
-    if l:match("\\cite") and not l:match("~\\cite") and not l:match("{\\cite") and not l:match("\\citet") and not l:match("\\cite[tp]") and not l:match("^%s*\\cite") and not l:match("&%s*\\cite") and not l:match("\\\\%s*\\cite") then
+    if l:match("\\cite") and not l:match("~\\cite") and not l:match("{\\cite") and not l:match("\\citet") and not l:match("\\cite[tp]") and not l:match("^%s*\\cite") and not l:match("&%s*\\cite") and not l:match("\\\\%s*\\cite") and not l:match("\\newline%s*\\cite") then
       warn(f, n, "\\cite without a tie", "write text~\\cite{...} so the number cannot start a line", typo_fix(f, n, seen, "cite", "write a tie, ~", C.nmatch(l, "%S%s+\\cite"), "(%S)%s+\\cite", function(_, _, _, c)
         if c ~= "&" then return c .. "~\\cite" end
       end))
