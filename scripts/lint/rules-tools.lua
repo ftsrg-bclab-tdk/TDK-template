@@ -20,9 +20,21 @@ rule("lacheck", "tools", "advice", "always", "lacheck: unmatched braces and envi
   if not C.have("lacheck") then C.skip("lacheck not installed"); return end
   local n = 0
   for _, f in ipairs(C.MAIN) do
-    local out = C.run("lacheck " .. f) or ""
+    -- lacheck reads a listing as LaTeX, and one odd $ (Tamarin's $N) cascades to the end of the
+    -- file: it gets the file with the code blanked, on the same line numbers
+    local text = C.readfile(f) or ""
+    for _, env in ipairs(C.CODE) do
+      local e = env:gsub("%p", "%%%0")
+      text = text:gsub("(\\begin{" .. e .. "})(.-)(\\end{" .. e .. "})", function(a, body, z) return a .. body:gsub("[^\n]", "") .. z end)
+    end
+    local tmp = os.tmpname()
+    local h = io.open(tmp, "w")
+    h:write(text); h:close()
+    local out = C.run("lacheck " .. tmp) or ""
+    os.remove(tmp)
     for l in out:gmatch("[^\n]+") do
       local file, ln, msg = l:match('^"([^"]+)", line (%d+): (.*)$')
+      if file == tmp then file = f end
       if file and msg:match('before "\\ref') and (C.lines(file)[tonumber(ln)] or ""):match("&") then file = nil end -- table cells
       if file then n = n + 1; if n <= 60 then warn(file, tonumber(ln), "lacheck: " .. msg) end end
     end
