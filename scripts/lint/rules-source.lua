@@ -153,6 +153,30 @@ local function role_of(text)
   end
   return n == 1 and found or nil
 end
+-- every role a title names, in reading order: "System design and implementation" names two
+local function roles_named(text)
+  local hit, out = {}, {}
+  for w in text:lower():gmatch("%a+") do if ROLE_WORDS[w] then hit[ROLE_WORDS[w]] = true end end
+  for _, r in ipairs(C.ROLE_SEQ) do if hit[r] then out[#out + 1] = r end end
+  return out
+end
+-- the roles no chapter has yet that the reading order leaves room for between f's neighbours
+local function roles_by_place(f)
+  local seq = {}
+  for i, r in ipairs(C.ROLE_SEQ) do seq[r] = i end
+  local lo, hi, past = 0, #C.ROLE_SEQ + 1, false
+  for _, g in ipairs(main_chapters()) do
+    if g == f then past = true
+    else
+      for r in pairs(C.ROLES_OF[g] or {}) do
+        if past then hi = math.min(hi, seq[r]) else lo = math.max(lo, seq[r]) end
+      end
+    end
+  end
+  local out = {}
+  for i = lo + 1, hi - 1 do if not C.ROLES[C.ROLE_SEQ[i]] then out[#out + 1] = C.ROLE_SEQ[i] end end
+  return out
+end
 -- the first \chapter of a file that is not a comment: its line, its text, its title
 local function chapter_line(f)
   for n, raw in ipairs(C.raw_lines(f)) do
@@ -167,9 +191,11 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
     n = n + 1
     if not C.ROLES_OF[f] then
       local lab = ((C.readfile(f) or ""):gsub("%%[^\n]*", "")):match("\\label{(ch:[^}]*)}")
+      local _, _, heading = chapter_line(f)
+      local place = roles_by_place(f)
       if lab then
         local fix
-        local role = role_of(lab:sub(4))
+        local role = role_of(lab:sub(4)) or (heading and role_of(heading)) or place[1]
         local edits = role and rename_edits(lab, "ch:" .. role)
         if edits then fix = C.fix("review", "rename the label to ch:" .. role .. " and its references", table.unpack(edits)) end
         fail(f, 1, "the chapter label " .. lab .. " names no role", "use ch:<role> or ch:<role>:<name> (intro, background, approach, implementation, evaluation, related, conclusion)", fix)
@@ -177,9 +203,15 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
         -- the label goes right after the \chapter, which is not on line 1; a role guessed from the
         -- title is a review fix, a role the title does not name or a label already taken a placeholder
         local fix
+        local help = "give the chapter \\label{ch:<role>} or \\label{ch:<role>:<name>}"
         local ln, cmd, title = chapter_line(f)
         if ln then
-          local role = role_of(title)
+          -- the title first; a title that names no role is read by the chapter's place in the order
+          local role = role_of(title) or roles_named(title)[1]
+          if not role and place[1] then
+            role = place[1]
+            help = "by its place it reads as the " .. C.ROLE_NAME[role] .. (place[2] and " (or the " .. C.ROLE_NAME[place[2]] .. ")" or "") .. ": the label is yours to choose, and it is all the lint reads"
+          end
           if role and not label_defined("ch:" .. role) then
             fix = C.fix("review", "label the chapter ch:" .. role, C.replace_at(f, ln, cmd, cmd .. "\\label{ch:" .. role .. "}"))
           elseif role then
@@ -188,7 +220,29 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
             fix = C.fix("placeholder", "label the chapter with its role", C.replace_at(f, ln, cmd, cmd .. "\\label{ch:<role>}"))
           end
         end
-        fail(f, 1, "no role label", "give the chapter \\label{ch:<role>} or \\label{ch:<role>:<name>}", fix)
+        fail(f, 1, "no role label", help, fix)
+      end
+    end
+  end
+  -- a role no chapter carries: the chapter whose title names it, or else the last one before its
+  -- place, may be doing that work too. A second label says so, and references to ch:<role> then resolve
+  local seq = {}
+  for i, r in ipairs(C.ROLE_SEQ) do seq[r] = i end
+  for _, role in ipairs(C.ROLE_SEQ) do
+    if not C.ROLES[role] and n > 0 then
+      local host, why
+      for _, f in ipairs(main_chapters()) do
+        local _, _, title = chapter_line(f)
+        for _, r in ipairs(title and roles_named(title) or {}) do if r == role then host, why = f, "its title names it" end end
+        local before = false
+        for r in pairs(C.ROLES_OF[f] or {}) do if seq[r] < seq[role] then before = true end end
+        if before and not why then host = f end
+      end
+      if host then
+        local ln, cmd = chapter_line(host)
+        note(host, ln, string.format("no %s; %s stands where it goes (%s)", C.ROLE_NAME[role], host, why or "by the order of the chapters"),
+          "if this chapter also does that work, give it a second label; if the paper has none, leave it",
+          ln and C.fix("review", "also label the chapter ch:" .. role, C.replace_at(host, ln, cmd, cmd .. "\\label{ch:" .. role .. "}")) or nil)
       end
     end
   end
