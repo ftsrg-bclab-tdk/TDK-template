@@ -206,6 +206,7 @@ If you name concrete attacks, give each a row in \cref{tab:guide:attacks}: the a
 \end{table}
 
 \subsection[Trust and cryptographic assumptions]{Trust and cryptographic assumptions\skimmark}\label{app:chapters:assumptions}
+Say for each assumption which way it errs if it is false: \emph{optimistic} when a guarantee could then look stronger than the real system warrants, \emph{pessimistic} when it can only withhold a guarantee, and \emph{neutral} when it does neither. Reviewers check the optimistic ones first. If an assumption errs both ways, for example a stateless model of a component that hides one failure and invents another, say that too. All three assumptions below are optimistic.
 \begin{assumptions}
   \item\label{asm:guide:sig} \textbf{Sound signatures and accumulator.} The registry's signature authenticates the accumulator value and its timestamp; an adversary cannot forge it or produce a valid membership witness for a credential absent from that value.
   \item\label{asm:guide:clock} \textbf{Bounded clock error.} Relative to reference time, every registry and verifier clock has absolute error at most $\epsilon/2$ at every instant, where $0\leq\epsilon<\delta$. Thus a verifier's measured age of a registry value differs from its actual age by at most $\epsilon$.
