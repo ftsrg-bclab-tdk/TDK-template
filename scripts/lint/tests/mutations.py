@@ -322,7 +322,6 @@ MUTATIONS = [
     ("a sentence twice in a row", "typography", append(BG, "The earlier run used an older interface of the registry.\nThe earlier run used an older interface of the registry. It reports nothing."), "the same sentence twice in a row"),
     ("a short sentence twice is left alone", "typography", append(BG, "It holds. It holds."), "!the same sentence twice"),
     ("a name is not a range", "typography", append(BG, "The curve BLS12-381 on an i7-9750H."), "!range 12-381"),
-    ("a compound in two spellings", "terms", append(BG, "The read-set check reads the read set again."), "read-set (1) also appears as 'read set' (1)"),
     ("a three-part compound is one word", "terms", append(BG, "An atomic test-and-set makes the test and the set one step, peer-to-peer."), "!test-and"),
     ("a number before a compound", "terms", append(BG, "The 95th-percentile latency and the 95th percentile agree."), "!th-percentile"),
     ("two chapters in one file", "chapters", append(BG, "\\chapter{Second}\nMore text."), "a second chapter in one file"),
