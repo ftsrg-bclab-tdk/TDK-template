@@ -628,15 +628,42 @@ local function ref_fix(l)
   end)))
 end
 
+-- whether line n of a file starts a sentence: a source line usually continues the sentence of the
+-- line before it. It starts one after a blank line, a line that ends in . ? or !, or a heading or
+-- environment boundary with nothing after it; lines that are only a comment are skipped. A table
+-- row is not a sentence.
+local SENTENCE_BREAK = { begin = true, ["end"] = true, item = true, chapter = true, section = true, subsection = true, subsubsection = true, paragraph = true, label = true }
+local function line_opens_sentence(f, ls, n)
+  if ls[n]:match("&") then return false end
+  local raw = C.raw_lines(f)
+  for m = n - 1, 1, -1 do
+    if not (raw[m] or ""):match("%S") then return true end
+    local p = (ls[m] or ""):gsub("%s+$", "")
+    if p:match("%S") then
+      if p:match("\\\\$") or p:match("rule$") or p:match("rule%b{}$") then return false end
+      local cmd = p:match("^%s*\\(%a+)")
+      if SENTENCE_BREAK[cmd] and (p:match("[%]}]$") or p:match("^%s*\\item$")) then return true end
+      return p:match("[%.%?!][%)%]}'\"]*$") ~= nil
+    end
+  end
+  return true
+end
+
 -- the printed lines only, and nothing inside \verb, \lstinline or a link: a Figure~\ref in a code
 -- listing is the program's text, and no fix touches it (lintcore.lua, M.literal_spans)
 rule("crefs", "source", "check", "always", "references go through \\cref: no 'Figure~\\ref', no \\autoref, \\Cref at the start of a sentence, and no bare \\ref outside table cells", function()
+  local lines_of = {}
   C.each_editable_line(MAIN, function(f, n, l)
     if l:match("[Ff]igure~?\\ref") or l:match("[Tt]able~?\\ref") or l:match("[Ss]ection~?\\ref") or l:match("[Cc]hapter~?\\ref") or l:match("[Ll]isting~?\\ref") then fail(f, n, "a typed reference with \\ref", "write \\cref{...}", cref_fix(l, "(%a+)~?\\ref{([^}]*)}", function(w) return TYPED_REF[w:lower()] end)) end
     if l:match("\\autoref") then fail(f, n, "\\autoref", "the template uses cleveref, write \\cref", cref_fix(l, "\\(auto)ref{([^}]*)}", function() return true end)) end
     if l:match("\\figref") or l:match("\\tabref") or l:match("\\sectref") or l:match("\\listref") then fail(f, n, "the faculty template's \\figref family", "write \\cref", cref_fix(l, "\\(%a+)ref{([^}]*)}", function(w) return FACULTY_REF[w] end)) end
-    if l:match("^%s*\\cref") or l:match("[%.%?!]%s+\\cref") then
-      warn(f, n, "\\cref at the start of a sentence", "use \\Cref", C.loads("cleveref") and C.fix("safe", "write \\Cref", table.unpack(C.matches(l, "\\cref{", function(_, s, code) if opens_sentence(code, s) then return "\\Cref{" end end))) or nil)
+    lines_of[f] = lines_of[f] or C.editable_lines(f)
+    local starts = l:match("^%s*\\cref") and line_opens_sentence(f, lines_of[f], n)
+    if starts or l:match("[%.%?!]%s+\\cref") then
+      warn(f, n, "\\cref at the start of a sentence", "use \\Cref", C.loads("cleveref") and C.fix("safe", "write \\Cref", table.unpack(C.matches(l, "\\cref{", function(_, s, code)
+        local before = code:sub(1, s - 1)
+        if (starts and before:match("^%s*$")) or before:match("[%.%?!]%s+$") then return "\\Cref{" end
+      end))) or nil)
     end
     if l:match("\\ref{") and not l:match("&") and not l:match("\\ref{req:") and not l:match("\\ref{g:") and not l:match("\\ref{c:") and not l:match("\\ref{asm:") and not l:match("\\ref{thr:") and not l:match("\\ref{dr:") then warn(f, n, "bare \\ref in prose", "\\cref names the kind of thing for you", ref_fix(l)) end
     if l:match("\\pageref") then note(f, n, "\\pageref: rarely needed with hyperlinks") end

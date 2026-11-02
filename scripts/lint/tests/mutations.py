@@ -250,6 +250,8 @@ MUTATIONS = [
     ("figure never referenced", "figures", append(BG, "\\begin{figure}\\centering x\\caption{An orphan figure for the test.}\\label{fig:orphan}\\end{figure}"), "fig:orphan is never referenced"),
     ("typed reference", "crefs", append(BG, "As Figure~\\ref{fig:overview} shows, it works."), "typed reference"),
     ("autoref", "crefs", append(BG, "As \\autoref{fig:overview} shows, it works."), "\\autoref"),
+    ("a sentence opened by \\cref on its own line", "crefs", append(BG, "It works.\n\\cref{fig:overview} shows it."), "start of a sentence"),
+    ("a wrapped line opened by \\cref mid-sentence", "crefs", append(BG, "The result is shown in\n\\cref{fig:overview} for every run."), "!start of a sentence"),
     ("lint-ignore silences one finding", "crefs", append(BG, "As Figure~\\ref{fig:overview} shows. % lint-ignore: crefs test"), "!typed reference"),
     ("acronym typed by hand", "acronyms", append(BG, "We use ZKP here."), "ZKP typed by hand"),
     ("two-letter abbreviation typed by hand", "acronyms", append(BG, "Every VC is signed."), "VC typed by hand"),
