@@ -1364,12 +1364,20 @@ rule("placeholders", "source", "count", "submit", "what the template left for yo
     end
   end
   for _, f in ipairs(files) do
-    local t, p, first = 0, 0, nil
+    local t, p, first, infloat = 0, 0, nil, false
     local ma, mb = matrix_span(f)
     C.each_line({ f }, function(_, n, l)
       local c = C.count(l, "TODO"); if c > 0 then t = t + c; first = first or n end
-      if l:match("[Pp]laceholder") then p = p + 1 end
-      if ma and n >= ma and n <= mb and (l:match("lamport1978time") or l:match("w3c2025vcdm")) then warn(f, n, "sample citation from the template still used in the gap matrix") end
+      -- a placeholder figure or table says so inside its float; the word in prose is prose
+      if l:match("\\begin{figure") or l:match("\\begin{table") then infloat = true end
+      if infloat and l:match("[Pp]laceholder") then p = p + 1 end
+      if l:match("\\end{figure") or l:match("\\end{table") then infloat = false end
+      -- the sample keys whole: w3c2025vcdm2 is a paper's own entry, not the sample
+      if ma and n >= ma and n <= mb then
+        for _, k in ipairs({ "lamport1978time", "w3c2025vcdm" }) do
+          if l:match("%f[%w:]" .. k .. "%f[^%w:]") then warn(f, n, "sample citation from the template still used in the gap matrix"); break end
+        end
+      end
     end)
     todo, ph = todo + t, ph + p
     if t + p > 0 then warn(f, first, string.format("%d TODO, %d placeholder figure or table", t, p)) end

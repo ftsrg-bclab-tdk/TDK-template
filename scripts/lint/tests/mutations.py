@@ -308,6 +308,10 @@ MUTATIONS = [
     ("a role spans two chapters", "essentials", both(own_items("content/03-approach.tex", "g"), second_evaluation), "!g:example is not checked"),
     ("tracked build output", "repo-hygiene", track("reviewer.pdf"), "reviewer.pdf: FAIL build output is tracked"),
     ("a typed TBD", "markers", append(BG, "The proving time is TBD for now."), "a typed TBD"),
+    # sample keys match whole: a paper's own w3c2025vcdm2 is not the template's sample
+    ("a key that extends a sample key", "placeholders", both(sub("content/06-related-work.tex", "{lamport1978time}", "{lamport1978time2}"), sub("content/06-related-work.tex", "{w3c2025vcdm}", "{w3c2025vcdm2}")), "!content/06-related-work.tex:32: warn sample citation"),
+    ("the word placeholder in prose", "placeholders", append(BG, "A sorry is a placeholder for a missing proof."), "!1 placeholder figure"),
+    ("a placeholder figure", "placeholders", append(BG, "\\begin{figure}\\centering Placeholder\\caption{A figure.}\\end{figure}"), "1 placeholder figure"),
     ("a typed citation marker", "markers", append(BG, "This is well known [CITE: the survey]."), "a typed [CITE"),
     ("a gap marker left at the submit phase", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "is still here"),
     ("a TBD inside a todo is not typed into the text", "markers", append(BG, "Text.\\todo{TBD later}"), "!a typed TBD"),
