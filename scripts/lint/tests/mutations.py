@@ -327,6 +327,7 @@ MUTATIONS = [
     ("a file nothing includes", "orphans", lambda d: (d / "content/notes.tex").write_text("Some notes the author forgot to include in a chapter.\n"), "included nowhere"),
     ("own prose ends a stub", "stubs", append(BG, " ".join(["Own words of the author, written for this chapter."] * 25)), "!content/02-background.tex"),
     ("faculty placeholder text", "stock", append(BG, "A bevezető tartalmazza a diplomaterv-kiírás elemzését."), "placeholder text is still here"),
+    ("a character the font lacks", "build", append("reviewer.log", "Missing character: There is no ✓ (U+2713) in font TeX Gyre Termes/OT:script=latn;language=dflt;!"), "✓ (U+2713) is missing from the font"),
     ("a chapter after the conclusion", "spine", lambda d: ((d / "content/08-extra.tex").write_text("\\chapter{Future Work}\nText.\n"),
         sub("thesis.tex", "\\include{content/07-conclusion}\n", "\\include{content/07-conclusion}\n\\include{content/08-extra}\n")(d)), "after the conclusion"),
     ("amssymb in the own preamble", "preamble", append("include/macros.tex", "\\usepackage{amssymb}"), "amssymb next to unicode-math"),

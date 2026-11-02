@@ -333,7 +333,7 @@ rule("spine", "source", "advice", "always", "the chapters follow the spine: the 
   if appr and eval and eval < appr then warn(mains[eval], 1, "the evaluation comes before the approach it evaluates") end
 end)
 
-rule("build", "source", "check", "always", "the build log: undefined references and citations, multiply defined labels, missing files, missing fonts, TeX errors", function()
+rule("build", "source", "check", "always", "the build log: undefined references and citations, multiply defined labels, missing files, missing fonts and characters, TeX errors", function()
   local log = C.bpath(C.opts.doc .. ".log")
   if not C.exists(log) then fail(nil, nil, "no " .. log .. ": build first"); return end
   local pats = {
@@ -342,6 +342,8 @@ rule("build", "source", "check", "always", "the build log: undefined references 
     { "Label `([^']*)' multiply defined", "label %s multiply defined" },
     { "File `([^']*)' not found", "file %s not found" },
     { "Font ([^%s]*) not found", "font %s not found" },
+    -- a character the font lacks prints as nothing: a check mark typed as ✓ in Termes, say
+    { "Missing character: There is no (.-) in font", "%s is missing from the font, so the PDF leaves it out" },
   }
   local seen = {}
   for _, l in ipairs(C.lines(log)) do
