@@ -88,7 +88,7 @@ class HygieneScopeTests(unittest.TestCase):
         self.add_original_source_history()
         result = self.run_hygiene()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("warning[private-link]", result.stdout)
+        self.assertRegex(result.stdout, r"warning\[private-link\]|::warning file=README.md,title=hygiene/private-link::")
         self.assertIn("README.md", result.stdout)
 
 
