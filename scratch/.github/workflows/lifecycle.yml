@@ -1,0 +1,40 @@
+# Regenerates lifecycle.md from the files of this repository and its submodules, appends the
+# paper's burn-down counts, and commits both. Rows due in the current phase that are missing fail
+# the run and show as warnings on the run page.
+name: lifecycle
+on:
+  push:
+  schedule:
+    - cron: "0 6 * * 1"   # Monday mornings, so the table moves even in a quiet week
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: texlua for the paper's burn-down
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends texlive-binaries >/dev/null
+      - name: Burn-down from the paper
+        if: hashFiles('paper/scripts/lint.lua') != ''
+        working-directory: paper
+        run: texlua scripts/lint.lua burndown | tail -1 | python3 ../scripts/burndown.py
+      - name: Lifecycle table
+        id: lifecycle
+        continue-on-error: true
+        run: python3 scripts/lifecycle.py
+      - name: Commit the regenerated files
+        run: |
+          git config user.name "lifecycle bot"
+          git config user.email "lifecycle-bot@users.noreply.github.com"
+          for f in lifecycle.md burndown.csv burndown.svg; do [ -f "$f" ] && git add "$f"; done
+          git diff --cached --quiet || git commit -m "Regenerate the lifecycle table and the burn-down"
+          git push
+      # The template itself has no paper yet, so only a real student repository fails on missing rows.
+      - name: Fail if a due row is missing
+        if: steps.lifecycle.outcome == 'failure' && hashFiles('paper/thesis.tex') != ''
+        run: exit 1
