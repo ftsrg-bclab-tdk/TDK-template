@@ -1,7 +1,14 @@
 # TDK paper
 
 <!-- tdk-status:start -->
-Repository status links are generated after the project and CI workflows are set up.
+[![Project checks](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush)
+[![Paper build](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/paper-build.yml/badge.svg?branch=main&event=workflow_run)](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/paper-build.yml?query=branch%3Amain+event%3Aworkflow_run)
+[![Paper lint report](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/paper-lint.yml/badge.svg?branch=main&event=workflow_run)](https://github.com/ftsrg-bclab-tdk/TDK-template/actions/workflows/paper-lint.yml?query=branch%3Amain+event%3Aworkflow_run)
+
+Paper lint report success means reporting completed; writing findings may remain.
+Open the run for the checked SHA, runtime and scope. These badges do not certify Overleaf synchronization.
+Private results require GitHub access; badge images may be unavailable outside GitHub.
+
 No verified published artifact DOI has been supplied.
 <!-- tdk-status:end -->
 

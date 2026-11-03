@@ -23,7 +23,8 @@ quotes the top of every scale.
 
 1. Take the final PDF from the CI bundle of one named commit, the pushed `HEAD` unless the
    student names another: `python3 scripts/review/review.py fetch --repo <owner/name> --sha <sha>`
-   prints the bundle directory, and `final.pdf` is in it. `fetch` verifies the bundle; when it
+   prints the bundle directory, and `final.pdf` is in it. For known evidence, pass
+   `--run <id> --attempt <n>` and retain its sibling transport receipt. `fetch` verifies the bundle; when it
    refuses, say why and stop. Never score `draft.pdf`, the draft with the notes in it.
 2. Read the whole PDF once as a reader, then once per criterion.
 3. For each criterion, give the score and the sheet's own sentence that fits, then the evidence:

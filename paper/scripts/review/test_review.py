@@ -253,7 +253,7 @@ class TestFetch(Workdir):
 
     def fetch(self, gh, *extra):
         with mock.patch.object(review, "gh", gh):
-            return call("fetch", "--repo", "BlackLight54/TDK26-Example", "--sha", SHA, "--out", self.tmp / "got", *extra)
+            return call("fetch", "--legacy", "--repo", "BlackLight54/TDK26-Example", "--sha", SHA, "--out", self.tmp / "got", *extra)
 
     def test_a_whole_bundle_is_fetched_and_its_path_printed(self):
         bundle = self.make_bundle()
@@ -296,6 +296,58 @@ class TestFetch(Workdir):
         code, _, err = self.fetch(self.fake_gh(None, runs=[]))
         self.assertEqual(code, 1)
         self.assertIn("no paper.yml run", err)
+
+
+class TestModernFetch(Workdir):
+    def invoke(self, bundle, *, transport_error=None, run=42, attempt=2):
+        def gh(args):
+            if args[:2] == ["run", "list"]:
+                return cp(out=json.dumps([{"databaseId":42,"status":"completed","createdAt":"2026-11-04"}]))
+            if args == ["api", "repos/BlackLight54/TDK26-Example"]:
+                return cp(out=json.dumps({"id":123}))
+            if args == ["api", "repos/BlackLight54/TDK26-Example/actions/runs/42"]:
+                return cp(out=json.dumps({"run_attempt":2}))
+            raise AssertionError(args)
+        calls=[]
+        def transport(**kwargs):
+            calls.append(kwargs)
+            if transport_error:
+                raise review.Fail(transport_error)
+            shutil.copytree(bundle, kwargs["output"])
+            return {"artifact_id":19,"artifact_sha256":"ab"*32,"run_id":42,"run_attempt":2}
+        selectors=[] if run is None else ["--run",run,"--attempt",attempt]
+        with mock.patch.object(review,"gh",gh), mock.patch.object(review,"fetch_transport",transport):
+            result=call("fetch","--repo","BlackLight54/TDK26-Example","--sha",SHA,
+                        "--out",self.tmp/"got",*selectors)
+        return result,calls
+
+    def test_exact_attempt_contract_and_separate_transport_receipt(self):
+        result,calls=self.invoke(self.make_bundle())
+        self.assertEqual(result[0],0,result[2])
+        self.assertEqual(calls[0]["artifact_name"],f"review-{SHA}-42-2")
+        self.assertEqual(calls[0]["workflow_path"],".github/workflows/ci.yml")
+        self.assertEqual(calls[0]["repository_id"],123)
+        receipt=json.loads((self.tmp/"got.transport.json").read_text())
+        self.assertEqual(receipt["manifest_sha256"],review.sha256_file(self.tmp/"got/manifest.json"))
+        self.assertEqual(review.verify_bundle(self.tmp/"got",SHA)[1],[])
+
+    def test_latest_completed_selection_does_not_fall_back_on_missing_artifact(self):
+        result,calls=self.invoke(None,transport_error="Exact attempt artifact missing",run=None)
+        self.assertEqual(result[0],1)
+        self.assertEqual(len(calls),1)
+        self.assertFalse((self.tmp/"got.transport.json").exists())
+
+    def test_attempt_mismatch_is_rejected_after_file_verification(self):
+        result,_=self.invoke(self.make_bundle(),attempt=3)
+        self.assertEqual(result[0],1)
+        self.assertIn("does not match",result[2])
+
+    def test_downloaded_file_tamper_is_rejected(self):
+        bundle=self.make_bundle()
+        (bundle/"final.pdf").write_bytes(b"changed")
+        result,_=self.invoke(bundle)
+        self.assertEqual(result[0],1)
+        self.assertIn("SHA-256 differs",result[2])
 
 
 class TestInputs(Workdir):

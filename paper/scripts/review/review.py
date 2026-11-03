@@ -20,6 +20,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path, PurePosixPath
 
 SCHEMA = 2
@@ -341,7 +342,7 @@ def resolve_sha(repo, sha):
     return full
 
 
-def cmd_fetch(a):
+def fetch_legacy(a):
     repo = check_repo(a.repo)
     sha = resolve_sha(repo, a.sha)
     name = f"review-{sha[:7]}"
@@ -372,6 +373,76 @@ def cmd_fetch(a):
                f"Either it expired (artifacts are kept 14 days), or the workflow of that commit does not upload one.\n"
                f"If it expired, rebuild it with:\n"
                f"  gh run rerun {runs[0]['databaseId']} -R {repo}")
+
+
+def fetch_transport(**kwargs):
+    # Import the monorepo's trusted consumer, never scripts from the artifact.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts"))
+    from ci.handoff import fetch
+    from external_inputs.external_inputs import Unavailable
+    try:
+        return fetch(**kwargs)
+    except (ValueError, OSError, Unavailable, zipfile.BadZipFile) as exc:
+        raise Fail(str(exc)) from exc
+
+
+def api_json(endpoint):
+    result = gh(["api", endpoint])
+    if result.returncode:
+        raise Fail("GitHub read failed: " + result.stderr.strip())
+    try:
+        return json.loads(result.stdout)
+    except (TypeError, ValueError) as exc:
+        raise Fail("GitHub returned invalid JSON") from exc
+
+
+def cmd_fetch(a):
+    if a.legacy:
+        if any(v is not None for v in (a.run, a.attempt, a.artifact_id, a.artifact_sha256)):
+            raise Fail("Legacy fetch does not accept modern transport selectors")
+        return fetch_legacy(a)
+    repo, sha = check_repo(a.repo), resolve_sha(check_repo(a.repo), a.sha)
+    if a.attempt is not None and a.run is None:
+        raise Fail("--attempt requires --run")
+    run_id = a.run
+    if run_id is None:
+        result = gh(["run", "list", "-R", repo, "--commit", sha, "--workflow", "ci.yml", "--limit", "20",
+                     "--json", "databaseId,status,createdAt"])
+        if result.returncode:
+            raise Fail("gh run list failed: " + result.stderr.strip())
+        try:
+            runs = sorted(json.loads(result.stdout or "[]"), key=lambda r: r.get("createdAt", ""), reverse=True)
+            completed = [r for r in runs if r["status"] == "completed"]
+            if not completed:
+                raise Fail("No completed ci.yml run for " + sha[:7] + "; run Project checks and wait for completion")
+            run_id = completed[0]["databaseId"]
+        except (TypeError, ValueError, KeyError) as exc:
+            raise Fail("Invalid GitHub run listing") from exc
+    repo_meta = api_json("repos/" + repo)
+    run_meta = api_json(f"repos/{repo}/actions/runs/{run_id}")
+    attempt = a.attempt if a.attempt is not None else run_meta.get("run_attempt")
+    dest = Path(a.out) if a.out else Path(tempfile.mkdtemp(prefix="review-fetch-")) / "bundle"
+    receipt_path = dest.with_name(dest.name + ".transport.json")
+    if dest.exists() or receipt_path.exists():
+        raise Fail("Fetch destination and transport receipt must be new paths")
+    name = f"review-{sha}-{run_id}-{attempt}"
+    receipt = fetch_transport(repository=repo, repository_id=repo_meta.get("id"), run_id=run_id,
+                              attempt=attempt, source_sha=sha, workflow_path=".github/workflows/ci.yml",
+                              artifact_name=name, output=dest,
+                              allowed_events=("push", "pull_request", "workflow_dispatch"),
+                              artifact_id=a.artifact_id, expected_artifact_sha256=a.artifact_sha256)
+    manifest = verified(dest, sha)
+    built = manifest.get("built", {})
+    if (manifest.get("repo", "").lower() != repo.lower() or built.get("by") != "ci" or
+            built.get("run_url", "").lower() != f"https://github.com/{repo}/actions/runs/{run_id}".lower() or
+            built.get("run_attempt") != attempt or built.get("dirty") or built.get("unverified")):
+        raise Fail("Review manifest does not match the selected repository/run/attempt")
+    receipt["manifest_sha256"] = sha256_file(dest / "manifest.json")
+    with receipt_path.open("x") as stream:
+        json.dump(receipt, stream, indent=2)
+        stream.write("\n")
+    print(f"Selected run {run_id}, attempt {attempt}; transport receipt: {receipt_path}", file=sys.stderr)
+    print(dest)
 
 
 # --- inputs -----------------------------------------------------------------------------------
@@ -677,11 +748,16 @@ def parser():
     p.set_defaults(func=cmd_bundle)
 
     p = sub.add_parser("fetch", help="download and verify the bundle of a commit from its CI run",
-                       description="Find the paper.yml run of a commit, download its artifact review-<sha7> and check "
-                       "every file hash and that manifest.json names the requested commit. Prints the directory.")
+                       description="Fetch one ci.yml review artifact by exact commit/run/attempt and verify transport and file hashes. "
+                       "Without --run, select the newest completed run once; missing evidence never falls back to an older run.")
     p.add_argument("--repo", required=True, metavar="OWNER/NAME")
     p.add_argument("--sha", required=True, help="the commit, 7 to 40 hex digits")
-    p.add_argument("--out", metavar="DIR", help="where to put the bundle (default: a fresh temporary directory)")
+    p.add_argument("--out", metavar="DIR", help="new directory for the bundle (default: a fresh temporary directory)")
+    p.add_argument("--run", type=int, help="exact producer run ID")
+    p.add_argument("--attempt", type=int, help="exact attempt; requires --run")
+    p.add_argument("--artifact-id", type=int, help="expected immutable artifact ID")
+    p.add_argument("--artifact-sha256", help="expected transport archive digest")
+    p.add_argument("--legacy", action="store_true", help="explicit historical paper.yml/review-sha7 fetch")
     p.set_defaults(func=cmd_fetch)
 
     p = sub.add_parser("inputs", help="make one directory per persona holding exactly its inputs",

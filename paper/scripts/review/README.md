@@ -4,13 +4,20 @@ A review run reads one revision of the paper the way its reviewers will. Paper C
 evidence on pushes to main or master, non-draft pull requests and manual runs. An agent then runs the reviewer personas on the evidence of one named
 commit. Each persona reads only its own inputs. When the run is recorded, its findings go into
 one issue on the paper repository. This file fixes the formats those steps exchange. The skim
-(`scripts/skim/`), the runner (`review.py`) and the CI (root `.github/workflows/paper.yml`) are built
+(`scripts/skim/`), the runner (`review.py`) and the CI (root `.github/workflows/ci.yml`) are built
 against it, so a change here comes first.
 
 ## The bundle
 
-Each paper CI run uploads one Actions artifact, `review-<sha7>`, kept 14 days.
-The commit SHA is the run's identity: the paper repository carries the template's scripts, so the
+Each paper execution uploads `review-<full-sha>-<run-id>-<attempt>`, kept 7 days.
+`fetch` binds the GitHub repository ID, workflow, run, attempt, artifact ID and archive digest,
+then checks the bundle manifest and its files. Supply `--run` and `--attempt` to select known
+evidence. Without `--run`, it selects the newest completed `ci.yml` run once; missing evidence
+does not cause fallback to an older run. The sibling `.transport.json` records the selection
+and manifest digest without changing the bundle. `--legacy` explicitly fetches historical
+`paper.yml` / `review-<sha7>` bundles.
+
+The commit SHA identifies the source: the paper repository carries the template's scripts, so the
 SHA also fixes the lint, the skim and the personas that ran. Two builds of one commit give PDFs
 with different bytes, because XeLaTeX stamps the creation date, so a PDF hash identifies a
 bundle, never a revision. When a bundle has expired, rerun the workflow of that commit.
