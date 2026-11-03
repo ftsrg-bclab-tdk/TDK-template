@@ -1,0 +1,6 @@
+/.tools/
+/results/
+__pycache__/
+states/
+*.out
+*_TTrace_*
