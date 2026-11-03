@@ -16,6 +16,10 @@ jobs:
   presentation:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # Ubuntu ships an AppArmor user-namespace allowance for this stable binary.
+      # PATH may prefer an unpackaged Chromium build with no usable sandbox.
+      CHROME_PATH: /opt/google/chrome/chrome
     defaults:
       run:
         working-directory: presentation

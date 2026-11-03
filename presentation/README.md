@@ -28,7 +28,11 @@ locations. Override discovery with `CHROME_PATH=/absolute/path/to/chrome`.
 Linux/WSL is the validated native environment; macOS discovery is provided but
 has not been tested here. Run Chromium as a regular user with its sandbox enabled.
 Dependency installation needs network access; the installed build uses local
-fonts and artwork.
+fonts and artwork. CI explicitly selects `/opt/google/chrome/chrome`, whose
+standard Ubuntu AppArmor profile permits its sandbox. An unpackaged Chromium
+binary may fail with "No usable sandbox" on Ubuntu; select the installed stable
+Chrome rather than adding `--no-sandbox`. See the
+[Chromium sandbox guidance](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md).
 
 Outputs are ignored under `dist/`:
 
@@ -79,9 +83,12 @@ appear in your installed version and test the audience display before the talk.
 The template does not rely on animation: use successive slides for progressive
 reveals. Live Pympress and dual-display behavior have not been validated by CI.
 
-The presentation is outside the paper-only Overleaf sync. Edit it in Git and
-build it locally or use the presentation CI artifact. No root paper command or
-Overleaf entrypoint is required.
+The monorepo uses native whole-repository Overleaf–GitHub sync. Presentation
+sources travel with it, but only paper files are edited in Overleaf. Edit the
+presentation with normal Git tools and build it independently or use its CI
+artifact; Overleaf does not run this Node/Marp build. Dependencies and generated
+outputs stay ignored. The scripts use explicit Node invocations and no tracked
+symlinks, but the monorepo sync round-trip still needs its own validation.
 
 Known dependency advisories and their build/CI conditions are recorded in
 [the dependency triage](DEPENDENCIES.md).
