@@ -45,7 +45,7 @@ python3 scripts/setup.py student --skip-accounts --check-bootstrap --smoke
 # Advisor prepares a shared non-secret configuration for the intended private repo.
 python3 scripts/setup.py advisor --init-config FTSRG-BCLab-TDK/example-project
 
-# Edit the value fields in onboarding.json, keeping expected source values intact.
+# Edit the value fields in project.json, keeping expected source values intact.
 python3 scripts/setup.py advisor
 python3 scripts/setup.py advisor --apply-metadata --dry-run
 python3 scripts/setup.py advisor --apply-metadata
@@ -56,12 +56,26 @@ python3 scripts/setup.py status
 
 Creating the shared configuration does **not** create a GitHub repository.
 Replace the example repository name with the advisor's intended project name.
-The generated JSON selects `paper/thesis.tex` if present, otherwise `thesis.tex`.
+The existing canonical `project.json` is loaded through `ci.config.load_project`.
+Initialization replaces its repository identity with the supplied `ORG/REPO`,
+populates missing metadata expectations, and preserves role, components and
+compilation entrypoints. It does not verify access to that repository. The
+editable source is exactly `paper_main`; root compilation proxies are never
+metadata targets. If initialization needs to set a different source location,
+use `--paper-source paper/draft.tex` explicitly. Missing canonical files/targets
+fail; setup does not invent a second CI configuration or fall back to a legacy
+file while a different source is declared.
 Only the allowlisted title and author/advisor name macros can be changed. Values
 are plain text and escaped for LaTeX. All changes are preflighted before writing;
 an unexpected source value causes a conflict, preserving student edits. Reruns
 are idempotent. Notes, chapter lists, lint phase and Zotero bibliography are never
 managed. Unknown shared configuration fields are rejected, including credentials.
+`--config other.json` uses the same validator. `repository: null` is structurally
+valid and shown as unconfigured; account/bootstrap observations do not establish
+project readiness. All config receipts use the SHA-256 of the exact bytes loaded
+by the shared loader. Whitespace or other config changes invalidate dependent
+stored evidence. An initializer rechecks the prior digest before writing and
+never resets existing metadata expectations to bypass a student-edit conflict.
 
 Private state defaults to `.onboarding/`, ignored by the supplied `.gitignore`.
 It must remain untracked and owned by the current user with private directory/file

@@ -21,7 +21,9 @@ def observations(config, adapter=None):
     rows = []
     for key, actor, action in STEPS:
         row = dict(step=key, actor=actor, action=action, status="pending")
-        if adapter:
+        if not config.get("repository"):
+            row["reason"] = "repository_unconfigured"
+        elif adapter:
             try:
                 evidence = adapter.observe(key, config)
                 if evidence.get("project") != config.get("repository"):

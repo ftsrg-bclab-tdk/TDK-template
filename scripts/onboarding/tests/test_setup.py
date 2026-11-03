@@ -1,3 +1,4 @@
+import hashlib
 import contextlib
 import importlib.util
 import io
@@ -28,7 +29,10 @@ class SetupTest(unittest.TestCase):
             "\\newcommand{\\vikcim}{Old title}\n"
             "\\newcommand{\\lintphase}{draft}\n"
             "\\todo{Keep student notes}\n")
-        self.git("add", ".gitignore", "thesis.tex")
+        self.config = json.loads((SCRIPTS.parent / "project.json").read_text())
+        self.config.update(repository=None, paper_main="thesis.tex", metadata={})
+        (self.root / "project.json").write_text(json.dumps(self.config))
+        self.git("add", ".gitignore", "thesis.tex", "project.json")
         self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Fixture")
 
     def git(self, *args):
@@ -46,22 +50,74 @@ class SetupTest(unittest.TestCase):
         self.assertEqual(code, 0, output)
         self.assertEqual(before, self.git("status", "--porcelain"))
         self.assertFalse((self.root / ".onboarding").exists())
-        self.assertFalse((self.root / "onboarding.json").exists())
+        self.assertIsNone(json.loads((self.root / "project.json").read_text())["repository"])
 
     def test_advisor_uses_current_draft_name(self):
         self.git("mv", "thesis.tex", "draft.tex")
-        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        code, output = self.call("advisor", "--init-config", "org/project", "--paper-source", "draft.tex", "--dry-run")
         self.assertEqual(code, 0, output)
         self.assertIn('"paper_main": "draft.tex"', output)
-        self.assertFalse((self.root / "onboarding.json").exists())
+        self.assertIsNone(json.loads((self.root / "project.json").read_text())["repository"])
 
     def test_advisor_uses_monorepo_draft_source(self):
         (self.root / "paper").mkdir()
         self.git("mv", "thesis.tex", "paper/draft.tex")
-        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        code, output = self.call("advisor", "--init-config", "org/project", "--paper-source", "paper/draft.tex", "--dry-run")
         self.assertEqual(code, 0, output)
         self.assertIn('"paper_main": "paper/draft.tex"', output)
         self.assertFalse((self.root / ".onboarding").exists())
+
+    def test_init_preserves_ci_fields_and_replaces_template_identity(self):
+        self.config["repository"] = "FTSRG-BCLab-TDK/TDK-template"
+        (self.root / "project.json").write_text(json.dumps(self.config))
+        code, output = self.call("advisor", "--init-config", "org/student-project")
+        self.assertEqual(code, 0, output)
+        result, digest = setup.load_project(self.root)
+        for field in ("components", "paper_entrypoints", "role"):
+            self.assertEqual(result[field], self.config[field])
+        self.assertEqual(result["repository"], "org/student-project")
+        self.assertEqual(digest, hashlib.sha256((self.root / "project.json").read_bytes()).hexdigest())
+        self.assertFalse((self.root / "onboarding.json").exists())
+
+    def test_canonical_paper_source_never_falls_back_to_legacy_or_proxy(self):
+        self.config["paper_main"] = "paper/draft.tex"
+        (self.root / "project.json").write_text(json.dumps(self.config))
+        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        self.assertEqual(code, 2)
+        self.assertIn("Configured paper source", output)
+        (self.root / "paper").mkdir()
+        self.git("mv", "thesis.tex", "paper/draft.tex")
+        (self.root / "paper-draft.tex").write_text("PROXY MUST REMAIN UNCHANGED")
+        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        self.assertEqual(code, 0, output)
+        self.assertEqual((self.root / "paper-draft.tex").read_text(), "PROXY MUST REMAIN UNCHANGED")
+
+    def test_exact_raw_digest_and_config_change_invalidates_evidence(self):
+        with patch.object(setup, "bootstrap_report", return_value={"ready": False}):
+            self.assertEqual(self.call("student", "--skip-accounts", "--check-bootstrap")[0], 1)
+        evidence = json.loads((self.root / ".onboarding/bootstrap.json").read_text())
+        path = self.root / "project.json"
+        self.assertEqual(evidence["config_digest"], hashlib.sha256(path.read_bytes()).hexdigest())
+        path.write_text(path.read_text() + "\n")
+        code, output = self.call("status")
+        self.assertEqual(code, 0, output)
+        self.assertIn("Saved bootstrap: stale", output)
+
+    def test_initialization_does_not_reset_metadata_conflict(self):
+        self.call("advisor", "--init-config", "org/project")
+        path = self.root / "thesis.tex"
+        path.write_text(path.read_text().replace("Old title", "Student title"))
+        before = (self.root / "project.json").read_bytes()
+        code, output = self.call("advisor", "--init-config", "org/renamed")
+        self.assertEqual(code, 2)
+        self.assertIn("Metadata conflict", output)
+        self.assertEqual((self.root / "project.json").read_bytes(), before)
+
+    def test_explicit_config_uses_same_loader_without_default_identity(self):
+        self.git("mv", "project.json", "other.json")
+        code, output = self.call("advisor", "--config", "other.json", "--init-config", "org/project", "--dry-run")
+        self.assertEqual(code, 0, output)
+        self.assertFalse((self.root / "project.json").exists())
 
     def test_student_resume_without_echoing_identifier(self):
         with patch("builtins.input", side_effect=["private-person", EOFError()]):
@@ -76,7 +132,7 @@ class SetupTest(unittest.TestCase):
 
     def test_metadata_preview_apply_idempotence_and_conflict(self):
         self.call("advisor", "--init-config", "org/project")
-        config_path = self.root / "onboarding.json"
+        config_path = self.root / "project.json"
         config = json.loads(config_path.read_text())
         config["metadata"]["vikcim"]["value"] = "A & B"
         config_path.write_text(json.dumps(config))
@@ -161,6 +217,9 @@ class SetupTest(unittest.TestCase):
                     raise TimeoutError
                 return {"project": "org/project", "status": "verified", "method": "fake", "checked_at": "fixture", "reference": "fixture"}
         fake = Fake()
+        unset = setup.workflow.observations({"repository": None}, fake)
+        self.assertEqual(fake.count, 0)
+        self.assertTrue(all(item["status"] == "pending" for item in unset))
         self.assertEqual(setup.workflow.observations({"repository": "org/project"}, fake)[0]["status"], "pending")
         self.assertEqual(setup.workflow.observations({"repository": "org/project"}, fake)[0]["status"], "verified")
         self.assertEqual(setup.workflow.observations({"repository": "different/project"}, fake)[0]["status"], "failed")
@@ -172,20 +231,20 @@ class SetupTest(unittest.TestCase):
         self.assertFalse((self.root / ".onboarding").exists())
 
     def test_rejects_unknown_config_and_managed_phase(self):
-        config = setup.scaffold(self.root, "org/project")
+        config = setup.scaffold(self.root, "org/project", self.config)
         config["metadata"]["lintphase"] = {"expected": "draft", "value": "submit"}
         with self.assertRaises(ValueError):
-            setup.validate_config(config)
+            setup.validate_project(config, self.root)
 
     def test_comment_braces_and_macro_text_are_preserved(self):
         path = self.root / "thesis.tex"
         path.write_text("\\newcommand{\\vikcim}{Old title} % {keep comment}\n")
-        config = setup.scaffold(self.root, "org/project")
+        config = setup.scaffold(self.root, "org/project", self.config)
         config["metadata"]["vikcim"]["value"] = "Path \\ {x}"
         setup.metadata(self.root, config, apply=True)
         self.assertTrue(path.read_text().endswith(" % {keep comment}\n"))
         self.assertEqual(setup.metadata(self.root, config), "")
-        config = setup.scaffold(self.root, "org/project")
+        config = setup.scaffold(self.root, "org/project", self.config)
         config["token"] = "must not survive"
         with self.assertRaises(ValueError):
-            setup.validate_config(config)
+            setup.validate_project(config, self.root)

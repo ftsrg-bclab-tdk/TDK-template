@@ -5,7 +5,7 @@ import argparse
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import difflib
-import hashlib
+import copy
 import json
 import os
 from pathlib import Path
@@ -18,9 +18,7 @@ import tempfile
 
 from onboarding import accounts, bootstrap, session, workflow
 
-MACROS = ("vikcim", "vikszerzoVezeteknev", "vikszerzoKeresztnev",
-          "vikkonzulensAVezeteknev", "vikkonzulensAKeresztnev",
-          "vikkonzulensBVezeteknev", "vikkonzulensBKeresztnev")
+from ci.config import MACROS, inside, load_project, validate_project
 
 
 def run(argv, timeout=30, cwd=None):
@@ -38,20 +36,6 @@ def git(root, *args):
     if result["returncode"]:
         raise ValueError("Git operation failed; verify this is a working checkout")
     return result["stdout"].strip()
-
-
-def inside(root, value):
-    candidate = Path(os.path.abspath(root / value))
-    if not candidate.is_relative_to(root) or candidate == root:
-        raise ValueError("Path must be inside project")
-    if ".git" in candidate.relative_to(root).parts:
-        raise ValueError("Git administrative paths are not setup targets")
-    for part in [candidate, *candidate.parents]:
-        if part == root:
-            break
-        if part.is_symlink():
-            raise ValueError("Symlink paths are not accepted")
-    return candidate
 
 
 def state_path(root, relative):
@@ -174,35 +158,26 @@ def metadata(root, config, apply=False):
     return diff
 
 
-def validate_config(config):
-    if not isinstance(config, dict) or set(config) != {"schema", "repository", "paper_main", "metadata"} or config["schema"] != 1:
-        raise ValueError("Invalid project config fields/schema; secrets are not accepted")
-    if not isinstance(config["repository"], str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", config["repository"]):
-        raise ValueError("Repository must be organization/name")
-    if not isinstance(config["paper_main"], str) or not isinstance(config["metadata"], dict):
-        raise ValueError("Invalid paper configuration")
-    for key, item in config["metadata"].items():
-        if key not in MACROS or not isinstance(item, dict) or set(item) != {"expected", "value"}:
-            raise ValueError("Only bounded author/advisor/title fields may be managed")
-        if not all(isinstance(v, str) and len(v) <= 500 and not any(ord(c) < 32 for c in v) for v in item.values()):
-            raise ValueError("Metadata must be single-line text")
-    return config
-
-
-def scaffold(root, repository):
-    # Prefer the current draft source, including the accepted monorepo layout.
-    # Legacy names remain readable for a project that has not taken that update.
-    path = next((name for name in ("paper/draft.tex", "draft.tex", "paper/thesis.tex", "thesis.tex")
-                 if inside(root, name).is_file() and git(root, "ls-files", "--", name)), None)
-    if path is None:
-        raise ValueError("No tracked paper draft source found for metadata setup")
-    content = (root / path).read_text(encoding="utf-8")
-    fields = {}
-    for macro in MACROS:
+def scaffold(root, repository, existing, paper_source=None):
+    """Update setup-owned fields; CI identity/settings remain byte-value identical."""
+    config = copy.deepcopy(existing)
+    config["repository"] = repository
+    if paper_source is not None:
+        config["paper_main"] = paper_source
+    validate_project(config, root)
+    path = inside(root, config["paper_main"])
+    if not path.is_file() or not git(root, "ls-files", "--", config["paper_main"]):
+        raise ValueError("Configured paper source is not a tracked file; use --paper-source to initialize its actual location")
+    content = path.read_text(encoding="utf-8")
+    for macro in sorted(MACROS):
+        if macro in config["metadata"]:
+            continue  # Never reset an expected value over a student's edit.
         found = re.findall(r"^\\newcommand\{\\" + macro + r"\}\{([^{}]*)\}", content, re.M)
         if len(found) == 1:
-            fields[macro] = {"expected": found[0], "value": found[0]}
-    return validate_config({"schema": 1, "repository": repository, "paper_main": path, "metadata": fields})
+            config["metadata"][macro] = {"expected": found[0], "value": found[0]}
+    validate_project(config, root)
+    metadata(root, config)  # All retained expectations must still be valid.
+    return config
 
 
 def bootstrap_report(runner=run, smoke=False):
@@ -242,7 +217,8 @@ def main(argv=None):
     parser.add_argument("role", choices=["student", "advisor", "status"])
     parser.add_argument("--root", default=".")
     parser.add_argument("--state-dir", default=".onboarding")
-    parser.add_argument("--config", default="onboarding.json")
+    parser.add_argument("--config", default="project.json")
+    parser.add_argument("--paper-source", help="Explicit editable source location during advisor initialization")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-accounts", action="store_true")
     parser.add_argument("--check-bootstrap", action="store_true")
@@ -252,10 +228,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if platform.system() == "Windows":
         parser.error("Run setup inside WSL; native Windows is unsupported")
-    if (args.init_config or args.apply_metadata) and args.role != "advisor":
+    if (args.init_config or args.apply_metadata or args.paper_source) and args.role != "advisor":
         parser.error("Only advisor mode prepares/applies shared metadata")
     if args.role == "status" and (args.check_bootstrap or args.smoke):
         parser.error("Status is read-only; use student --check-bootstrap --smoke")
+    if args.paper_source and not args.init_config:
+        parser.error("--paper-source requires --init-config ORG/REPO")
     try:
         exit_code = 0
         root = Path(git(Path(args.root).resolve(), "rev-parse", "--show-toplevel")).resolve()
@@ -270,14 +248,21 @@ def main(argv=None):
         readonly = args.dry_run or args.role == "status"
         catalog = json.loads((Path(__file__).parent / "onboarding/account-services.json").read_text())
         with locked(local, readonly):
-            config = validate_config(json.loads(config_path.read_text())) if config_path.exists() else None
+            config, config_digest = load_project(root, args.config)
             if args.init_config:
-                if config is not None:
-                    raise ValueError("Shared config already exists; edit it deliberately")
-                config = scaffold(root, args.init_config)
-                print(json.dumps(config, indent=2, ensure_ascii=False))
+                proposed = scaffold(root, args.init_config, config, args.paper_source)
+                print("".join(difflib.unified_diff(
+                    config_path.read_text().splitlines(True),
+                    (json.dumps(proposed, indent=2, ensure_ascii=False) + "\n").splitlines(True),
+                    fromfile=args.config, tofile=args.config)))
                 if not args.dry_run:
-                    atomic_json(config_path, config)
+                    # Refuse to overwrite edits made while preparing the proposal.
+                    if load_project(root, args.config)[1] != config_digest:
+                        raise ValueError("Project configuration changed during initialization")
+                    atomic_json(config_path, proposed)
+                    config, config_digest = load_project(root, args.config)
+                else:
+                    config = proposed
             if args.role == "advisor" and config:
                 print(metadata(root, config, apply=args.apply_metadata and not args.dry_run) or "Metadata unchanged.")
             if args.role == "student" and not args.skip_accounts:
@@ -293,20 +278,22 @@ def main(argv=None):
                     report = bootstrap_report(smoke=args.smoke)
                     report["source_sha"] = git(root, "rev-parse", "HEAD")
                     report["dirty"] = bool(git(root, "status", "--porcelain"))
-                    report["config_digest"] = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+                    report["config_digest"] = config_digest
+                    if load_project(root, args.config)[1] != config_digest:
+                        raise ValueError("Project configuration changed during checks; evidence discarded")
                     atomic_json(local / "bootstrap.json", report)
                     print(json.dumps(report, indent=2))
                     if not report["ready"]:
                         exit_code = 1
             current = accounts.status(catalog, session.load(local / "accounts.json", catalog))
-            if config is None:
-                print("Shared project config missing: advisor must prepare onboarding.json.")
+            if config["repository"] is None:
+                print("Repository unconfigured: advisor must initialize project.json; account/bootstrap checks do not establish project access.")
             previous = local / "bootstrap.json"
             if previous.exists():
                 if previous.is_symlink() or previous.stat().st_mode & 0o077:
                     raise ValueError("Bootstrap evidence must be a private regular file")
                 evidence = json.loads(previous.read_text())
-                digest = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+                digest = config_digest
                 stale = evidence.get("source_sha") != git(root, "rev-parse", "HEAD") or evidence.get("config_digest") != digest
                 print("Saved bootstrap: " + ("stale" if stale else "recorded ready" if evidence.get("ready") else "incomplete") + "; rerun checks to verify current runtime.")
             for item in current["steps"]:
