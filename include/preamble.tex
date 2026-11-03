@@ -299,6 +299,7 @@
 \newcommand{\glsintroduced}[2]{\glssetentryfield{#1}{user2}{\cref{#2}}}
 \newglossarystyle{tdk-introduced}{%
   \setglossarystyle{long-booktabs}%
+  \renewcommand*{\glossarysection}[2][]{\subsection*{##2}}%
   \renewenvironment{theglossary}{%
     \begin{longtable}{@{}p{0.18\linewidth}p{0.50\linewidth}p{0.22\linewidth}@{}}}{\end{longtable}}%
   \renewcommand*{\glossaryheader}{%
@@ -334,15 +335,15 @@
   \global\tdk@firstlisttrue
   \tdk@ifused{abbreviations}{\tdk@keeplist
    {\renewcommand*{\entryname}{Abbreviation}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=abbreviations, style=tdk-introduced, section=subsection, title={Abbreviations},
+    \printnoidxglossary[type=abbreviations, style=tdk-introduced, title={Abbreviations},
       preamble={Every abbreviation is spelled out where it first appears in the text; this table repeats the expansions for a reader who starts in the middle, and each use in the text links here.}]}}%
   \tdk@ifused{symbols}{\tdk@keeplist
    {\renewcommand*{\entryname}{Symbol}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=symbols, style=tdk-introduced, section=subsection, title={Notation},
+    \printnoidxglossary[type=symbols, style=tdk-introduced, title={Notation},
       preamble={The symbols of the formal model, in one place. Each is introduced once, at the location in the Introduced in column, and keeps that meaning in every chapter; nothing is overloaded.}]}}%
   \tdk@ifused{main}{\tdk@keeplist
    {\renewcommand*{\entryname}{Term}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=main, style=tdk-introduced, section=subsection, title={Terms},
+    \printnoidxglossary[type=main, style=tdk-introduced, title={Terms},
       preamble={Words this paper uses in one fixed sense, often narrower than everyday or vendor usage. The description is that sense; where the literature uses the word differently, the background chapter says so.}]}}%
 }}
 \makeatother
