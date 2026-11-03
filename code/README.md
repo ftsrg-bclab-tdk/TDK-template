@@ -14,7 +14,10 @@ mkdir -p out && docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/out:/out" gh
 regenerates every figure and table of the paper into `out/`, owned by you. `just check` then
 compares them with the results committed under `experiments/`, ignoring timings. With the repository cloned and the
 dependencies below installed, `just reproduce` does the same, and `just reproduce --smoke` runs a
-reduced workload in minutes; CI runs the smoke version on every push.
+reduced workload in minutes. In the standalone code repository, CI runs the smoke version on
+every push. Here, `code/.github/workflows/` is retained source and GitHub does not discover those
+workflows; the root `project.json` controls whether this component has CI checks. Code checks are
+disabled until their real checks are ready.
 
 Dependencies, pinned: TODO.
 

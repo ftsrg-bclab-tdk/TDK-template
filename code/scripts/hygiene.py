@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Publication hygiene: what must not reach a public repository or its Zenodo archive.
 
-Run by `just hygiene` and by the `hygiene` CI workflow on every push. Checks of the
-current tree fail the run. Checks of the history only warn, because history is not
+Run by `just hygiene` in this component. In the standalone code repository, the `hygiene`
+workflow runs on every push. In the monorepo, root CI selects this component explicitly.
+Checks of the current tree fail the run. Checks of the history only warn, because history is not
 rewritten; `--strict` makes them fail too, as an optional local check.
 
 `--publish` is the publication gate: it adds the checks a repository must pass before it
@@ -16,6 +17,7 @@ import argparse, datetime, json, os, re, shutil, subprocess, sys, unicodedata
 from pathlib import Path
 
 SELF = "scripts/hygiene.py"
+COMPONENT_ROOT = Path(__file__).resolve().parents[1]
 
 # Patterns are POSIX extended regexes, because `git log -G` takes no Perl syntax.
 # Places a reader of a public archive cannot open, or must not see before the conference.
@@ -55,7 +57,7 @@ findings = {"error": 0, "warning": 0}
 
 
 def git(*args):
-    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    r = subprocess.run(["git", *args], cwd=COMPONENT_ROOT, capture_output=True, text=True)
     if r.returncode not in (0, 1):  # 1: git grep found nothing
         sys.exit(f"hygiene: git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout
@@ -64,9 +66,11 @@ def git(*args):
 def blob(commit, path):
     """The file as of a commit, or as of its parent when that commit deleted it."""
     for rev in (commit, f"{commit}^"):
-        r = subprocess.run(["git", "show", f"{rev}:{path}"], capture_output=True, text=True, errors="replace")
-        if r.returncode == 0:
-            return r.stdout
+        for candidate in (path, f"code/{path}"):
+            r = subprocess.run(["git", "show", f"{rev}:{candidate}"], cwd=COMPONENT_ROOT,
+                               capture_output=True, text=True, errors="replace")
+            if r.returncode == 0:
+                return r.stdout
     return ""
 
 
@@ -104,7 +108,8 @@ def history_grep(rule, rx, msg, level, exclude=None):
 
 
 def read(path):
-    return Path(path).read_text(errors="replace") if Path(path).is_file() else ""
+    path = COMPONENT_ROOT / path
+    return path.read_text(errors="replace") if path.is_file() else ""
 
 
 def plain(name):
@@ -129,7 +134,8 @@ def check_files(tracked):
         if not any(f.startswith(d + "/") for f in tracked):
             report("warning", "layout", f"no {d}/ directory (guide layout: app:code:github)")
     just = read("justfile") or read("Justfile")
-    recipes = (subprocess.run(["just", "--summary"], capture_output=True, text=True).stdout.split()
+    recipes = (subprocess.run(["just", "--summary"], cwd=COMPONENT_ROOT,
+                              capture_output=True, text=True).stdout.split()
                if shutil.which("just") and just else re.findall(r"^([A-Za-z0-9_-]+)\b[^\n=]*:(?!=)", just, re.M))
     if just and "reproduce" not in recipes:
         report("error", "reproduce", "the justfile has no reproduce recipe; `just reproduce` regenerates every figure and table", "justfile")
@@ -258,7 +264,7 @@ def check_secrets_and_ignores(tracked):
 
 def publish_checks(hist):
     tracked = git("ls-files").splitlines()
-    if not Path("PUBLISHING.md").is_file():
+    if not (COMPONENT_ROOT / "PUBLISHING.md").is_file():
         report("error", "checklist", "PUBLISHING.md is missing; copy scripts/publishing-checklist.md there and fill it in")
     elif "PUBLISHING.md" not in {l.split(": ")[0] for l in git("check-attr", "export-ignore", "--", "PUBLISHING.md").splitlines()
                                  if l.endswith(": set")}:
@@ -287,7 +293,7 @@ def main():
     history_grep("private-link", PRIVATE_LINKS, "link to a private or unpublished place", hist)
 
     seen = set()
-    for ident in git("log", "--all", "--format=%an <%ae>%n%cn <%ce>").splitlines():
+    for ident in git("log", "--all", "--format=%an <%ae>%n%cn <%ce>", "--", ".").splitlines():
         if ident not in seen and re.search(AGENT_IDENTITY, ident, re.I):
             seen.add(ident)
             report(hist, "agent-author", f"commits authored or committed as {ident}; commit as yourself "
