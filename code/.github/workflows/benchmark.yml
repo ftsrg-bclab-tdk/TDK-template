@@ -1,0 +1,16 @@
+# The scalability measurements (Figure 5.2). Full runs on demand and weekly; CI machines are
+# noisy, so the paper's numbers come from the stated hardware, and this run guards the trend.
+name: benchmark
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 0"
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - run: just benchmark
+      - uses: actions/upload-artifact@v4
+        with: { name: scalability, path: out/ }

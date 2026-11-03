@@ -1,0 +1,21 @@
+# Records the demonstration on every push and publishes it, so a fresh recording is always one
+# click away for a talk, the README or a review. Playwright for a web UI, asciinema for the rest.
+name: demo
+on: [push, workflow_dispatch]
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - name: Recorders
+        run: |
+          pipx install asciinema
+          cargo install agg 2>/dev/null || sudo apt-get install -y -qq agg 2>/dev/null || true
+      # For a web UI, uncomment: install Playwright and record video + trace from demo/web/.
+      # - uses: actions/setup-node@v4
+      #   with: { node-version: 22 }
+      # - run: cd demo/web && npm ci && npx playwright install --with-deps chromium && npx playwright test
+      - run: just demo
+      - uses: actions/upload-artifact@v4
+        with: { name: demo, path: out/demo/ }

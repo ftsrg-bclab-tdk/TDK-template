@@ -1,0 +1,17 @@
+# Build and test on every push; the smoke reproduce keeps the README's commands from rotting.
+name: ci
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - name: Build
+        run: just build
+      - name: Test
+        run: just test
+      - name: Reproduce (smoke)
+        run: just reproduce --smoke
+      - uses: actions/upload-artifact@v4
+        with: { name: out-smoke, path: out/ }

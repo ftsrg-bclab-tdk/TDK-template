@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+title: "TODO Artifact for: <paper title>"
+message: "If you use this artifact, cite the paper and the concept DOI."
+type: software
+authors:
+  - family-names: TODO
+    given-names: TODO
+    affiliation: Budapest University of Technology and Economics
+version: 1.0.0
+date-released: TODO-YYYY-MM-DD
+license: MIT
+doi: 10.5281/zenodo.TODO

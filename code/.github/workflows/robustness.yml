@@ -1,0 +1,15 @@
+# The robustness analysis (Table 5.4, Figure 5.4): faults, adversarial input, load, parameters.
+name: robustness
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 0"
+jobs:
+  robustness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - run: just robustness
+      - uses: actions/upload-artifact@v4
+        with: { name: robustness, path: out/ }
