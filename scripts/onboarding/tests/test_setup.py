@@ -73,11 +73,24 @@ class SetupTest(unittest.TestCase):
         code, output = self.call("advisor", "--init-config", "org/student-project")
         self.assertEqual(code, 0, output)
         result, digest = setup.load_project(self.root)
-        for field in ("components", "paper_entrypoints", "role"):
+        for field in ("components", "paper_entrypoints"):
             self.assertEqual(result[field], self.config[field])
+        self.assertEqual(result["role"], "project")
         self.assertEqual(result["repository"], "org/student-project")
         self.assertEqual(digest, hashlib.sha256((self.root / "project.json").read_bytes()).hexdigest())
         self.assertFalse((self.root / "onboarding.json").exists())
+
+    def test_init_canonical_identity_preserves_template_role(self):
+        result = setup.scaffold(self.root, "FTSRG-BCLab-TDK/TDK-template", self.config)
+        self.assertEqual(result["role"], "template")
+
+    def test_student_identity_dry_run_previews_project_role_without_mutation(self):
+        before = (self.root / "project.json").read_bytes()
+        code, output = self.call("advisor", "--init-config", "org/student-project", "--dry-run")
+        self.assertEqual(code, 0, output)
+        self.assertIn('"role": "project"', output)
+        self.assertEqual((self.root / "project.json").read_bytes(), before)
+        self.assertEqual(self.config["role"], "template")
 
     def test_canonical_paper_source_never_falls_back_to_legacy_or_proxy(self):
         self.config["paper_main"] = "paper/draft.tex"

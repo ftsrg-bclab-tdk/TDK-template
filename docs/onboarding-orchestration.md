@@ -58,7 +58,8 @@ Creating the shared configuration does **not** create a GitHub repository.
 Replace the example repository name with the advisor's intended project name.
 The existing canonical `project.json` is loaded through `ci.config.load_project`.
 Initialization replaces its repository identity with the supplied `ORG/REPO`,
-populates missing metadata expectations, and preserves role, components and
+populates missing metadata expectations, sets noncanonical repositories to
+`role: project`, and preserves components and
 compilation entrypoints. It does not verify access to that repository. The
 editable source is exactly `paper_main`; root compilation proxies are never
 metadata targets. If initialization needs to set a different source location,

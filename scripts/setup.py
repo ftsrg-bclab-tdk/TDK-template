@@ -165,9 +165,11 @@ def metadata(root, config, apply=False):
 
 
 def scaffold(root, repository, existing, paper_source=None):
-    """Update setup-owned fields; CI identity/settings remain byte-value identical."""
+    """Initialize project identity while preserving CI component settings."""
     config = copy.deepcopy(existing)
     config["repository"] = repository
+    if repository != "FTSRG-BCLab-TDK/TDK-template":
+        config["role"] = "project"
     if paper_source is not None:
         config["paper_main"] = paper_source
     validate_project(config, root)
