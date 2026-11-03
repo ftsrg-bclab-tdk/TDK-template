@@ -1,8 +1,8 @@
-%% tdkieee.bst: IEEEtranN (IEEE style, natbib-compatible) with the access date of web sources.
+%% tdkieee.bst: IEEEtranN (IEEE style, natbib-compatible) with linked DOIs and web access dates.
 %% The faculty's guideline asks an internet reference to give the page's owner and content, the
 %% URL, and the time it was accessed, and wants numbered references in order of first citation,
 %% which is IEEE's order. Zotero records the access time and exports it as urldate; this style
-%% prints it after the URL as "Accessed: <date>". Nothing else differs from IEEEtranN.
+%% prints it after the URL as "Accessed: <date>". DOI fields are printed as linked identifiers.
 %%
 %%
 %% IEEEtranN.bst
@@ -276,6 +276,7 @@ ENTRY
     chapter
     day
     dayfiled
+    doi
     edition
     editor
     howpublished
@@ -1972,6 +1973,18 @@ cap.status.std
 
 
 
+%% DOI (the template's \doi command supplies the resolver link)
+
+FUNCTION {format.doi}
+{ doi empty$
+    { "" }
+    { this.to.prev.status
+      this.status.std
+      "\doi{" doi * "}" *
+    }
+  if$
+}
+
 %% URL
 
 FUNCTION {format.url}
@@ -2023,6 +2036,7 @@ FUNCTION {article}
   format.pages output
   format.date "year" output.warn
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2047,6 +2061,7 @@ FUNCTION {book}
   format.volume output
   format.number output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2064,6 +2079,7 @@ FUNCTION {booklet}
   format.address "address" bibinfo.check output
   format.date output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2081,6 +2097,7 @@ FUNCTION {electronic}
   format.organization "organization" bibinfo.check output
   format.address "address" bibinfo.check output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   empty.entry.warn
@@ -2104,6 +2121,7 @@ FUNCTION {inbook}
   format.chapter output
   format.pages output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2125,6 +2143,7 @@ FUNCTION {incollection}
   format.chapter output
   format.pages output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2151,6 +2170,7 @@ FUNCTION {inproceedings}
   format.paper output
   format.pages output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2168,6 +2188,7 @@ FUNCTION {manual}
   format.address "address" bibinfo.check output
   format.date output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2185,6 +2206,7 @@ FUNCTION {mastersthesis}
   format.address "address" bibinfo.check output
   format.date "year" output.warn
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2203,6 +2225,7 @@ FUNCTION {misc}
   format.pages output
   format.date output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   empty.entry.warn
@@ -2219,6 +2242,7 @@ FUNCTION {patent}
   format.patent.nationality.type.number output
   format.patent.date output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   empty.entry.warn
@@ -2238,6 +2262,7 @@ FUNCTION {periodical}
   format.organization "organization" bibinfo.check output
   format.date "year" output.warn
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2255,6 +2280,7 @@ FUNCTION {phdthesis}
   format.address "address" bibinfo.check output
   format.date "year" output.warn
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2277,6 +2303,7 @@ FUNCTION {proceedings}
     }
   if$
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2294,6 +2321,7 @@ FUNCTION {standard}
   format.revision output
   format.date output
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2312,6 +2340,7 @@ FUNCTION {techreport}
   format.tech.report.number output.nonnull
   format.date "year" output.warn
   format.note output
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
@@ -2326,6 +2355,7 @@ FUNCTION {unpublished}
   format.article.title "title" output.warn
   format.date output
   format.note "note" output.warn
+  format.doi output
   format.url output
   fin.entry
   if.url.std.interword.spacing
