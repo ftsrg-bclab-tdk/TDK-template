@@ -42,6 +42,8 @@ CSS, `slides.md`, and `scripts/build.mjs` consume these files. Build checks requ
 
 All nine files match local Git object bytes under `slides/assets/` in `BlackLight54/avn-tamarin-tutorial` at `977b42f237ab6434be0bc5dc11a6196951e48a0e`. The match was checked against `presentation/assets.sha256`. This establishes an exact source revision for the existing bytes; remote accessibility was not tested. It does not establish redistribution rights or impose a permanent toolchain pin. Keep OFL notices and asset provenance tracked; the notices were adapted and are not byte-identical ancestor files.
 
+On 2026-11-04 Martin confirmed that he has redistribution permission for the supplied institutional artwork. Retain the logos and graph backgrounds, recording that confirmation separately from their hashes and existing license notices. The presentation provenance lists the six affected artwork files; the paper also uses `figures/bme_logo.pdf`. No substitute artwork is planned. This does not make the private source repository a public download endpoint.
+
 ## Other tracked material
 
 `work/template-review/` contains 134 tracked review/build records, screenshots, and generated skim assets. These are generated evidence, not external downloads. Preserve relevant evidence in an appropriate artifact archive before any source cleanup; do not sweep it into a public reusable template.

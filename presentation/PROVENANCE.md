@@ -48,15 +48,18 @@ Dependency licenses are recorded in `package-lock.json` and installed packages.
 ## Institutional artwork and distribution
 
 The logos identify BME and FTSRG. The source describes the graph artwork as coming
-from the group's template. Neither inspected deck supplies a separate license
-or original artist credit for that institutional artwork. The BPM checkout also
-has no blanket license. The ancestor's MIT notice is preserved for inherited
-material; it does not establish trademark permission or independently establish
-rights in third-party artwork.
+from the group's template. On 4 November 2026, Martin confirmed in the monorepo
+coordinator session that he has redistribution permission for the supplied
+artwork. Retain these assets in the public starter and its accepted asset package:
 
-This extraction implements the owner's requested institutional template reuse.
-It does not assign a new blanket license to the directory. Before publishing a
-standalone public template or selecting a license for an archive, the maintainer
-must settle the institutional artwork's redistribution terms and the license for
-the BPM-derived additions. This decision belongs with the monorepo publication
-policy; it is not silently answered by the ancestor's MIT notice.
+- `assets/cover-graph.jpg` and `assets/divider-graph.jpg`;
+- `assets/logos/bme-seal-watermark.png`;
+- `assets/logos/bme-vik-mit-ftsrg-white.png`;
+- `assets/logos/bme-wordmark-grey.png` and `assets/logos/ftsrg-grey.png`.
+
+This permission record comes from the maintainer's confirmation, not an inferred
+grant from the ancestor's MIT notice. Neither inspected deck supplies a separate
+artwork license or original artist credit. Preserve the source attribution and
+existing notices; do not label the institutional artwork as newly MIT- or
+CC-licensed. The license for original BPM-derived additions remains part of the
+separate reusable-source licensing decision.

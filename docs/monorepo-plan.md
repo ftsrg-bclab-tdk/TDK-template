@@ -14,7 +14,7 @@ Offer optional Lean, Tamarin, ProVerif, TLA+ and Rust/Java/Go/Solidity verifier 
 
 Benchmark provides a common quick/full invocation and machine-readable command, tool, machine, unit and result evidence. Projects select their workloads and measurement tools. There is no universal performance threshold.
 
-Presentation generalizes Martin's BPM FTSRG deck. Preserve documented AVM MIT and font OFL notices and exact source provenance. Public artwork and other inherited-material terms remain to resolve.
+Presentation generalizes Martin's BPM FTSRG deck. Preserve documented AVM MIT and font OFL notices and exact source provenance. Martin confirmed redistribution permission for the supplied institutional artwork on 2026-11-04; retain the supplied logos and graph backgrounds. Do not replace them or infer a new blanket artwork license. Original reusable-source licensing remains a separate decision.
 
 Existing-student project migration is long-term work, outside this delivery. Mechanical guide-link repairs needed before legacy-template deletion are a separate pending choice.
 
@@ -114,7 +114,7 @@ Final recovery exports go to `/home/blacklight/Projects/TDK/retirement-archives/
 
 Public-disclosure fact finding inspected the proposed branch and reachable remote history. The 134 template-review files are fictional/template evidence, not student assessments; they include local paths and candid policy criticism. Runner history includes actual non-secret service/host details. A real authenticated Overleaf project link and personal author emails also exist in history. Visibility changes expose remote branches and PR history, not only the final tree. Local-only learn/* branches are outside the inspected remote/proposed exposure. A targeted scan found no recognized credentials; it was not a complete artifact/log audit.
 
-Preserve history, consistent with the publication guide. Removing a file from HEAD does not erase its historical disclosure. Decide retention/disclosure of the identified non-secret history explicitly. Public source assets are not automatically licensed: paper/guide/notes have no blanket grant; code's MIT attribution still says TODO Name; bibliography styles have their own LPPL/GPL notices. Presentation fonts/AVM notices exist, but institutional artwork and BPM additions need terms. The matching `avn-tamarin-tutorial` repository is private, so it cannot be an anonymous student download endpoint.
+Preserve history, consistent with the publication guide. Removing a file from HEAD does not erase its historical disclosure. Decide retention/disclosure of the identified non-secret history explicitly. Public source assets are not automatically licensed: paper/guide/notes have no blanket grant; code's MIT attribution still says TODO Name; bibliography styles have their own LPPL/GPL notices. Presentation fonts/AVM notices exist, and Martin has confirmed institutional-artwork redistribution permission; original BPM additions still fall under the reusable-source licensing decision. The matching `avn-tamarin-tutorial` repository is private, so it cannot be an anonymous student download endpoint.
 
 ## Remaining decision frontier
 
@@ -124,7 +124,7 @@ R1-R6 and operating Q1-Q10 are settled. Ask only the newly answerable branches:
 - Require 2FA before admitting new organization collaborators.
 - Student publication through a manually invoked project workflow versus a local credentialed command; advisor review is not automatically enforced by a student-writable workflow on Free.
 - Mechanical guide-link/setup-instruction PRs in existing projects before deleting legacy templates.
-- Licenses for original reusable tooling/prose and treatment of institutional/third-party assets lacking recorded redistribution permission.
+- Licenses for original reusable tooling/prose. S6 artwork redistribution is settled by Martin's permission statement; keep the supplied assets.
 - Acceptance of identified non-secret historical disclosures while preserving history and moving generated evidence out of the starter tree.
 
 After these choices, present one final shared-understanding summary before activating unresolved external choices. Continue already authorized source integration and implementation in parallel with the interview. Do not invent further approval questions for routine implementation details or commits.
