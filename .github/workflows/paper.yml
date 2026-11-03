@@ -133,6 +133,9 @@ jobs:
       - name: source / figures (check)
         if: always()
         run: bash scripts/lint-ci.sh figures
+      - name: source / figure-layout (advice, polish)
+        if: always()
+        run: bash scripts/lint-ci.sh figure-layout
       - name: source / captions (advice, polish)
         if: always()
         run: bash scripts/lint-ci.sh captions

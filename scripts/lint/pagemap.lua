@@ -29,6 +29,7 @@ M.RULES = {
   ["repo-hygiene"] = { "structure", "No build output in the repository" },
 
   figures = { "refs", "Every float is referenced" },
+  ["figure-layout"] = { "refs", "Figure layout reviewed manually" },
   captions = { "refs", "Captions explain" },
   axes = { "refs", "Plots label their axes" },
   tables = { "refs", "Tables use booktabs" },

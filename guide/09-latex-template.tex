@@ -181,6 +181,10 @@ Compact lists:
 
 %----------------------------------------------------------------------------
 \section{Figures (graphicx, svg, tikz, pgfplots, subcaption, wrapfig, rotating, placeins)}\label{app:latex:figures}
+Captions use the available width, with no hanging indent on continuation lines. A caption in a wrapped figure stays within that figure's width.
+To save space in a diagram, bring boxes, lanes and rows closer together, keep short labels on one line, and share a legend between panels when they use the same notation. Remove text from the drawing when the caption already explains it. Keep labels readable at the final printed size; shrinking the entire drawing also shrinks its text.
+The \texttt{figure-layout} lint rule asks for this visual review for each figure. It cannot determine from the source whether the rendered layout wastes space. After checking the PDF, record the result with \texttt{\% lint-ignore: figure-layout <reason>} on the figure's opening line or the line above; review it again when the drawing changes.
+
 \Cref{fig:latex:tikz} is drawn in TikZ, so it uses the document's fonts and scales without blurring.
 \begin{figure}[!ht]
   \centering
