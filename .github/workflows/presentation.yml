@@ -1,0 +1,47 @@
+name: presentation
+on:
+  pull_request:
+    paths:
+      - 'presentation/**'
+      - '.github/workflows/presentation.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'presentation/**'
+      - '.github/workflows/presentation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  presentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Ubuntu ships an AppArmor user-namespace allowance for this stable binary.
+      # PATH may prefer an unpackaged Chromium build with no usable sandbox.
+      CHROME_PATH: /opt/google/chrome/chrome
+    defaults:
+      run:
+        working-directory: presentation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: presentation/package-lock.json
+      - name: Install PDF inspection tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Build HTML, PDFs, and review images
+        run: npm run render
+      - name: Check slides and PDFs
+        run: npm run check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: presentation-${{ github.sha }}
+          path: presentation/dist/
+          retention-days: 14
