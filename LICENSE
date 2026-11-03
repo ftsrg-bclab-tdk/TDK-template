@@ -1,0 +1,63 @@
+Licensing of the FTSRG TDK template
+=================================
+
+Original reusable contributions: Copyright (c) 2026 Martin Farkas.
+Retain other authors' existing copyright and attribution notices.
+
+This repository contains material under several terms. A file's existing
+license or provenance notice takes precedence over the defaults below.
+
+Original reusable code and tooling
+---------------------------------
+
+Original scripts, build configuration, tests, project scaffolding and template
+implementation are licensed under the MIT License in LICENSES/MIT.txt. This
+includes original code under scripts/, infra/, paper/scripts/, presentation/
+scripts/, and original code/proof/benchmark examples. Original TeX implementation
+and reusable theme modifications are included; inherited implementations retain
+their stated terms.
+
+Original guide and slide prose
+------------------------------
+
+Original guide text, explanatory worked examples, onboarding instructions and
+slide prose are licensed under Creative Commons Attribution 4.0 International
+(CC BY 4.0):
+
+https://creativecommons.org/licenses/by/4.0/
+
+The complete terms are in LICENSES/CC-BY-4.0.txt. Attribute the reused original
+material to Martin Farkas, FTSRG TDK template, and preserve any additional named
+creators and existing attributions. Include the source and license links and
+indicate modifications. Original executable examples use the MIT terms above.
+
+Source: https://github.com/FTSRG-BCLab-TDK/TDK-template
+
+Inherited material and exceptions
+--------------------------------
+
+- presentation/PROVENANCE.md identifies the presentation sources, preserved AVM
+  MIT notice, OFL font licenses and institutional artwork permission. Keep those
+  notices with exported assets. BME/FTSRG logos and graph backgrounds are retained
+  under Martin's confirmed redistribution permission; this file does not relabel
+  them MIT or CC BY or grant new rights to the institutional marks.
+- paper/tdkieee.bst and other inherited bibliography/LaTeX implementations retain
+  their own license and attribution notices. This file does not replace LPPL,
+  GPL, or other terms embedded in inherited files or their history.
+- Faculty documents, quoted research, reproduced paper figures and other
+  third-party material retain their source terms. Cite and preserve the recorded
+  provenance; inclusion here does not assign a new license to them.
+- Installed tools and dependencies retain their own licenses.
+
+Student projects and selected publications
+-----------------------------------------
+
+These grants cover the reusable template contributions described above. Creating
+a project from the template does not automatically license new student papers,
+research code, proofs, datasets, notes or slides. Their authors select the terms
+for their own contributions and preserve the inherited template notices.
+
+A publication package must identify the license for each selected part and carry
+its required notices. Do not label an entire mixed archive MIT or CC BY merely
+because it contains template material. Private scratch and unpublished research
+are not implicitly selected for publication.

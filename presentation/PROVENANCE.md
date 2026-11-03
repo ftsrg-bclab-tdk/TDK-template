@@ -16,7 +16,10 @@ It follows his existing BPM/FTSRG presentation rather than introducing a new sty
   Its MIT notice is retained verbatim in [LICENSES/AVM-MIT.txt](LICENSES/AVM-MIT.txt).
   The BPM checkout lacks the divider image referenced by its CSS, so
   `assets/divider-graph.jpg` comes from this ancestor. The cover image in both
-  checkouts is byte-identical.
+  checkouts is byte-identical. This ancestor repository is private: its URL
+  records provenance, not an anonymous download endpoint for student builds.
+  Accepted canonical/project asset packages must supply the required bytes
+  without exposing upstream credentials.
 - The CSS source credits the *BME Arculati Kézikönyv 2025*, pp. 37–38, for its
   layout, palette and typography. That attribution remains in `theme/bme.css`.
   This records the source's credit, not an independent certification of compliance
@@ -48,15 +51,44 @@ Dependency licenses are recorded in `package-lock.json` and installed packages.
 ## Institutional artwork and distribution
 
 The logos identify BME and FTSRG. The source describes the graph artwork as coming
-from the group's template. Neither inspected deck supplies a separate license
-or original artist credit for that institutional artwork. The BPM checkout also
-has no blanket license. The ancestor's MIT notice is preserved for inherited
-material; it does not establish trademark permission or independently establish
-rights in third-party artwork.
+from the group's template. On 4 November 2026, Martin confirmed in the monorepo
+coordinator session that he has redistribution permission for the supplied
+artwork. Retain these assets in the public starter and its accepted asset package:
 
-This extraction implements the owner's requested institutional template reuse.
-It does not assign a new blanket license to the directory. Before publishing a
-standalone public template or selecting a license for an archive, the maintainer
-must settle the institutional artwork's redistribution terms and the license for
-the BPM-derived additions. This decision belongs with the monorepo publication
-policy; it is not silently answered by the ancestor's MIT notice.
+- `assets/cover-graph.jpg` and `assets/divider-graph.jpg`;
+- `assets/logos/bme-seal-watermark.png`;
+- `assets/logos/bme-vik-mit-ftsrg-white.png`;
+- `assets/logos/bme-wordmark-grey.png` and `assets/logos/ftsrg-grey.png`.
+
+This permission record comes from the maintainer's confirmation, not an inferred
+grant from the ancestor's MIT notice. Neither inspected deck supplies a separate
+artwork license or original artist credit. Preserve the source attribution and
+existing notices; do not label the institutional artwork as newly MIT- or
+CC-licensed. The original reusable additions follow the scoped policy below;
+that policy does not replace the artwork permission or inherited terms.
+
+
+## Scoped license policy
+
+Martin accepted the reusable-source licensing policy in the monorepo coordinator
+session, recorded in `docs/monorepo-plan.md` at commit `25e50bc`:
+
+- Original reusable code and tooling are MIT-licensed.
+- Original guide and slide prose are licensed under CC BY 4.0, with attribution
+  preserved.
+- Inherited material keeps its existing terms, including the AVM MIT notice and
+  the font OFL notices above.
+- The supplied institutional artwork is retained under Martin's confirmed
+  redistribution permission, not relabeled MIT or CC BY.
+
+The monorepo root owns the general license texts and scope boundaries. This
+component records provenance and exceptions rather than adding duplicate general
+license files. The BPM source's lack of a blanket license is historical context,
+not an unresolved decision about the original reusable additions.
+
+Permission and license selection do not establish that asset-package ingestion,
+verified delivery, or the public-disclosure acceptance checks have completed.
+Keep the existing binaries until accepted-package retrieval and an assembled
+fresh-checkout fetch/render/check pass. Latest normal runtime and dependency
+resolution are coordinated with CI separately from the identity of accepted
+artwork bytes.

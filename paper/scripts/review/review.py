@@ -31,7 +31,7 @@ READS = ("final-pdf", "skim-view", "spine")
 HEX40 = re.compile(r"[0-9a-f]{40}")
 HEX64 = re.compile(r"[0-9a-f]{64}")
 BODY_LIMIT = 65000  # GitHub refuses an issue body of 65536 characters
-PERSONAS = Path(__file__).resolve().parents[2] / ".claude" / "skills" / "reviewer-passes" / "personas"
+PERSONAS = Path(__file__).resolve().parents[3] / ".claude" / "skills" / "reviewer-passes" / "personas"
 
 
 class Fail(Exception):

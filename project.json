@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "repository": "FTSRG-BCLab-TDK/TDK-template",
+  "role": "template",
+  "paper_main": "paper/draft.tex",
+  "paper_entrypoints": {
+    "draft": "paper-draft.tex",
+    "final": "paper-final.tex"
+  },
+  "metadata": {},
+  "components": {
+    "paper": {
+      "enabled": true,
+      "cwd": "paper",
+      "paths": [
+        "paper/*",
+        "paper-draft.tex",
+        "paper-final.tex",
+        "latexmkrc",
+        ".latexmkrc"
+      ],
+      "depends_on": [],
+      "profiles": {
+        "ordinary": [
+          {
+            "name": "draft",
+            "kind": "build",
+            "argv": [
+              "make",
+              "draft"
+            ],
+            "timeout": 600,
+            "outputs": [
+              "draft.pdf"
+            ]
+          },
+          {
+            "name": "final",
+            "kind": "build",
+            "argv": [
+              "make",
+              "final"
+            ],
+            "timeout": 600,
+            "outputs": [
+              "final.pdf"
+            ]
+          },
+          {
+            "name": "lint",
+            "kind": "writing",
+            "argv": [
+              "texlua",
+              "scripts/lint.lua",
+              "all",
+              "--doc",
+              "final",
+              "--json"
+            ],
+            "timeout": 600,
+            "outputs": []
+          }
+        ],
+        "submit": [
+          {
+            "name": "final",
+            "kind": "build",
+            "argv": [
+              "make",
+              "final"
+            ],
+            "timeout": 600,
+            "outputs": [
+              "final.pdf"
+            ]
+          },
+          {
+            "name": "lint",
+            "kind": "writing",
+            "argv": [
+              "texlua",
+              "scripts/lint.lua",
+              "all",
+              "--doc",
+              "final",
+              "--phase",
+              "submit",
+              "--json"
+            ],
+            "timeout": 600,
+            "outputs": []
+          }
+        ]
+      }
+    },
+    "code": {
+      "enabled": false,
+      "cwd": "code",
+      "paths": [
+        "code/*"
+      ],
+      "depends_on": [],
+      "profiles": {}
+    },
+    "proof": {
+      "enabled": false,
+      "cwd": "proof",
+      "paths": [
+        "proof/*"
+      ],
+      "depends_on": [],
+      "profiles": {}
+    },
+    "benchmark": {
+      "enabled": false,
+      "cwd": "benchmark",
+      "paths": [
+        "benchmark/*"
+      ],
+      "depends_on": [],
+      "profiles": {}
+    },
+    "scratch": {
+      "enabled": false,
+      "cwd": "scratch",
+      "paths": [
+        "scratch/*"
+      ],
+      "depends_on": [],
+      "profiles": {}
+    },
+    "presentation": {
+      "enabled": true,
+      "cwd": "presentation",
+      "paths": [
+        "presentation/*"
+      ],
+      "depends_on": [],
+      "profiles": {
+        "ordinary": [
+          {
+            "name": "render",
+            "kind": "build",
+            "argv": [
+              "npm",
+              "run",
+              "render"
+            ],
+            "timeout": 600,
+            "outputs": [
+              "dist/slides.html",
+              "dist/slides.pdf",
+              "dist/slides-notes.pdf"
+            ]
+          },
+          {
+            "name": "slides",
+            "kind": "command",
+            "argv": [
+              "npm",
+              "run",
+              "check"
+            ],
+            "timeout": 600,
+            "outputs": []
+          }
+        ]
+      }
+    }
+  }
+}

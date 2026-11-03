@@ -323,6 +323,15 @@ function M.phase_reached(due) if due == "always" then return true end; return M.
 -- findings and reporting -------------------------------------------------------------
 local gh = os.getenv("GITHUB_ACTIONS") ~= nil
 local summary = os.getenv("GITHUB_STEP_SUMMARY")
+-- JSON remains paper-relative for skim/review; GitHub annotations use repository paths.
+local annotation_prefix = gh and M.trim(M.run_quiet("git rev-parse --show-prefix") or "") or ""
+local function annotation_path(file)
+  local parts = {}
+  for part in (annotation_prefix .. file):gmatch("[^/]+") do
+    if part == ".." then table.remove(parts) elseif part ~= "." then parts[#parts + 1] = part end
+  end
+  return table.concat(parts, "/")
+end
 -- a run that prints the Checks page (--tex, which write18 runs on every XeLaTeX pass), the JSON or
 -- the fixes: the findings, the counts and the job summary stay out, since the plain run writes them
 function M.quiet() return M.opts.tex or M.opts.json or M.opts.quiet or false end
@@ -547,7 +556,7 @@ local function print_finding(f)
   for _, l in ipairs(f.fix and M.fix_lines(f) or {}) do lines[#lines + 1] = l end
   if gh then
     -- the message is the annotation's title, the help and the fix its body
-    local loc = f.file and ("file=" .. f.file .. (f.line and (",line=" .. f.line) or "")) or ""
+    local loc = f.file and ("file=" .. ghprop(annotation_path(f.file)) .. (f.line and (",line=" .. f.line) or "")) or ""
     local c1, c2 = columns(f)
     if c1 then loc = loc .. string.format(",col=%d,endColumn=%d", c1, c2) end
     if #lines == 0 then io.write(string.format("::%s %s::%s\n", f.level, loc, ghesc(f.msg)))

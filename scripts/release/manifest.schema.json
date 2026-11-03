@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Selective release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "packages": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "filename": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]*\\.zip$"
+          },
+          "license_expression": {
+            "type": "string",
+            "minLength": 1
+          },
+          "build_profile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "files": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "origin": {
+                  "enum": [
+                    "tracked",
+                    "built",
+                    "verified_reference"
+                  ]
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^/]+(?:/[^/]+)*$"
+                },
+                "archive_path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^/]+(?:/[^/]+)*$"
+                },
+                "reference": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_-]*$"
+                }
+              },
+              "required": [
+                "origin",
+                "path",
+                "archive_path"
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "origin": {
+                        "const": "verified_reference"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "reference"
+                    ]
+                  },
+                  "else": {
+                    "not": {
+                      "required": [
+                        "reference"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "filename",
+          "license_expression",
+          "build_profile",
+          "files"
+        ]
+      }
+    },
+    "records": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "packages": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            }
+          },
+          "metadata_file": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^/]+(?:/[^/]+)*$"
+          },
+          "access": {
+            "enum": [
+              "public",
+              "restricted",
+              "embargoed"
+            ]
+          }
+        },
+        "required": [
+          "packages",
+          "metadata_file",
+          "access"
+        ]
+      }
+    },
+    "references": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "receipt_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "package_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_manifest": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^/]+(?:/[^/]+)*$"
+          }
+        },
+        "required": [
+          "receipt_sha256",
+          "package_sha256",
+          "source_manifest"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "packages",
+    "records"
+  ]
+}

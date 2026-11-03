@@ -1,0 +1,89 @@
+{
+  "source_sha": "7f84853847efdc1b7e9f6df634105b1daf62cdfb",
+  "image_digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+  "builds": {
+    "component_draft": {
+      "pages": 126,
+      "pdf_sha256": "a59f274b0e0bf53bf8c936b487464efcf94507bc43da6bc88841eb9976fc62ca",
+      "log_sha256": "8439202c20cf822bc2b6e457c851e907c2a2a69aeefc1a103685758a4c2ffb1b",
+      "text_sha256": "6c1a7811d3069df141e76f2ce9c176181357892f2ec2e0c3214e1b2e8e75b1ac",
+      "tex_errors": 0,
+      "undefined_citations": 0,
+      "undefined_references": 0
+    },
+    "proxy_draft": {
+      "pages": 126,
+      "pdf_sha256": "1eb25cc4678accdf32d60db94b1f7a7f475080142907718cbd5b2cab778dda28",
+      "log_sha256": "f88b088c5d8286de0cfb216275d2e9e317fcee638c9cb10b257a43aefa0304cf",
+      "text_sha256": "6c1a7811d3069df141e76f2ce9c176181357892f2ec2e0c3214e1b2e8e75b1ac",
+      "tex_errors": 0,
+      "undefined_citations": 0,
+      "undefined_references": 0
+    },
+    "component_final": {
+      "pages": 23,
+      "pdf_sha256": "2a7fd21d22ad85f81fbbb6cb37e0026dafb57ce1fc4b34cfd76dfc84812be057",
+      "log_sha256": "106ad048281b3d415a88bf6330a30cc8593e5aaf700d9320b07d5d88f51c42b0",
+      "text_sha256": "20d8c8079ea4d68e304486b6e14f4b1630b37c2ec37be4e591e45cb18e2dc2bd",
+      "tex_errors": 0,
+      "undefined_citations": 0,
+      "undefined_references": 0
+    },
+    "proxy_final": {
+      "pages": 23,
+      "pdf_sha256": "e85eb64628b92f93f0795a9b36877130f205df355952129f2d271535402aadb2",
+      "log_sha256": "5226e9ac6832bf85b489fe3eea73f6e69202f3cd0cee302488fac230e16e7b6b",
+      "text_sha256": "20d8c8079ea4d68e304486b6e14f4b1630b37c2ec37be4e591e45cb18e2dc2bd",
+      "tex_errors": 0,
+      "undefined_citations": 0,
+      "undefined_references": 0
+    }
+  },
+  "draft_text_equal": true,
+  "final_text_equal": true,
+  "proxy_lint_command_executed": true,
+  "proxy_reads_paper_checks": true,
+  "proxy_bibliography_style": true,
+  "lint_exit": 0,
+  "lint_rule_count": 52,
+  "lint_error_rules": [],
+  "lint_skipped_rules": [
+    "links"
+  ],
+  "review_bundle_verification": "pass",
+  "review_bundle_files": 37,
+  "test_suites": {
+    "mutation": "0 missed",
+    "fault_injection": 2,
+    "ci_exit_status": 5,
+    "evidence": "115/115",
+    "safety_readers": "210/210",
+    "review_and_skim": 36,
+    "layout": 2
+  },
+  "evidence_directory": "/tmp/tdk-layout-evidence/results",
+  "evidence_hashes": {
+    "lint.json": "ecbcff8c743751ee04b962caba0117178b2374d992b3dc09fb63d7f1c28942c5",
+    "lint.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "test-lint.log": "511ab88e6227fbad149e5221ab79996a477302b04a599f3fa54199a00ecc23c0",
+    "test-review.log": "741493e1bbbcf2cf0bb194e56da9aa09e5d1b4f036615e1b5674f1d8691417a6",
+    "skim.log": "69245598542fc6721cb411dafdc9696e5d30c3371500b9e8b79f6fca6ebf9ce5",
+    "manifest.json": "0bf805090bff7c19d37ab8fd53f528892fbdc379d3e6c49c413836e818096375"
+  },
+  "followup_test_revision": "4a065f1",
+  "followup_tests": {
+    "layout": 3,
+    "scripts_ref_monorepo": "gap-filled-baseline 1/1",
+    "scripts_ref_pre_move_17fa890": "gap-filled-baseline 1/1"
+  },
+  "preserved_source_bytes": [
+    "student content",
+    "draft/final TeX entrypoints and phase",
+    "bibliographies",
+    "figure assets",
+    "generic root scripts",
+    "root workflows",
+    "infra",
+    "presentation"
+  ]
+}
