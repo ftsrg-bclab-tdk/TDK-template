@@ -242,7 +242,9 @@
 % input after the list of todos; its failing checks also come out as package warnings in the log.
 % Without shell escape nothing is written and nothing is input. \lintfalse turns it off.
 \newif\iflint\linttrue
-\newcommand{\lintchecks}{\iflint\immediate\write18{texlua scripts/lint.lua overleaf --tex > lint-checks.tex}\InputIfFileExists{lint-checks.tex}{}{}\fi}
+\providecommand{\paperroot}{./}
+\providecommand{\paperbuilddir}{.}
+\newcommand{\lintchecks}{\iflint\immediate\write18{cd \paperroot\space && texlua scripts/lint.lua overleaf --dir \paperbuilddir\space --doc \jobname\space --tex > lint-checks.tex}\InputIfFileExists{lint-checks.tex}{}{}\fi}
 
 % Marks a step where the student stops for the advisors' approval (lifecycle chapter of the guide).
 \newcommand{\anchor}{\textcolor{red!70!black}{\textsc{anchor}}}

@@ -3,6 +3,11 @@ name: self-score
 description: Score the TDK paper's final PDF, as built by CI for one commit, on the faculty review sheet's criteria A-E in the sheet's own words, name the weakest criterion and the cheapest fix. Use before a consultation, in the polish phase, or when the student asks "how would this score". Writes nothing to the repository.
 ---
 
+Run paper commands from `paper/` (`cd paper` from the monorepo root). Paths to
+`draft.tex`, `final.pdf`, `docs/`, `guide/` and `scripts/` below are paper-relative.
+Agent skills and personas remain in root `.claude/skills/`.
+
+
 # Self-score
 
 Score the final PDF the way the TDK reviewer will, on the review sheet in

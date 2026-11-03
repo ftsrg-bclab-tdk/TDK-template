@@ -3,6 +3,11 @@ name: reviewer-passes
 description: Read the TDK paper the way its reviewers will, before they do, on the CI bundle of one named commit. The skim reviewer reads the skim view, and a panel of disjoint expert personas reads the final PDF, each owning one slice of the paper. Answers in chat and writes nothing, unless asked to record the run as one issue. Use on the spine as the premortem, on the draft before the full draft goes to the advisors, as a hill climb in the polish phase, or when the student asks "what would the cryptographer say".
 ---
 
+Run paper commands from `paper/` (`cd paper` from the monorepo root). Paths to
+`draft.tex`, `final.pdf`, `docs/`, `guide/` and `scripts/` below are paper-relative.
+Agent skills and personas remain in root `.claude/skills/`.
+
+
 # Reviewer passes
 
 Two reviewers read a TDK paper in an evening each, and a section jury that is mostly out of field
