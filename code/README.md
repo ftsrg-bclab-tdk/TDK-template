@@ -1,66 +1,46 @@
-# TODO Artifact for: <paper title>
+# Research code
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.TODO.svg)](https://doi.org/10.5281/zenodo.TODO)
+Implement the project's software in `src/` and tests in `tests/`. Formal models
+belong in root `proof/`; measurement workloads and their reproduction evidence
+belong in root `benchmark/`. Record exact commands, hardware, datasets, seeds,
+versions and units alongside the measurements. Large inputs and outputs stay
+outside tracked source.
 
-Code, models and measurement scripts for the TDK paper *TODO title* (BME VIK, 2026). TODO two
-sentences: what the artifact is and what it shows.
+The inherited `justfile` supplies recipe names for build, test, evaluation,
+robustness, reproduction and demos. Those research recipes are unconfigured and
+exit with an error until replaced. `just hygiene` checks this component's source
+and imported history. Root `project.json` leaves code checks disabled; enable them
+only after real commands and structured test results exist. The old workflows in
+`code/.github/workflows/` are retained source, not active GitHub workflows.
 
-## Reproduce everything
+## Development container
+
+From the monorepo root:
 
 ```sh
-mkdir -p out && docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/out:/out" ghcr.io/<you>/<repo>:v1.0.0 reproduce
+docker build --pull -t tdk-code-dev -f code/Dockerfile code
+docker run --rm tdk-code-dev --list
 ```
 
-regenerates every figure and table of the paper into `out/`, owned by you. `just check` then
-compares them with the results committed under `experiments/`, ignoring timings. With the repository cloned and the
-dependencies below installed, `just reproduce` does the same, and `just reproduce --smoke` runs a
-reduced workload in minutes. In the standalone code repository, CI runs the smoke version on
-every push. Here, `code/.github/workflows/` is retained source and GitHub does not discover those
-workflows; the root `project.json` controls whether this component has CI checks. Code checks are
-disabled until their real checks are ready.
+The image installs the current Ubuntu packages and latest Just. Its default
+command lists recipes. It does not reproduce a research result. The VS Code
+configuration in `.devcontainer/` uses the same Dockerfile and a non-root user.
+Record the resolved base image, installed versions and resulting image digest
+when using a build as research evidence. A mutable image tag alone is insufficient.
 
-Dependencies, pinned: TODO.
+When real reproduction is implemented, write outputs to a mounted directory:
 
-## Results map
+```sh
+mkdir -p code/out
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/code/out:/out" tdk-code-dev reproduce
+```
 
-| Paper | Recipe | Output | Time on the stated hardware |
-|---|---|---|---|
-| Table 5.1 correctness | `just evaluate` | `out/correctness.csv` | TODO |
-| Figure 5.2 scalability | `just benchmark` | `out/scalability.csv` | TODO |
-| Table 5.4, Figure 5.4 robustness | `just robustness` | `out/robustness.csv` | TODO |
-
-Hardware: TODO (cores, memory, OS); versions: TODO.
-
-## What does not reproduce
-
-TODO Anything that needs a secret, special hardware, a long run or is nondeterministic, with the
-seed policy and the expected variance. This section stays even when it says everything reproduces
-with fixed seeds.
-
-## Results tag
-
-The numbers in the paper come from tag `v1.0.0`, Zenodo version TODO. Later versions change the
-packaging, never the results.
-
-## Demo
-
-`just demo` records the demonstration programmatically, a Playwright script for a web UI or an
-asciinema cast for a terminal, with captions, and CI publishes it as an artifact on every push
-(see `.github/workflows/demo.yml`). Nothing is recorded by hand.
-
-## Cite
-
-TODO BibTeX of the paper and of this artifact (the concept DOI).
+Document the paper's result-to-command mapping here once it exists, including
+limits, special hardware and nondeterminism. Add DOI/citation links only after
+publication is verified. The root selective-release tooling selects research
+packages; the nested legacy release workflow is not the publication interface.
 
 ## License
 
-MIT, see `LICENSE`. For a tool meant to be used after the paper, switch to Apache 2.0 and add
-`MAINTAINERS.md` and `SECURITY.md` (see the guide's README section).
-
-<!--
-## Tool README, if this is a tool and not only the paper's results
-### Install
-### Use it on your own input (one worked example)
-### Contribute
-### Maintainers
--->
+The inherited starter code is MIT; see `LICENSE`. Select and record an appropriate
+license for new research code before publishing it.

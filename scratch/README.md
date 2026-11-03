@@ -31,7 +31,7 @@ disabled until their checks are ready.
 ## Review skills
 
 The shared `self-score` and `reviewer-passes` skills live in the root `.claude/skills/` directory.
-The links in `scratch/.claude/skills/` point there. `self-score` scores the final PDF against the
+Open the monorepo root when using them. `self-score` scores the final PDF against the
 review sheet. `reviewer-passes` reads the paper from the perspective of its skim reviewer and
 expert reviewers. Name `scratch/notes/anchors/spine.md` when running a review. Both use the
 paper CI evidence for one commit and do not edit the paper.

@@ -30,7 +30,9 @@ committed PR #2 head `97d4cb3562a8c635a830eb4e1d891b89bb009649`, including its d
 change and generated lifecycle report. These histories were imported without rewriting commits.
 The README and lifecycle paths now describe the monorepo: the paper is `paper/draft.tex`, code is
 under `code/`, notes are under `scratch/`, and presentation files are under `presentation/`.
-Skill links point to the shared skills at the repository root.
+Use the shared skills at the repository root. The two imported symlink aliases were removed
+because native Overleaf synchronization converts symlinks into ordinary files. The skill
+contents remain unchanged at their canonical root paths.
 
 The lifecycle check recognizes the paper's `topic`, `setup`, `research`, `plan`, `draft`, `polish`
 and `submit` phases. Its recent-change rows query full history for `paper/` and `code/` separately.
@@ -56,3 +58,12 @@ in `/home/blacklight/Projects/TDK/tdk-notes-template`:
 
 These uncommitted revisions remain deferred in the source checkout. They were not copied or
 represented as accepted monorepo behavior.
+
+## Follow-up after import
+
+The old `code/experiments/README.md` described measurement scripts, raw results, commands and
+hardware. That intent belongs to top-level `benchmark/`; the redundant directory was removed.
+The imported recipe names remain available for project implementation, but unconfigured recipes
+now fail explicitly instead of printing TODO and succeeding. The starter does not claim a
+published DOI, built research image, or measured research result. The code container is a
+latest-resolved development scaffold; enabling research checks still requires actual commands.

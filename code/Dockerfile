@@ -1,17 +1,16 @@
-# The runtime image: everything pinned, entry point `just`, so that
-#   mkdir -p out && docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/out:/out" ghcr.io/<you>/<repo>:v1.0.0 reproduce
-# regenerates every result on any machine. --user makes the files in out/ yours instead of root's;
-# mkdir first, because a mount point Docker creates belongs to root. Replace the base image and the
-# install lines.
-FROM ubuntu:24.04
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl bash hyperfine \
+# Development scaffold. Resolve latest on each build and record its resulting identity.
+ARG BASE_IMAGE=ubuntu:latest
+FROM ${BASE_IMAGE}
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl bash git make python3 hyperfine \
     && rm -rf /var/lib/apt/lists/* \
-    && curl -sSfL https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+    && curl -sSfL https://just.systems/install.sh | bash -s -- --to /usr/local/bin \
+    && useradd --create-home --uid 10001 tdk
 WORKDIR /work
-COPY . .
-# TODO install the toolchain and the dependencies, pinned
-# Recipes rebuild before they measure, so any --user must be able to write here.
+COPY --chown=tdk:tdk . .
+# The UID may be overridden when writing results to a host-owned mount.
 RUN chmod -R a+rwX /work
 ENV OUT=/out
+USER tdk
 ENTRYPOINT ["just"]
-CMD ["reproduce"]
+CMD ["--list"]

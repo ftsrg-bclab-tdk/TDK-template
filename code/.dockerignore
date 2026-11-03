@@ -1,0 +1,12 @@
+# Send source and declared build inputs only.
+.git
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+.venv
+node_modules
+out
+results
+.project
+.onboarding
