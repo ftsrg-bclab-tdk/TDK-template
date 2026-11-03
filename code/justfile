@@ -39,6 +39,11 @@ demo: build
     mkdir -p {{out}}/demo
     @echo "TODO run demo/record.sh -> {{out}}/demo/"
 
+# What must not reach a public repository: private links, local paths, paper sources, agent
+# commit identities and agent files in the archive. Pass --strict before the repository goes public.
+hygiene *flags:
+    python3 scripts/hygiene.py {{flags}}
+
 # The figures of the paper from the CSVs, if they are not drawn by pgfplots in the paper itself.
 figures:
     @echo "TODO"
