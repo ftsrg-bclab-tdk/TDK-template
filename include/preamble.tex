@@ -316,3 +316,140 @@
 % The three lists, as booktabs tables with their own column heads, each with a sentence
 % that says what the table is for. \printlists is called inside the appendix in content/10-appendices.tex.
 % The appendix section, and each list in it, is left out while the text uses none of its entries (an entry
+\makeatletter
+\newcount\tdk@used
+% \tdk@ifused{<glossary type, or several, comma-separated>}{<code>}: counts the used entries in
+% \tdk@used and runs the code if there is one
+\newcommand{\tdk@ifused}[2]{%
+  \global\tdk@used=0
+  \@for\tdk@type:=#1\do{%
+    \forglsentries[\tdk@type]{\tdk@entry}{\ifcsdef{glo@\tdk@entry @loclist}{\global\advance\tdk@used by 1 }{}}}%
+  \ifnum\tdk@used>0 #2\fi}
+\newif\iftdk@firstlist
+\newcommand{\tdk@keeplist}{\iftdk@firstlist\global\tdk@firstlistfalse\else\Needspace{\numexpr 8+2*\ifnum\tdk@used>15 15\else\tdk@used\fi\relax\baselineskip}\fi}
+\newcommand{\printlists}{\tdk@ifused{abbreviations,symbols,main}{%
+  \chapter*{Abbreviations, notation and terms}\addcontentsline{toc}{chapter}{Abbreviations, notation and terms}%
+  \global\tdk@firstlisttrue
+  \tdk@ifused{abbreviations}{\tdk@keeplist
+   {\renewcommand*{\entryname}{Abbreviation}\renewcommand*{\descriptionname}{Meaning}%
+    \printnoidxglossary[type=abbreviations, style=long-booktabs, title={Abbreviations},
+      preamble={Every abbreviation is spelled out where it first appears in the text; this table repeats the expansions for a reader who starts in the middle, and each use in the text links here.}]}}%
+  \tdk@ifused{symbols}{\tdk@keeplist
+   {\renewcommand*{\entryname}{Symbol}\renewcommand*{\descriptionname}{Meaning}%
+    \printnoidxglossary[type=symbols, style=long-booktabs, title={Notation},
+      preamble={The symbols of the formal model, in one place. Each is introduced once, in the definition the description points at, and keeps that meaning in every chapter; nothing is overloaded.}]}}%
+  \tdk@ifused{main}{\tdk@keeplist
+   {\renewcommand*{\entryname}{Term}\renewcommand*{\descriptionname}{Meaning}%
+    \printnoidxglossary[type=main, style=long-booktabs, title={Terms},
+      preamble={Words this paper uses in one fixed sense, often narrower than everyday or vendor usage. The description is that sense; where the literature uses the word differently, the background chapter says so.}]}}%
+}}
+\makeatother
+
+
+%--------------------------------------------------------------------------------------
+% Colored boxes (tcolorbox)
+%--------------------------------------------------------------------------------------
+% theo: top-ruled box with a detached title, from Bertalan's BPM paper.
+% Usage: \begin{tcolorbox}[theo=blue, title={Key insight}] ... \end{tcolorbox}
+\tcbset{%
+    theo/.style={%
+        enhanced,
+        breakable = true,
+        sharp corners,
+        before skip=20pt,
+        toprule=1pt, rightrule=0pt, bottomrule=0pt, leftrule=0pt,
+        colback=#1!15, colframe=#1!50, coltitle=#1!60!black,
+        detach title,
+        overlay unbroken and first ={
+            \node[minimum width=1cm, anchor=south west, font=\bfseries]
+               at (frame.north west) {\tcbtitle};
+        }
+    }
+}
+
+% Ready-made boxes for the common cases. The optional argument is the title.
+\newtcolorbox{infobox}[1][]{enhanced, breakable, colback=blue!5, colframe=blue!50!black, fonttitle=\bfseries, title={#1}}
+\newtcolorbox{warnbox}[1][]{enhanced, breakable, colback=orange!8, colframe=orange!70!black, fonttitle=\bfseries, title={#1}}
+\newtcolorbox{keybox}[1][]{theo=teal, title={#1}}
+
+
+%--------------------------------------------------------------------------------------
+% Cross-references (cleveref)
+%--------------------------------------------------------------------------------------
+% Write \cref{fig:overview} instead of Figure~\ref{fig:overview}; \Cref at sentence start.
+% Label prefixes: ch: sec: fig: tab: eq: lst: alg: app: def: thm: lem: prop: cor: inv:
+% Glossary keys (content/glossary.tex) have no prefix; they are a separate name space.
+% prty: claim: rem: not: ex: c: rq: req: dr: asm: g: thr: lim:
+\crefname{definition}{Definition}{Definitions}
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{example}{Example}{Examples}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{invariant}{Invariant}{Invariants}
+\crefname{property}{Property}{Properties}
+\crefname{claim}{Claim}{Claims}
+\crefname{remark}{Remark}{Remarks}
+\crefname{notation}{Notation}{Notations}
+\crefname{lstlisting}{Listing}{Listings}
+
+% The environments above share the theorem counter, so cleveref would call all of them
+% "Theorem". Inside each one, labels on that counter get the environment's own name.
+\makeatletter
+\@for\tdk@env:=lemma,proposition,corollary,invariant,property,claim,remark,notation\do{%
+  \edef\tdk@hook{\noexpand\AddToHook{env/\tdk@env/begin}{\noexpand\crefalias{theorem}{\tdk@env}}}%
+  \tdk@hook}
+\makeatother
+
+% Tagged lists: numbered items with a short tag that \cref can point to.
+%   \NewTagList{<environment>}{<tag>}{<Name>}{<Names>}
+% defines an enumerate-like environment whose items read "AS1", "AS2", ... Each item starts
+% with a short name in bold, which the gap matrix and the text reuse:
+%   \begin{assumptions}
+%     \item\label{asm:clock} \textbf{Bounded drift.} Clocks drift by at most $\delta$.
+%   \end{assumptions}
+% A reference prints the tag alone, as a student would type it: \cref{asm:clock} -> "AS1",
+% \cref{asm:clock,asm:keys} -> "AS1 and AS2", three or more in a row -> "AS1–AS3". The
+% tag says what the item is, so the sentence does not need to. <Name> is what \namecref prints.
+% \tagrow{<environment>} gives a table row the list's next tag, for items kept in a table
+% instead of a list: \tagrow{guarantees}\label{g:monotone} & Monotone growth & ...
+% (\tdk@tagtype makes each kind's format differ, or cleveref would merge two kinds into one
+% range: "AS1–SG3".)
+\makeatletter
+\newcommand{\tdk@tagtype}[1]{}
+\newcommand{\NewTagList}[4]{%
+  \newlist{#1}{enumerate}{1}%
+  \setlist[#1]{label=\textbf{#2\arabic*}, ref=#2\arabic*, leftmargin=*, widest=99}%
+  \expandafter\def\csname the#1i\endcsname{#2\arabic{#1i}}%
+  \crefalias{#1i}{#1}%
+  \crefname{#1}{#3}{#4}\Crefname{#1}{#3}{#4}%
+  \crefformat{#1}{\tdk@tagtype{#1}##2##1##3}\Crefformat{#1}{\tdk@tagtype{#1}##2##1##3}%
+  \crefmultiformat{#1}{\tdk@tagtype{#1}##2##1##3}{\tdk@tagtype{#1} and~##2##1##3}{\tdk@tagtype{#1}, ##2##1##3}{\tdk@tagtype{#1} and~##2##1##3}%
+  \Crefmultiformat{#1}{\tdk@tagtype{#1}##2##1##3}{\tdk@tagtype{#1} and~##2##1##3}{\tdk@tagtype{#1}, ##2##1##3}{\tdk@tagtype{#1} and~##2##1##3}%
+  \crefrangeformat{#1}{\tdk@tagtype{#1}##3##1##4--##5##2##6}\Crefrangeformat{#1}{\tdk@tagtype{#1}##3##1##4--##5##2##6}%
+  \crefrangemultiformat{#1}{\tdk@tagtype{#1}##3##1##4--##5##2##6}{\tdk@tagtype{#1} and~##3##1##4--##5##2##6}{\tdk@tagtype{#1}, ##3##1##4--##5##2##6}{\tdk@tagtype{#1} and~##3##1##4--##5##2##6}%
+  \Crefrangemultiformat{#1}{\tdk@tagtype{#1}##3##1##4--##5##2##6}{\tdk@tagtype{#1} and~##3##1##4--##5##2##6}{\tdk@tagtype{#1}, ##3##1##4--##5##2##6}{\tdk@tagtype{#1} and~##3##1##4--##5##2##6}%
+}
+\makeatother
+\newcommand{\tagrow}[1]{\refstepcounter{#1i}\textbf{\csname the#1i\endcsname}}
+\NewTagList{contributions}{C}{Contribution}{Contributions}
+\NewTagList{requirements}{REQ}{Requirement}{Requirements}
+% Derived requirements: what the design itself must do for the guarantees to hold, each
+% checked by a test or a proof. Unlike requirements, they are not rows of the gap matrix.
+\NewTagList{derivedrequirements}{DR}{Derived requirement}{Derived requirements}
+\NewTagList{assumptions}{AS}{Assumption}{Assumptions}
+\NewTagList{guarantees}{SG}{Guarantee}{Guarantees}
+% Threats are the adversaries: who attacks and what they can do. The attacks themselves,
+% one per row, go into the threat model's attacks table (tab:attacks).
+\NewTagList{threats}{ADV}{Adversary}{Adversaries}
+\NewTagList{limitations}{LIM}{Limitation}{Limitations}
+\NewTagList{rqlist}{RQ}{Research question}{Research questions}
+
+% Gap matrix cells: rows are requirements (\ref{req:x} prints "REQ1"), columns are approaches.
+% Put \gaplegend in the caption so every matrix explains the same symbols.
+\newcommand{\gapyes}{\textcolor{green!45!black}{\ensuremath{\checkmark}}}
+\newcommand{\gappartial}{\textcolor{orange!85!black}{$\circ$}}
+\newcommand{\gapno}{\textcolor{red!70!black}{$\times$}}
+\newcommand{\gapna}{--}
+\newcommand{\gaplegend}{\gapyes{} meets the requirement, \gappartial{} partially, \gapno{} does not, \gapna{} not applicable}
+
