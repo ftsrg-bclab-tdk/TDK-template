@@ -1,6 +1,6 @@
 # Monorepo CI design
 
-Status: first CI policy round, maintenance decisions and R1–R6 complete; external-input artifact refinement required, 2026-11-03. No workflow, runner routing, repository setting or publication action is enabled by this document. Questions belong in the coordinator session, not a separate interview here. This document is owned by the CI design session; `docs/monorepo-plan.md` and `docs/proof-tool-options.md` in the coordinator worktree are read-only inputs.
+Status: CI1–CI11, M1/M2, R1–R6 and S1–S7 are settled. Source implementation and local/fixture validation are underway, 2026-11-04. There is no remaining CI policy interview. No workflow, runner routing, repository setting or publication action is enabled by this document. Questions belong in the coordinator session, not a separate interview here. This document is owned by the CI design session; `docs/monorepo-plan.md` and `docs/proof-tool-options.md` in the coordinator worktree are read-only inputs.
 
 Coordinator: <t3-thread://v2/b5ffded3-854d-462a-a89d-25dfae6b2462/5b7b9f7e-a45a-4695-b8c4-83321cf38763>.
 
@@ -16,7 +16,7 @@ The accepted bootstrap requires Git, Python, GitHub CLI and Docker; selected loc
 
 The advisor provisions the organization repository/access, premium Overleaf import/invitations and Zotero group. The student creates or reuses personal accounts, installs required tools, accepts invitations and prepares the clone/workspace. Both verify compilation and the native sync round trip. Students are outside collaborators with write access only to their own project; advisors manage project settings/access. Organization base permission is none, and owners control repository creation, deletion and transfer. Imre Kocsis becomes a second owner once he agrees; no agreement or invitation is assumed. Completed projects remain archived in the organization, with student-requested transfer/full-history copy coordinated with coauthors and no student-project deletion.
 
-The lead student owns the Zenodo records and performs final publication after advisor review; packaging is automated. A central lab publisher is not selected. Credential location/execution, 2FA, the maintenance App/controller, public licensing and mechanical old-guide fixes remain downstream choices with the coordinator. Read-only checks and credential-free packaging do not gain publication authority from this decision.
+The lead student owns the Zenodo records and performs final publication after advisor review; packaging is automated. A central lab publisher is not selected. S1–S7 settle the private maintenance controller/App, pre-invitation 2FA, student-invoked project publication with the student's Zenodo secret, mechanical legacy-guide repairs, scoped licenses/artwork permission and preserved history. The maintenance controller owns project registration/template baselines. Publication journals belong to each student project on publication-state at registry/zenodo.json (sandbox has a separate path), accessed with that project's GITHUB_TOKEN. No maintenance credential enters a student job. Live credentials and deployments are not evidence established by these decisions. Read-only checks and credential-free packaging do not gain publication authority from this decision.
 
 The canonical maintained source is `FTSRG-BCLab-TDK/TDK-template`, currently private and intended to become public after disclosure preparation. Layout is `paper/`, `code/`, `benchmark/`, `proof/`, `scratch/`, `presentation/`, with root paper proxy entrypoints. Native Overleaf sync transports the whole monorepo. Only paper files are edited in Overleaf; students and advisors may collaborate. This convention does not preserve executable modes or symlinks. No custom bridge, separate paper repository or sole-editor restriction is in scope. Native Windows is excluded; Linux/WSL is primary. macOS uses the accepted container route, subject to actual host/architecture validation rather than a native toolchain matrix. Existing-student migration is long-term work.
 
@@ -79,7 +79,7 @@ A path-filtered workflow can leave a required check pending; an `if`-skipped job
 
 ## Proposed architecture
 
-The following is a reviewable proposal constrained by accepted separate badges and latest toolchains/dependencies. The first-round trigger/gating policies are accepted; exact workflow wiring and consumer interfaces still need validation, and filenames are not yet a promise to consumers.
+The implemented workflow names are ci.yml (Project checks), paper-build.yml (Paper build) and paper-lint.yml (Paper lint report). The latter two consume the exact completed default-branch push run/attempt artifact; they execute no producer code and compile no TeX. Source fixtures and clean local orchestration have passed; live GitHub delivery/badge behavior remains a deployment pilot.
 
 Proposed root `ci.yml` (`Project checks`) exposes an always-evaluated `ci/required` aggregate. The original single event-owner proposal needs distinct badge workflow integration under accepted CI5; exact event ownership must now implement accepted CI3 and the separate-badge handoff without duplicate builds. It performs plan → component execution → evidence validation. Keep independent component work parallel, but keep paper compilation/lint/evidence together to reuse the toolchain and generated files. Lightweight structure, official-file integrity and scratch reporting can share a job rather than paying for a runner per tiny check.
 
@@ -89,7 +89,7 @@ Other separate entrypoints have distinct purposes: `research-full.yml` for expli
 
 ### Shared local/CI commands
 
-Keep native commands available. Add a small root Python dispatcher after agreement; invoking it by interpreter survives Overleaf executable-mode changes. Proposed interface:
+Native commands remain available. The root Python dispatcher implements this interface; invoking it by interpreter survives Overleaf executable-mode changes:
 
 ```
 python3 scripts/project.py doctor
@@ -121,7 +121,7 @@ Accepted first-round event policy (exact wiring remains implementation work):
 - Every PR event starts the lightweight planner, including draft PRs. Ready PRs run affected enabled components; drafts initially report only structure/config and clearly identify deferred work. Mark-ready and dispatch run the real checks. Pushes to the configured default branch run all enabled ordinary checks, so its current revision has actual baseline evidence. Other branch pushes use PRs or explicit dispatch, avoiding push+PR duplicates.
 - Manual dispatch offers `all`, `submit`, `full` and selected component scopes. Scope is recorded; manual narrow success never means all configured components passed. Strict submission does not mutate the paper's phase.
 - Full benchmark/robustness/long proof searches start manually by default. A project can later choose a measured schedule and resource cap. The template maintenance suite exercises every supported adapter on a regular schedule and relevant changes. Official freshness cadence is accepted as weekly, maintainer-only.
-- A release request resolves one immutable source SHA, reuses qualifying checks/artifacts for exactly that SHA and config/toolchain identity, or performs missing credential-free work. It never consumes latest-branch assets. Full benchmark obligations required for a particular research artifact must be declared, not inferred from a generic green CI result. Triggering publication on a tag or GitHub release remains deferred to the publisher design.
+- A release request resolves one immutable source SHA, reuses qualifying checks/artifacts for exactly that SHA and config/toolchain identity, or performs missing credential-free work. It never consumes latest-branch assets. Full benchmark obligations required for a particular research artifact must be declared, not inferred from a generic green CI result. Publication uses explicit student workflow_dispatch; tags or published support releases do not start it.
 
 The planner evaluates the full git diff, not GitHub's limited path-filter list. PR changes compare merge base to head; pushes use the actual before/after range. Added/deleted/renamed paths all count. Missing history/base, incomplete diff, unknown shared configuration or unclassified executable/build-helper changes select all relevant components. Record the reason for each selection. Pure documentation exceptions are explicit. Root proxies, shared config, Dockerfiles, `.dockerignore`, devcontainer inputs, any existing Compose files, toolchain resolution inputs, workflow/dispatcher changes and helper paths are graph inputs, not only component directories. Workflow/planner changes force broad validation.
 
@@ -307,7 +307,7 @@ Upstream maintenance depends on project registration and read authority, provena
 
 The accepted weekly/manual flow now needs project registration, authentication/actor permissions and baseline storage/update mechanics; mixed-file candidates stay for maintainer selection. PR directions are settled: upstream targets the canonical template; downstream targets registered projects. Do not infer account authority or scheduling defaults from acceptance of those directions. Downstream-update metadata should distinguish applied template revisions from local work and proposed upstream contributions to avoid loops. Latest compatibility failure is not by itself permission to copy project content upstream, roll back runtime versions or merge a change. No maintenance workflow or automatic PR creation is enabled.
 
-### Deferred branches, not questions to answer prematurely
+### Remaining engineering validation (policies settled)
 
 | Prerequisite | Next decisions / remaining evidence |
 | --- | --- |
@@ -316,12 +316,12 @@ The accepted weekly/manual flow now needs project registration, authentication/a
 | CI3 and CI5 settled; workflow behavior verification | Final workflow names, PR head vs merge-preview semantics, per-component dispatch details and verified separate-workflow exact-run handoff. Single-badge fallback is withdrawn. |
 | Representative workload measurements (CI4 settled) | Full-run schedules, duration/memory/size caps, hardware reservation and retention of raw benchmark datasets. |
 | Runner owner's GitHub session integration evidence | Offline isolation and cleanup probes now reported passing. Fresh JIT runner inside the sandbox, controlled network/image/input-output support and representative end-to-end tests remain outstanding. Then choose workload routing, labels and explicit hosted fallback; persistent runner remains trusted-only. |
-| Lead-student publication ownership accepted | Credential location/execution, trusted control ref and durable operation registry; deliberate stage/publish triggers, tag policy and writeback loop avoidance. Advisor review precedes final publication; central lab publishing is not selected. Shared advisor secrets never go into student-writable repos. |
+| Student publication workflow accepted and implemented in source | Manual default-branch control workflow; exact reviewed source/bundle/runtime/artifact identities; project-owned publication-state journal; project GITHUB_TOKEN and student Zenodo secret. Fixture tests precede sandbox/live validation. Advisor review remains policy rather than an enforced Free-plan boundary. |
 | Measured artifact sizes (CI8 settled) | Actual storage ceilings and export/publisher access controls; routine failure-log limits. |
 | Inventory complete; GitHub Release-asset proposal researched | Apply accepted immutability/asset decisions through prepared integration; settle credentials and test canonical-to-project copies, local/CI retrieval, identity/recovery and native Overleaf consumer behavior before removing inputs. |
 | Root-proxy implementation and native pilot | Actual entrypoint names, helper cwd/output locations, offline/Overleaf tool parity, whole-tree limits and fresh-clone post-sync acceptance. No substitute “local compile = Overleaf verified.” |
 | Two-way maintenance flow accepted | Remaining integration choices: project registration/authentication, baseline storage/update contract and contribution/update loop prevention. Weekly/manual cadence and maintainer selection of mixed changes are accepted. Template-owned eligibility, provenance, exclusion of research/private metadata, PR directions and no auto-merge are settled. Keep latest compatibility testing distinct. |
-| Remaining whole-project policies settled | Coordinator presents the final shared-understanding summary before activating those choices. Concrete preparation of already settled interfaces is authorized and underway. |
+| All policy rounds settled and implementation authorized | Continue source integration and actual pilots. No repeat policy gate. Public conversion, old-repository deletion and production publication still require their concrete completion evidence. |
 
 ## Integration handoff and acceptance
 
@@ -329,7 +329,7 @@ Before implementation, owners receive this proposed command/result/identity cont
 
 Acceptance must demonstrate: writing finding vs checker crash; missing/empty enabled code checks; verified/violated/unknown proof result; changed code triggering dependent proof/benchmark; root-proxy-only changes triggering paper; unknown diff falling back safely; canceled/skipped dependencies not passing aggregate; maintainer tests actually running; no template skeleton enforcement in student copies; exact-SHA artifact mismatch rejected; expired artifact handling; current lifecycle age zero and path-specific history; offline artifact integrity vs unreachable remote, verified accepted-package reuse, missing required package failure, retention while referenced and compile-input delivery after tracked-file migration; audience/presenter output separation; fresh-clone execution after roundtrip. Benchmark and adapter examples must test behavior, not just command exit conventions.
 
-This design records the completed CI and operating rounds. The user explicitly authorized concrete preparation of settled interfaces in this worktree; that work is described below. Unsettled credentials/routing/publication choices and live integration are not silently enabled. The invoked grilling skill says: “Do not act on it until the user confirms you have reached a shared understanding.” The frontier is not empty; the coordinator must collect answers and return the next round before that final gate.
+The user has confirmed all CI and operating rounds and explicitly instructed implementation without another policy gate. The grilling frontier is closed. Source implementation continues within that authorization; actual credentials, GitHub transport, native Overleaf roundtrip and public-disclosure completion are separate factual acceptance work.
 
 ## Concrete preparation delivered in this worktree
 
@@ -342,3 +342,51 @@ Validation: 18 external-input tests and 7 dependency-plan tests pass. The extern
 Container requirements remain actual build plus execution of the selected smoke command, with latest resolution evidence (Docker/BuildKit/tool versions, source/context digests, image config ID versus registry/platform digest distinguished). Docker build configuration is maintained source where baseline ownership establishes that fact; project-customized mixed fields require selection. Selected reproduction packages include necessary Dockerfiles/context rules. No host Docker socket is made available to student jobs, and no BME routing is changed.
 
 Integration owner was notified before source work. Existing workflows, root Makefile, #28 presentation snapshot, external binary assets, other worktrees and repository settings were not edited. All preparation remains local/uncommitted; no live package creation, source removal or legacy-template deletion occurred. Release packager logic remains owned by its component session; this work supplies acquisition/verification and dependency planning only.
+
+
+## Implemented source and measured acceptance, 2026-11-04
+
+The canonical configuration is ONE root project.json (schema 1), shared with setup.
+It contains repository/role, editable paper_main, distinct paper_entrypoints,
+managed metadata and explicit component profiles/dependencies. All evidence binds
+its raw-byte digest. See scripts/ci/CONTRACT.md for the executable interfaces.
+
+Commits f89c336 and ac9f1ba delivered configuration and doctor/plan/check plus
+runtime/result/evidence APIs. Commit 078363b added hosted workflows and exact-run
+paper status consumers. The clean orchestration first found a local repository
+inference failure in review bundling; b85b7a6 fixed it by passing shared identity.
+A fresh clone of b85b7a6 then passed full configured execution and verify_report:
+both paper PDFs, advisory lint, the 37-file review bundle, maintainer tests and
+presentation render/check against newly resolved npm dependencies. The source
+was clean and the report retained 40 evidence files. Ordinary check evidence
+still does not establish native Overleaf sync or scientific correctness.
+
+The first local run took about 157 seconds including base-image retrieval; the
+corrected clean run took about 95 seconds with the base already present. These
+are measurements on this machine, not hosted-runner timings or promised budgets.
+No shared cache is required in this implementation. Fresh resolution precedes
+installation, and the exact npm lock is retained with the report. The TeX image
+manifest, built image reference, Docker-reported local image ID/platform and
+Docker/Buildx versions are recorded separately. No host Docker socket is mounted
+into component workloads. BME routing remains unchanged.
+
+The real weekly-reference command retrieved the eleven inventoried PDFs and
+reported exactly the five required unresolved faculty inputs as failures. It
+retains candidate bytes without accepting them or overwriting tracked sources.
+Accepted durable reference packages and actual student retrieval remain a pilot;
+current compile-essential/tracked assets have not been removed.
+
+Manual release preparation consumes verified existing CI outputs for one source
+and runtime, then calls the release owner's packager without executing selected
+source. Publication verifies exact artifact and reviewed bundle-receipt digests,
+uses default-branch control code and the student's account, and writes its journal
+to the same project. The candidate archive and transport receipt are retained in
+an immutable, not-latest release-candidates/<receipt-digest> GitHub Release before
+Zenodo mutation, so operation recovery does not depend on the 90-day transport
+artifact. These support releases mint no DOI and trigger no publication workflow.
+Project-level permissions, default control ref and repository numeric identity are
+validated before state-branch creation. No App/controller credentials are used.
+The source is fixture-tested; no release, registry branch or Zenodo record has
+been created by this session.
+
+Raw output sizes in that clean run were 11,197,157 bytes for the main checks directory and 2,014,052 bytes for the native review bundle. These are filesystem sizes, not measured compressed GitHub storage charges. The native bundle repeats PDFs for review-consumer compatibility; compilation is shared.

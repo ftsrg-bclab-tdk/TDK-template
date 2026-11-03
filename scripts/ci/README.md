@@ -1,4 +1,7 @@
-# CI dependency planner preparation
+# CI commands and dependency planning
+
+The implemented dispatcher, report verifier, runtime resolver and workflow
+interfaces are documented in [CONTRACT.md](CONTRACT.md). Requires Python 3.11+.
 
 `dependencies.plan(changed_paths, components, complete=True, all_scope=False)` is
 a pure planning function. It runs no Git or GitHub commands and enables no job.
@@ -33,9 +36,10 @@ GitHub Release immutability does not freeze a GHCR tag.
 No shared host Docker socket is mounted into student jobs. The current persistent
 BME runner has no supported container route; its owner must supply an independently
 validated execution contract. This module changes neither runner routing nor host
-installation. No integrated container smoke was run in this worktree because the
-component source assembly/Dockerfiles and execution route are not yet integrated.
+installation. Clean-clone Docker execution, paper/review/maintainer checks and latest-resolved
+presentation rendering have passed; measured evidence is in docs/ci-design.md.
+Live GitHub transport and native Overleaf sync remain separate pilots.
 
 ```sh
-python3 -m unittest discover -s scripts/ci -v
+uv run --with jsonschema python -m unittest discover -s scripts/ci -v
 ```
