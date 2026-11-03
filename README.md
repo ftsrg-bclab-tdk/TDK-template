@@ -1,54 +1,99 @@
----
-role: paper-template
-canonical: https://github.com/FTSRG-BCLab-TDK/TDK-template
-mirror: https://github.com/FTSRG-BCLab-TDK/tdk-paper-template
-overleaf: https://www.overleaf.com/project/6aa7d78f4bf131387fb7c710
-related:
-  notes: https://github.com/FTSRG-BCLab-TDK/tdk-notes-template
-  code: https://github.com/FTSRG-BCLab-TDK/tdk-code-template
----
+# FTSRG TDK project template
 
-# FTSRG TDK paper template
+<!-- tdk-status:start -->
+Repository status links are generated after the project and CI workflows are set up.
+No verified published artifact DOI has been supplied.
+<!-- tdk-status:end -->
 
-This is the FTSRG advisors' LaTeX template for a TDK paper at BME VIK. The advisors'
-guide is included in the draft PDF. **This repository is the canonical source.** The
-template's Overleaf project is synced with it through Overleaf's GitHub integration.
-Advisors create each private student repository in the lab organization, then import it
-through native Overleaf GitHub synchronization and invite the project collaborators.
-The whole repository synchronizes; collaborators edit the paper in Overleaf and use
-their normal tools for the other components.
+This template brings the paper, implementation, formal verification, evaluation,
+research workspace and presentation into one repository. The finished template
+is intended for public reuse after disclosure preparation; student projects are
+private repositories in the lab organization.
 
-Use `main` here for template maintenance. The public
-[tdk-paper-template](https://github.com/FTSRG-BCLab-TDK/tdk-paper-template) is a mirror
-of the same source. Overleaf receives updates through its GitHub sync menu.
+| Component | Contents |
+| --- | --- |
+| [paper/](paper/README.md) | Paper sources, advisor guide, writing checks and review tools |
+| code/ | Implementation, tests, Dockerfiles and build configuration |
+| proof/ | Selected optional verification profiles and their assumptions |
+| benchmark/ | Evaluation inputs, execution and results interface |
+| scratch/ | Tracked research notes; temporary outputs and secrets stay untracked |
+| presentation/ | Slides and rendering tools |
 
-- `paper/draft.tex` builds the draft with notes, the Checks page and the guide.
-  The chapter files contain headings, stubs and notes linking to
-  "The paper, chapter by chapter" in `paper/guide/05-chapter-by-chapter.tex`, where the
-  instructions and worked examples live. `paper/final.tex` builds the PDF in submission
-  format. It hides the notes and gap markers, so how it looks says nothing about
-  readiness: it is ready to upload only when `make check-submit` passes and the advisors
-  have reviewed it.
-- Within `paper/`, `content/` holds the chapters, abstract, glossary, contribution statement and AI declaration; `guide/` holds
-  the advisors' guide; `include/` the preamble; `bib/` the bibliographies; and `docs/`
-  the review sheet.
-- `paper/scripts/lint.lua` checks the paper. From `paper/`, `texlua scripts/lint.lua list` lists the rules,
-  and `make check` runs them. `.github/workflows/paper.yml` runs each rule as a
-  separate step on every push to main and every pull request that is not a draft.
-- Set `\lintphase` in `paper/draft.tex` to your current lifecycle phase. Checks become
-  required as you reach each phase.
+Select the components needed by the project. A proof result covers its configured
+properties and assumptions, not every claim in the paper. Scratch is excluded
+from publication by default, but all tracked files participate in native Overleaf
+synchronization. Keep large datasets, installed dependencies and build outputs
+outside Git.
 
-The companion templates are [tdk-notes-template](https://github.com/FTSRG-BCLab-TDK/tdk-notes-template)
-for the notes repository and [tdk-code-template](https://github.com/FTSRG-BCLab-TDK/tdk-code-template)
-for the code repository. The guide explains all three after the draft's appendices.
+## Start a project
 
-Select root `paper-draft.tex` or `paper-final.tex` in Overleaf. The small root proxies
-import the paper sources; root `latexmkrc` supplies bibliography/style search paths.
-Build both proxies locally with `make paper-proxies`. Root proxy PDFs/logs are
-`paper-draft.*` and `paper-final.*`; component build PDFs/logs are in `paper/`.
-Paper lint and review commands run with `paper/` as their working directory.
+1. The student checks existing accounts, enables required 2FA, and installs Git,
+   Python, GitHub CLI and Docker. Local build and prover tools depend on the
+   selected components.
+2. The advisor creates the private organization repository and configures access.
+   The student receives WRITE access to their own project as an outside collaborator.
+   The advisor imports the repository into premium Overleaf, invites paper
+   collaborators and sets up the Zotero group.
+3. The student accepts invitations, clones the repository and configures the
+   workspace. Student and advisor jointly verify compilation, both directions
+   of native GitHub/Overleaf synchronization, and the project checks.
 
-Build locally with `make -C paper draft final`, or use root `make all` for the draft and `make final` for the final PDF.
-Use TeX Live with XeLaTeX, Inkscape and shell escape enabled.
-`make check-final` runs the lint on the final build, and `make check-submit` runs it
-at the submit phase: the check before you upload.
+These are the responsibilities of onboarding, not a claim that account setup or
+live integration is already complete. Native sync includes the whole repository.
+Edit paper files in Overleaf and other components in their usual tools. This
+convention does not preserve executable modes or symlinks automatically; verify
+code execution after the round trip. There is no custom synchronization bridge.
+
+## Build and check the paper
+
+From the repository root:
+
+```sh
+make -C paper draft final
+make paper-proxies
+make check-final
+```
+
+The component build writes `paper/draft.pdf` and `paper/final.pdf`. The root
+entrypoints `paper-draft.tex` and `paper-final.tex` are the Overleaf main-document
+choices and write root outputs. Run these build routes sequentially in one
+checkout because they share chapter auxiliary files. Use XeLaTeX, shell escape,
+Inkscape and the dependencies described in the [paper README](paper/README.md).
+
+A successful paper build does not establish submission readiness. Writing
+findings remain visible even when CI succeeds; use `make check-submit` and advisor
+review before submitting. Open CI results for the tested source, runtime and
+scope. Native Overleaf synchronization needs its own verification.
+
+## Publish and improve the template
+
+The lead student owns the Zenodo records and deliberately runs publication after
+advisor review. Packaging is automated; advisor review is a policy, not an enforced
+boundary in student-writable workflows. The default research record combines
+code, proof and benchmark artifacts; project configuration can select independent
+records. Prepare metadata first and publish when there is a meaningful artifact.
+Only verified published records receive DOI badges. Draft reservations are not
+published artifacts.
+
+Keep Dockerfiles and build configuration as source, and record built image digests
+in evidence. Immutable GitHub releases do not freeze GHCR image tags. Downloaded
+reference packages have their own manifests and retention; embedded paper graphics
+remain tracked so the paper can compile in Overleaf.
+
+Weekly or manually requested maintenance proposes reusable template-owned project
+changes upstream as template PRs, then template improvements downstream as project
+PRs. Neither direction auto-merges. Maintainers select mixed-file edits; student
+research and private metadata are excluded. Latest-toolchain compatibility checks
+are separate from these contribution/update PRs.
+
+The legacy paper/code/notes template repositories are scheduled for deletion only
+after the monorepo replacement is complete and verified. Student repositories are
+not deleted; ended projects are archived in the organization, with requested
+transfer or full-history copies coordinated with coauthors.
+
+See [LICENSE](LICENSE) and [LICENSES/](LICENSES/) for scoped terms. Original tooling
+uses MIT and original guide/slide prose uses CC BY 4.0. Inherited material,
+institutional artwork and fonts retain their applicable terms and permissions.
+
+Maintainers and onboarding automation regenerate the marked status block using
+[scripts/readme](scripts/readme/README.md) with the actual repository metadata.
