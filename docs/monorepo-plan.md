@@ -1,6 +1,6 @@
 # Monorepo delivery plan
 
-Updated 2026-11-03. Accepted decisions below supersede earlier proposals in the linked conversations. This file is the coordinator's current plan, not evidence that deployment or the full pilot has finished.
+Updated 2026-11-04. Accepted decisions below supersede earlier proposals in the linked conversations. Martin accepted the remaining S1-S7 decisions, with explicit permission to retain the supplied artwork. This file is the coordinator's current plan, not evidence that deployment or the full pilot has finished.
 
 ## Outcome and accepted design
 
@@ -14,9 +14,9 @@ Offer optional Lean, Tamarin, ProVerif, TLA+ and Rust/Java/Go/Solidity verifier 
 
 Benchmark provides a common quick/full invocation and machine-readable command, tool, machine, unit and result evidence. Projects select their workloads and measurement tools. There is no universal performance threshold.
 
-Presentation generalizes Martin's BPM FTSRG deck. Preserve documented AVM MIT and font OFL notices and exact source provenance. Martin confirmed redistribution permission for the supplied institutional artwork on 2026-11-04; retain the supplied logos and graph backgrounds. Do not replace them or infer a new blanket artwork license. Original reusable-source licensing remains a separate decision.
+Presentation generalizes Martin's BPM FTSRG deck. Preserve documented AVM MIT and font OFL notices and exact source provenance. Martin confirmed redistribution permission for the supplied institutional artwork on 2026-11-04; retain the supplied logos and graph backgrounds. Do not replace them or infer a new blanket artwork license. Original reusable code/tooling uses MIT; original guide/slide prose uses CC BY 4.0. Inherited material retains its own notices and terms.
 
-Existing-student project migration is long-term work, outside this delivery. Mechanical guide-link repairs needed before legacy-template deletion are a separate pending choice.
+Existing-student project migration is long-term work, outside this delivery. Mechanical guide-link and setup-instruction PRs in the six known existing projects are authorized before legacy-template deletion; they do not migrate student research or change project layout.
 
 ## People and onboarding
 
@@ -28,6 +28,7 @@ R1-R6 were explicitly accepted:
 - One resumable tool guides advisor/student steps and reports unfinished work. Include dry-run, safe repetition, atomic local state and bounded metadata edits. Keep credentials out of configuration. Preserve student prose, review notes, chapter choices, lint phase and Zotero-managed bibliography.
 - Students receive outside-collaborator write access to their own project only. Advisors control project settings/access; organization base permission is none and owners control repository creation, deletion and transfer.
 - Imre Kocsis becomes a second organization owner once he agrees. His agreement and invitation are not yet recorded.
+- Require 2FA before admitting new collaborators. Check existing accounts before enabling the requirement; do not assume compliance or Imre's agreement.
 - Completed projects remain archived in the organization, with a guaranteed student-requested transfer or full-history copy coordinated with coauthors. Do not delete student projects automatically.
 
 Advisor and student jointly verify builds, access and native synchronization. Operation completion is separate from verification: evidence identifies tested SHA, configuration, timestamp, actor/method and result. URL existence or manual completion alone is not a verified integration.
@@ -66,13 +67,13 @@ The lead student owns the Zenodo records and performs final publication after ad
 
 Packages bind exact source, build/runtime, selected files, licenses, external inputs and hashes. The uploader must consume those bytes, never rebuild in a credentialed job. Publication needs durable operation identity and reconciliation; never blindly retry an ambiguous create/newversion/publish. Version staging requires a token scope that also permits publishing, so workflow stages are not a token-scope boundary.
 
-Verified publication produces reviewable DOI/bibliography/availability writeback. Reserved DOIs are not published artifacts. Preserve Zotero-managed entries and the archived source SHA. Credential location and the student's concrete publication execution method remain pending; a central lab publisher is not selected.
+Verified publication produces reviewable DOI/bibliography/availability writeback. Reserved DOIs are not published artifacts. Preserve Zotero-managed entries and the archived source SHA. The student manually invokes publication in their own project's GitHub workflow, using their own Zenodo token as a repository secret and the exact reviewed receipt. Other writers can exercise that credential through workflow changes; advisor review is recorded policy, not technically enforced by student-editable workflows on Free. Never use a shared advisor token. A central lab publisher is not selected.
 
 ## Template maintenance
 
 Weekly and manual maintenance proposes reusable project improvements upstream, then merged template changes downstream. Neither direction auto-merges. Keep registered project/baseline identities, provenance and loop prevention. Only established template-owned changes are automatic candidates; mixed files require maintainer-selected edits in the authorized project context. Exclude research content, personal metadata, publication records and credentials.
 
-A scoped GitHub App and private maintenance controller are proposed for cross-repository PRs/package copies and private registry/logs. App tokens should be narrowed per run and selected repository. Contents-write permissions do not technically forbid merges/deletions; the implementation must enforce its no-merge behavior. An App key can be a secret in a public repository; private controller storage is a design choice for private registry/logs, not a platform prohibition.
+Use a private `FTSRG-BCLab-TDK/tdk-maintenance` repository for the project registry, maintenance credentials and private logs. Use an organization-owned GitHub App installed only on selected registered repositories, administered initially by Martin, with Imre as backup after he agrees. App tokens must be narrowed per run and selected repository. Contents-write permissions do not technically forbid merges/deletions; the implementation must enforce its no-merge behavior. An App key can be a secret in a public repository; private controller storage is the accepted design for private registry/logs, not a platform prohibition. App creation, installation and controller deployment remain implementation tasks.
 
 ## Integration progress and remaining implementation
 
@@ -84,8 +85,8 @@ Committed components now included locally:
 | --- | --- | --- |
 | Required accounts `51a46c4` | 14 deterministic tests, used by terminal setup | Real access evidence and guide integration |
 | Docker bootstrap `f9ff699` | 20 combined account/bootstrap tests pass here | Actual OS adapters/runtime smoke and full onboarding |
-| Terminal setup `9d17bf9` + source discovery `17fa890` | 40 onboarding tests; advisor dry-run against current draft source | Shared-config adapter, installation/workspace/provisioning adapters and real pilot |
-| Shared project config `54334d6` + corrections `efd2725` | 17 config/planner tests; strict metadata and actual presentation output paths | Dispatcher and setup must consume the same loader/digest; declared paper paths await relocation |
+| Terminal setup `9d17bf9` + shared-config adapter `4ba6818` | 45 onboarding tests; real status and advisor dry-run with explicit current draft source | Installation/workspace/provisioning adapters and real pilot |
+| Shared project config `54334d6` + corrections `efd2725` | 17 config/planner tests; setup uses its loader and exact raw-byte digest | Dispatcher; declared paper paths await relocation |
 | Selective packager `2ee930b` | 23 packager + 13 schema tests; complete-ZIP size-bound regression repaired | Uploader, durable publication state and live sandbox verification |
 | External inputs + dependency planner `6644ddb` | 18 fetch/verify fixtures + 7 planner tests reported passing in assembled tree; canonical receipt schema matches | Real immutable-release delivery/copy, consumers and workflows |
 | Presentation #28 `07bb8bd` | Local/hosted builds, visual and audience/presenter checks | Latest-runtime integration, accepted asset fetch and public terms |
@@ -100,7 +101,7 @@ Delivery order:
 1. Preserve/import code and scratch history and outstanding intent; integrate scoped module commits.
 2. Move paper sources and adapt root entrypoints, bibliography/helper cwd, Git-root hygiene, annotations and artifact paths. Do not silently disable Git protections when `.git` is above paper/.
 3. Wire configured component execution, latest resolution, separate badges, external references and public template manifests.
-4. Complete resumable onboarding and maintenance; settle remaining credentials/licensing choices.
+4. Complete resumable onboarding, student publication and maintenance using the accepted ownership, credential and licensing policies.
 5. Run a disposable new-project pilot through accounts/access, Docker, paper/code/proof/benchmark/presentation, native Overleaf round trip, conflicts/modes/symlinks, release staging/publishing in sandbox and both maintenance directions.
 6. Verify public disclosure/licensing, publish the reusable monorepo, then retire the three old templates with fresh recovery exports and repaired links.
 
@@ -108,26 +109,19 @@ Delivery order:
 
 Authorized deletion scope is exactly `FTSRG-BCLab-TDK/tdk-paper-template`, `tdk-code-template`, and `tdk-notes-template`, after the monorepo is complete and verified. Do not substitute indefinite archival for the user's deletion instruction, and do not delete them early.
 
-Code PRs #1-#3 remain open and change Docker/CI/publication hygiene. Notes PR #2 changes draft/final references. Import or explicitly supersede them. Preserve local notes commit `6665d1d` and assess 11 uncommitted notes-main changes without modifying that dirty checkout. Paper PR #1 needs a content comparison with its apparent canonical successor. Six existing student guides link to the retiring templates; mechanical update PRs are proposed separately from migration.
+Code PRs #1-#3 remain open and change Docker/CI/publication hygiene. Notes PR #2 changes draft/final references. Import or explicitly supersede them. Preserve local notes commit `6665d1d` and assess 11 uncommitted notes-main changes without modifying that dirty checkout. Paper PR #1 needs a content comparison with its apparent canonical successor. Six existing student guides link to the retiring templates; authorized mechanical update PRs repair those links and setup instructions separately from migration.
 
 Final recovery exports go to `/home/blacklight/Projects/TDK/retirement-archives/<timestamp>/`, mode 0700. The parent is itself a Git repository; `/retirement-archives/` was added to its local `.git/info/exclude` and verified ignored. The inventory is saved there. Test bundles restore successfully, but final mirror/bundle, PR/settings/comments and selected artifacts/logs must be refreshed immediately before deletion, hashed and test-restored. Check associated packages and live consumers. No repository has been deleted.
 
 Public-disclosure fact finding inspected the proposed branch and reachable remote history. The 134 template-review files are fictional/template evidence, not student assessments; they include local paths and candid policy criticism. Runner history includes actual non-secret service/host details. A real authenticated Overleaf project link and personal author emails also exist in history. Visibility changes expose remote branches and PR history, not only the final tree. Local-only learn/* branches are outside the inspected remote/proposed exposure. A targeted scan found no recognized credentials; it was not a complete artifact/log audit.
 
-Preserve history, consistent with the publication guide. Removing a file from HEAD does not erase its historical disclosure. Decide retention/disclosure of the identified non-secret history explicitly. Public source assets are not automatically licensed: paper/guide/notes have no blanket grant; code's MIT attribution still says TODO Name; bibliography styles have their own LPPL/GPL notices. Presentation fonts/AVM notices exist, and Martin has confirmed institutional-artwork redistribution permission; original BPM additions still fall under the reusable-source licensing decision. The matching `avn-tamarin-tutorial` repository is private, so it cannot be an anonymous student download endpoint.
+Preserve the existing history, including the identified template reviews, local paths, commit author identities and non-secret runner details. Martin accepted this disclosure. Archive the generated review/build evidence before removing it from the current starter tree; do not rewrite history. Original reusable code/tooling is MIT and original guide/slide prose is CC BY 4.0, with attribution preserved. Existing bibliography styles retain their LPPL/GPL notices and presentation fonts retain OFL. Institutional artwork is retained under Martin's confirmed redistribution permission, without a new blanket license. Correct the inherited code template's TODO copyright attribution from source evidence. The matching `avn-tamarin-tutorial` repository is private, so it cannot be an anonymous student download endpoint.
 
-## Remaining decision frontier
+## Interview status
 
-R1-R6 and operating Q1-Q10 are settled. Ask only the newly answerable branches:
+R1-R6, CI1-CI11, maintenance operating choices and S1-S7 are accepted. Martin confirmed the remaining round with "the other questions are all ok" after the artwork/history clarification. No current policy question remains open. This approval is not evidence of implementation, live access, Imre's consent or a passed pilot.
 
-- Private maintenance controller/GitHub App ownership and installation.
-- Require 2FA before admitting new organization collaborators.
-- Student publication through a manually invoked project workflow versus a local credentialed command; advisor review is not automatically enforced by a student-writable workflow on Free.
-- Mechanical guide-link/setup-instruction PRs in existing projects before deleting legacy templates.
-- Licenses for original reusable tooling/prose. S6 artwork redistribution is settled by Martin's permission statement; keep the supplied assets.
-- Acceptance of identified non-secret historical disclosures while preserving history and moving generated evidence out of the starter tree.
-
-After these choices, present one final shared-understanding summary before activating unresolved external choices. Continue already authorized source integration and implementation in parallel with the interview. Do not invent further approval questions for routine implementation details or commits.
+Continue source integration and the agreed implementation. Report concrete missing credentials or third-party actions through their proper channels when reached; do not reopen accepted policy or request repeat approval for routine implementation. Public visibility and legacy deletion retain their accepted completion/verification gates.
 
 ## Coordinated workstreams
 
