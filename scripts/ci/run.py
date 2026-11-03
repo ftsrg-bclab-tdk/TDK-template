@@ -45,6 +45,11 @@ def merge_reports(plan, reports, output, config, config_digest, started):
             if report.get("source") != source or report.get("configuration", {}).get("project_config_sha256") != config_digest:
                 raise ValueError("Component identity mismatch: " + name)
             components[name] = copy.deepcopy(report["components"][name])
+            if report.get("gate_outcome") != "pass":
+                components[name].update(gate_outcome="fail",outcome="unknown",reason=report.get("error","component execution did not pass"))
+            for step in components[name]["checks"]:
+                for member in step.get("files", []):
+                    member["path"] = name + "/" + name + "/" + member["path"]
             runtime["components"][name] = report.get("runtime")
     selected = [components[n] for n,d in plan["components"].items() if d["selected"]]
     gate = "incomplete" if plan["draft"] else "pass" if all(c["gate_outcome"] == "pass" for c in selected) else "fail"
@@ -108,6 +113,11 @@ def main():
                         if call(build,root,output/"paper-image.log"):
                             continue
                         image["built_image_id"] = iid.read_text().strip()
+                        inspected = json.loads(subprocess.check_output(["docker","image","inspect",image["built_image_id"]]))[0]
+                        image["local_image_config_id"] = inspected["Id"]
+                        image["platform"] = inspected["Os"]+"/"+inspected["Architecture"]
+                        image["docker_version"] = subprocess.check_output(["docker","version","--format","{{.Server.Version}}"],text=True).strip()
+                        image["buildx_version"] = subprocess.check_output(["docker","buildx","version"],text=True).strip()
                         image["dockerfile_sha256"] = project.file_hash(root/"scripts/ci/paper.Dockerfile")
                         image_path.write_text(json.dumps(image)+"\n")
                         prefix = ["docker","run","--rm","--init","--network=none","--cap-drop=ALL","--security-opt=no-new-privileges",
@@ -138,6 +148,9 @@ def main():
             report.update(gate_outcome="fail",acceptance_eligible=False)
         if load_project(root)[1] != config_digest:
             report.update(gate_outcome="fail",acceptance_eligible=False,error="Config changed during orchestration")
+        report["source_after"]=project.identity(root,config)
+        if report["source_after"]["dirty"]:
+            report["acceptance_eligible"]=False
         (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
         print(json.dumps({"gate_outcome":report["gate_outcome"],"components":{n:c["outcome"] for n,c in report["components"].items()}},indent=2))
         # Draft is useful source feedback but remains explicitly incomplete evidence.

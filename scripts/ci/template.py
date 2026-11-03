@@ -32,7 +32,6 @@ def main():
         raise ValueError("Template role is reserved for canonical repository; initialize this copy as project")
     mode = sys.argv[1]
     if mode == "source":
-        run([sys.executable,"-m","pip","install","--upgrade","jsonschema"])
         for suite in ("scripts/ci","scripts/external_inputs","scripts/onboarding/tests","scripts/release",
                       "scripts/readme","scripts/maintenance","benchmark","proof",
                       "code/scripts/tests","scratch/scripts/tests"):

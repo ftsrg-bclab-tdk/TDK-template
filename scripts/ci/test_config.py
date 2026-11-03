@@ -92,6 +92,13 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "result_file"):
             self.load()
 
+    def test_enabled_code_cannot_replace_tests_with_command_success(self):
+        code=self.config["components"]["code"]
+        code["enabled"]=True
+        code["profiles"]={"ordinary":[{"name":"compile","kind":"command","argv":["python3","build.py"],"timeout":30,"outputs":[]}]}
+        with self.assertRaisesRegex(ValueError,"structured tests"):
+            self.load()
+
     def test_unknown_fields_and_bad_shapes(self):
         for mutation in (lambda c: c.update(unknown=1),
                          lambda c: c.update(schema=True),

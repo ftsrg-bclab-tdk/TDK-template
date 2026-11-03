@@ -48,6 +48,8 @@ def verify_report(report_path, *, repository, tested_sha, config_sha256,
         raise ValueError("Report repository/source/config identity mismatch")
     if require_clean and source.get("dirty") is not False:
         raise ValueError("Dirty or unknown source state")
+    if require_clean and report.get("source_after", {}).get("dirty", False):
+        raise ValueError("Source became dirty during execution")
     execution = report.get("execution", {})
     started, completed = timestamp(execution.get("started_at")), timestamp(execution.get("completed_at"))
     if completed < started or started > datetime.now(timezone.utc):

@@ -26,3 +26,10 @@ class OrchestrationTests(unittest.TestCase):
         wrong["source"]["tested_sha"]="b"*40
         with self.assertRaisesRegex(ValueError,"identity"):
             merge_reports(report["plan"],{"paper":wrong},self.root/".project/checks",config,digest,report["execution"]["started_at"])
+
+    def test_successful_steps_cannot_hide_source_change_failure(self):
+        report=self.run_report()
+        config,digest=__import__('ci.config',fromlist=['load_project']).load_project(self.root)
+        report.update(gate_outcome="fail",error="Tracked source changed during execution")
+        aggregate=merge_reports(report["plan"],{"paper":report},self.root/".project/checks",config,digest,report["execution"]["started_at"])
+        self.assertEqual(aggregate["gate_outcome"],"fail")

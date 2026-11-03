@@ -113,6 +113,9 @@ def validate_project(config, root):
         for profile, checks in profiles.items():
             if not isinstance(profile, str) or not re.fullmatch(r"[a-z][a-z0-9_-]*", profile) or not isinstance(checks, list) or not checks:
                 raise ValueError("Invalid or empty check profile")
+            required_kind = {"code":"tests", "proof":"proof", "benchmark":"benchmark"}.get(name)
+            if component["enabled"] and required_kind and not any(isinstance(c,dict) and c.get("kind")==required_kind for c in checks):
+                raise ValueError("Enabled " + name + " profile needs structured " + required_kind + " evidence")
             names = set()
             for check in checks:
                 keys(check, {"name", "kind", "argv", "timeout", "outputs"}, {"result_file"})

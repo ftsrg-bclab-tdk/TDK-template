@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import sys
 import tempfile
@@ -16,6 +17,10 @@ from ci.config import inside, load_project, read_json
 from external_inputs.external_inputs import GitHub, Unavailable
 
 MAX_BYTES = 512 * 1024 * 1024
+
+
+class ArtifactUnavailable(ValueError):
+    pass
 
 
 def require(condition, message):
@@ -56,7 +61,7 @@ def extract(archive, output):
 
 def fetch(*, repository, repository_id, run_id, attempt, source_sha, workflow_path,
           artifact_name, output, allowed_events=("push",), artifact_id=None,
-          expected_artifact_sha256=None, client=None):
+          expected_artifact_sha256=None, client=None, bind_source=True, require_success=False, retain_archive=None):
     require(bool(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)), "Invalid repository")
     require(bool(re.fullmatch(r"[0-9a-f]{40}", source_sha)), "Invalid source SHA")
     for number in (repository_id, run_id, attempt):
@@ -68,7 +73,10 @@ def fetch(*, repository, repository_id, run_id, attempt, source_sha, workflow_pa
     run = client.metadata(f"{prefix}/actions/runs/{run_id}/attempts/{attempt}")
     require(run.get("id") == run_id and run.get("run_attempt") == attempt, "Run/attempt mismatch")
     require(run.get("repository", {}).get("id") == repository_id and run.get("head_repository", {}).get("id") == repository_id, "Producer repository mismatch")
-    require(run.get("head_sha") == source_sha and run.get("path", "").split("@")[0] == workflow_path, "Producer SHA/workflow mismatch")
+    require((not bind_source or run.get("head_sha") == source_sha) and run.get("path", "").split("@")[0] == workflow_path, "Producer SHA/workflow mismatch")
+    if not bind_source:
+        require(run.get("head_branch") == repo.get("default_branch"), "Release producer must use default-branch control code")
+    require(not require_success or run.get("conclusion") == "success", "Producer did not succeed")
     require(run.get("event") in allowed_events and run.get("status") == "completed", "Ineligible producer event/state")
     candidates = []
     for page in range(1, 21):
@@ -78,11 +86,15 @@ def fetch(*, repository, repository_id, run_id, attempt, source_sha, workflow_pa
         candidates.extend(a for a in artifacts if a.get("name") == artifact_name)
         if len(artifacts) < 100:
             break
-    require(len(candidates) == 1, "Exact attempt artifact missing or ambiguous")
+    if not candidates:
+        raise ArtifactUnavailable("Exact attempt artifact missing")
+    require(len(candidates) == 1, "Exact attempt artifact ambiguous")
     artifact = candidates[0]
-    require(artifact.get("expired") is False, "Artifact expired")
+    if artifact.get("expired") is True:
+        raise ArtifactUnavailable("Artifact expired")
+    require(artifact.get("expired") is False,"Invalid artifact expiry state")
     require(artifact_id is None or artifact.get("id") == artifact_id, "Artifact ID mismatch")
-    require(artifact.get("workflow_run", {}).get("id") == run_id and artifact.get("workflow_run", {}).get("head_sha") == source_sha, "Artifact producer mismatch")
+    require(artifact.get("workflow_run", {}).get("id") == run_id and artifact.get("workflow_run", {}).get("head_sha") == run["head_sha"], "Artifact producer mismatch")
     size = artifact.get("size_in_bytes")
     require(type(size) is int and 0 < size <= MAX_BYTES, "Artifact size limit")
     reported_digest = artifact.get("digest", "")
@@ -94,10 +106,15 @@ def fetch(*, repository, repository_id, run_id, attempt, source_sha, workflow_pa
         client.download(f"{prefix}/actions/artifacts/{artifact['id']}/zip", archive, MAX_BYTES)
         require(sha_file(archive) == digest, "Downloaded artifact digest mismatch")
         extract(archive, Path(output))
+        if retain_archive:
+            target=Path(retain_archive)
+            require(not target.exists(),"Retained archive path already exists")
+            target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copyfile(archive,target)
     return {"schema": "ci-artifact/v1", "repository": repository, "repository_id": repository_id,
             "source_sha": source_sha, "workflow_path": workflow_path, "run_id": run_id, "run_attempt": attempt,
             "artifact_id": artifact["id"], "artifact_name": artifact_name, "artifact_sha256": digest,
-            "producer_conclusion": run.get("conclusion")}
+            "producer_control_sha": run["head_sha"], "producer_conclusion": run.get("conclusion")}
 
 
 def paper_status(report, directory, kind, *, source_sha, config_sha256, run_id, attempt):

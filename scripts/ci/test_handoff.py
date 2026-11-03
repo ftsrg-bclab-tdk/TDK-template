@@ -20,11 +20,11 @@ class HandoffTests(unittest.TestCase):
             archive.writestr("report.json", "{}")
         self.sha = "a"*40
         self.run = {"id":20,"run_attempt":2,"repository":{"id":10},"head_repository":{"id":10},"head_sha":self.sha,
-                    "path":".github/workflows/ci.yml","event":"push","status":"completed","conclusion":"failure"}
+                    "path":".github/workflows/ci.yml","head_branch":"main","event":"push","status":"completed","conclusion":"failure"}
         self.artifact = {"id":30,"name":f"checks-{self.sha}-20-2","expired":False,"size_in_bytes":self.archive.stat().st_size,
                          "digest":"sha256:"+hashlib.sha256(self.archive.read_bytes()).hexdigest(),"workflow_run":{"id":20,"head_sha":self.sha}}
 
-    def fetch(self, mutation=None):
+    def fetch(self, mutation=None, **kwargs):
         owner = self
         class Client:
             def metadata(self, path):
@@ -32,13 +32,21 @@ class HandoffTests(unittest.TestCase):
                     return owner.run
                 if "/artifacts?" in path:
                     return {"artifacts":[owner.artifact]}
-                return {"id":10}
+                return {"id":10,"default_branch":"main"}
             def download(self,path,target,limit):
                 shutil.copyfile(owner.archive,target)
                 if mutation:
                     mutation(target)
         return fetch(repository="org/repo",repository_id=10,run_id=20,attempt=2,source_sha=self.sha,
-                     workflow_path=".github/workflows/ci.yml",artifact_name=f"checks-{self.sha}-20-2",output=self.root/"out",client=Client())
+                     workflow_path=".github/workflows/ci.yml",artifact_name=f"checks-{self.sha}-20-2",output=self.root/"out",client=Client(),**kwargs)
+
+    def test_release_control_sha_can_differ_from_selected_source(self):
+        self.run["head_sha"]="b"*40
+        self.artifact["workflow_run"]["head_sha"]="b"*40
+        self.run["conclusion"]="success"
+        receipt=self.fetch(bind_source=False,require_success=True)
+        self.assertEqual(receipt["source_sha"],self.sha)
+        self.assertEqual(receipt["producer_control_sha"],"b"*40)
 
     def test_failed_producer_can_supply_successful_individual_results(self):
         receipt = self.fetch()

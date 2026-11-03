@@ -85,6 +85,8 @@ def make_plan(root, config, config_digest, args):
 
 def doctor(root, config, config_digest):
     issues = []
+    if sys.version_info < (3, 11):
+        issues.append("Python 3.11 or newer is required")
     for label, path in [("paper source", config["paper_main"]), *config["paper_entrypoints"].items()]:
         if not inside(root, path).is_file():
             issues.append(label + " missing: " + path)
@@ -100,7 +102,7 @@ def doctor(root, config, config_digest):
             "scope": "configuration and executable discovery; no component or service access verified"}
 
 
-def run_check(root, component, step, output, strict):
+def run_check(root, component, step, output, strict, mode="ordinary"):
     cwd = inside(root, component["cwd"])
     result_file = inside(cwd, step["result_file"]) if "result_file" in step else None
     if result_file and result_file.exists():
@@ -115,6 +117,8 @@ def run_check(root, component, step, output, strict):
             native, _ = read_json(result_file)
             shutil.copyfile(result_file, output / (step["name"] + ".result.json"))
         result.update(interpret(step["kind"], result["raw_exit"], native, strict=strict))
+        if step["kind"] == "benchmark" and native and native.get("mode") != ("full" if mode == "full" else "smoke"):
+            raise ValueError("Benchmark result mode differs from requested execution")
     except ValueError as exc:
         result.update(execution_status="error", outcome="unknown", gate_outcome="fail", reason=str(exc))
     for relative in step["outputs"]:
@@ -158,6 +162,11 @@ def check(root, config, config_digest, plan, output, runtime=None, config_path="
         if runtime.get("schema") != "runtime-resolution/v1" or runtime.get("source_sha") != plan["source"]["tested_sha"] or runtime.get("project_config_sha256") != config_digest:
             raise ValueError("Runtime identity differs from checked source/config")
         (output / "runtime.json").write_text(json.dumps(runtime, indent=2) + "\n")
+        if runtime.get("npm"):
+            lock = inside(root, runtime["npm"]["lock_path"])
+            if file_hash(lock) != runtime["npm"]["lock_sha256"]:
+                raise ValueError("Run-local npm resolution changed before checking")
+            shutil.copyfile(lock, output/"package-lock.json")
     pending = set(config["components"])
     while pending:
         ready = sorted(n for n in pending if not set(config["components"][n]["depends_on"]) & pending)
@@ -192,7 +201,7 @@ def check(root, config, config_digest, plan, output, runtime=None, config_path="
                     raise ValueError("No configured profile: " + mode)
                 for step in component["profiles"][mode]:
                     try:
-                        record = run_check(root, component, step, component_output, mode == "submit")
+                        record = run_check(root, component, step, component_output, mode == "submit", mode)
                     except (ValueError, OSError) as exc:
                         record = {"name": step["name"], "kind": step["kind"], "execution_status": "error", "outcome": "unknown", "gate_outcome": "fail", "reason": str(exc)}
                     result["checks"].append(record)
@@ -212,6 +221,9 @@ def check(root, config, config_digest, plan, output, runtime=None, config_path="
         report.update(gate_outcome="fail", acceptance_eligible=False, error="Source revision changed during execution")
     if identity(root, config)["tracked_diff_sha256"] != plan["source"]["tracked_diff_sha256"]:
         report.update(gate_outcome="fail", acceptance_eligible=False, error="Tracked source changed during execution")
+    report["source_after"] = identity(root, config)
+    if report["source_after"]["dirty"]:
+        report["acceptance_eligible"] = False
     report["files"] = []
     for path in sorted(output.rglob("*")):
         if path.is_symlink():

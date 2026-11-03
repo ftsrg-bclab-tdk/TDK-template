@@ -81,6 +81,7 @@ def snapshot(root, config_path, component, image=None, npm_stage=None, run=comma
     probes = {"python": ["python3", "--version"], "git": ["git", "--version"]}
     if component == "paper":
         probes.update(tex=["xelatex", "--version"], latexmk=["latexmk", "-v"], inkscape=["inkscape", "--version"], pdfinfo=["pdfinfo", "-v"])
+        probes["python_packages"] = ["python3", "-m", "pip", "freeze"]
     if component == "presentation":
         probes.update(node=["node", "--version"], npm=["npm", "--version"])
     for name, argv in probes.items():
@@ -101,6 +102,11 @@ def snapshot(root, config_path, component, image=None, npm_stage=None, run=comma
         npm = prepare_npm(root, config["components"][component]["cwd"], npm_stage, run)
         value["npm"] = npm
         value["staged_components"][component] = npm["staged_cwd"]
+        stage=inside(root,npm_stage)
+        browser=run(["node","--input-type=module","-e","import {browserPath} from './scripts/browser.mjs'; console.log(browserPath());"],cwd=stage)
+        value["tools"]["browser"]=run([browser,"--version"])
+        value["browser_path"]=browser
+        value["fonts"]={str(p.relative_to(stage)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((stage/"assets/fonts").glob("*.ttf"))}
     return value
 
 

@@ -143,6 +143,16 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse(json.loads(result.stdout)["acceptance_eligible"])
 
+    def test_full_request_rejects_successful_smoke_result(self):
+        native={"schema":"component-result/v1","kind":"benchmark","outcome":"pass","mode":"smoke","parameters":{},
+                "measurements":[{"name":"time","value":1.0,"unit":"s"}]}
+        (self.root/"paper/build.py").write_text("from pathlib import Path\nPath('benchmark.json').write_text("+repr(json.dumps(native))+")\n")
+        step={"name":"bench","kind":"benchmark","argv":[sys.executable,"build.py"],"timeout":10,"outputs":[],"result_file":"benchmark.json"}
+        result=project.run_check(self.root,{"cwd":"paper"},step,self.root/".project/mode",False,"full")
+        self.assertEqual(result["raw_exit"],0)
+        self.assertEqual(result["gate_outcome"],"fail")
+        self.assertIn("mode differs",result["reason"])
+
 
 if __name__ == "__main__":
     unittest.main()

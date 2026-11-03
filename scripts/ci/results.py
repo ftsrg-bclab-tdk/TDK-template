@@ -28,6 +28,8 @@ def interpret(kind, returncode, report=None, *, strict=False):
         outcome = report.get("outcome")
         if outcome not in ("pass", "verified", "violated", "unknown"):
             raise ValueError("Invalid adapter outcome")
+        if kind != "proof" and outcome == "verified":
+            raise ValueError("Only proof obligations use verified outcomes")
         if kind == "proof":
             obligations = report.get("obligations")
             if not isinstance(obligations, list) or not obligations:
