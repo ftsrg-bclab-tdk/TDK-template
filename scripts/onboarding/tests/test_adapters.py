@@ -3,6 +3,7 @@ import argparse
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -235,7 +236,15 @@ class AdapterTests(unittest.TestCase):
         runtime = {"schema": "runtime-resolution/v1", "source_sha": sha, "project_config_sha256": digest,
                    "tools": {"python": sys.version}}
         output = self.root / ".project/checks"
-        project.check(self.root, config, digest, plan, output, runtime)
+        # This is a local disposable repository, independent of the hosting CI job.
+        # Keep the production guard: the real runner identity must reject another repo.
+        with patch.dict(os.environ, {"GITHUB_REPOSITORY": "different/repository"}):
+            with self.assertRaisesRegex(ValueError, "Configured repository differs"):
+                project.check(self.root, config, digest, plan, output, runtime)
+        local_env = {k: v for k, v in os.environ.items() if not k.startswith("GITHUB_")}
+        with patch.dict(os.environ, local_env, clear=True):
+            project.check(self.root, config, digest, plan, output, runtime)
+        self.assertEqual(json.loads((output / "report.json").read_text())["execution"]["method"], "local")
         result = checks.ingest(output / "report.json", config, digest, sha)
         self.assertEqual(result["status"], "verified")
         self.assertEqual(result["roundtrip_and_clone"], "pending")
