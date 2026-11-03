@@ -17,7 +17,7 @@ For Overleaf, select root `paper-draft.tex` or `paper-final.tex`; edit `draft.te
   Overleaf, open root `paper-final.tex` and choose *Recompile from this file*. "Final" names the format: this
   PDF builds in every phase, and only `make check-submit` says it is ready.
 - `make check-final` builds the final PDF and runs every lint rule on it. CI
-  (`../.github/workflows/paper.yml`) reports writing findings as advice. Compilation failures,
+  (`../.github/workflows/ci.yml`) reports writing findings as advice. Compilation failures,
   technical errors, and failed template regression or consistency checks fail CI. Local check
   targets remain strict. Prefer it to `make check`, which lints
   the draft build. `make check-submit` does the same at the `submit` phase whatever

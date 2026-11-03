@@ -33,7 +33,9 @@ def main():
     mode = sys.argv[1]
     if mode == "source":
         run([sys.executable,"-m","pip","install","--upgrade","jsonschema"])
-        for suite in ("scripts/ci","scripts/external_inputs","scripts/onboarding/tests","scripts/release"):
+        for suite in ("scripts/ci","scripts/external_inputs","scripts/onboarding/tests","scripts/release",
+                      "scripts/readme","scripts/maintenance","benchmark","proof",
+                      "code/scripts/tests","scratch/scripts/tests"):
             run([sys.executable,"-m","unittest","discover","-s",suite,"-v"])
     elif mode == "paper":
         paper = root/"paper"

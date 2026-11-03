@@ -10,7 +10,7 @@ The layout is `paper/`, `code/`, `benchmark/`, `proof/`, `scratch/`, and `presen
 
 Use native whole-monorepo Overleaf GitHub synchronization. Appropriate collaborators edit the paper in Overleaf and use normal tools for other components. Keep paper sources in `paper/` with unique small root compilation entrypoints. No custom bridge, separate paper repository, or sole-editor restriction is in scope. Editing convention does not prevent Overleaf's mode resets or symlink transformations. Our scripts use explicit interpreters; arbitrary student code must pass a real post-sync execution test, without silent chmod or symlink rewriting.
 
-Offer optional Lean, Tamarin, ProVerif, TLA+ and Rust/Java/Go/Solidity verifier profiles. Supported profiles need real tooling, examples, commands and checks, including a deliberately false example. Documentation-only options must say so. Unconfigured or inconclusive proofs are not verified. The [tool catalog](proof-tool-options.md) supplies sources and limitations; the adapters are not implemented yet.
+Offer optional Lean, Tamarin, ProVerif, TLA+ and Rust/Java/Go/Solidity verifier profiles. Supported profiles need real tooling, examples, commands and checks, including a deliberately false example. Documentation-only options must say so. Unconfigured or inconclusive proofs are not verified. The [tool catalog](proof-tool-options.md) supplies sources and limitations; the TLC finite-state invariant profile now has a working adapter, positive/negative examples and actual runtime evidence. Other catalog entries remain explicitly documentation-only.
 
 Benchmark provides a common quick/full invocation and machine-readable command, tool, machine, unit and result evidence. Projects select their workloads and measurement tools. There is no universal performance threshold.
 
@@ -83,23 +83,29 @@ Committed components now included locally:
 
 | Component | Evidence | Remaining work |
 | --- | --- | --- |
-| Required accounts `51a46c4` | 14 deterministic tests, used by terminal setup | Real access evidence and guide integration |
-| Docker bootstrap `f9ff699` | 20 combined account/bootstrap tests pass here | Actual OS adapters/runtime smoke and full onboarding |
-| Terminal setup `9d17bf9` + shared-config adapter `4ba6818` | 45 onboarding tests; real status and advisor dry-run with explicit current draft source | Installation/workspace/provisioning adapters and real pilot |
-| Shared project config `54334d6` + corrections `efd2725` | 17 config/planner tests; setup uses its loader and exact raw-byte digest | Dispatcher; declared paper paths await relocation |
-| Selective packager `2ee930b` | 23 packager + 13 schema tests; complete-ZIP size-bound regression repaired | Uploader, durable publication state and live sandbox verification |
-| External inputs + dependency planner `6644ddb` | 18 fetch/verify fixtures + 7 planner tests reported passing in assembled tree; canonical receipt schema matches | Real immutable-release delivery/copy, consumers and workflows |
-| Presentation #28 `07bb8bd` | Local/hosted builds, visual and audience/presenter checks | Latest-runtime integration, accepted asset fetch and public terms |
+| Required accounts and terminal onboarding | Canonical account API plus installer/workspace/provisioning/evidence adapters; 61 assembled tests pass before the incoming role fix | Real host/access/new-project pilot; organization 2FA is deferred by the user |
+| Shared config and CI execution | `project.json`, dispatcher, latest resolver and exact artifact handoff; 37 assembled CI tests | Hosted run on the assembled branch; publication transport increment still separate |
+| Paper relocation and root proxies | Source/proxy build equivalence proved by owner; updated guide builds draft (127 pages) and final (23 pages) without undefined references/citations | Native Overleaf import, compile and push/pull/mode pilot |
+| Code and scratch imports | Source histories and PR intents preserved; scope/lifecycle fixes; real code development image build/list and explicit unconfigured failure | Project research recipes remain intentionally unconfigured; no fake green claims |
+| Selective release `2ee930b`, `82e7a21`, `772176a` | Packager, uploader, recovery journal, published receipts and project-owned GitHub journal with repository-ID checks | Hosted publication workflow; real sandbox credentials and mutation evidence |
+| External inputs and official references | Exact package retrieval/classification and weekly freshness source integrated; 19 assembled external-input tests | Accepted durable package delivery; five current faculty references still unresolved |
+| Presentation #28 | Actual latest staged render/check passed in owner's full clean run; attribution/permissions documented | Accepted asset-package delivery; macOS/dual-display validation |
+| Benchmark `262a18c` | Real deterministic smoke/full runs and shared dispatcher/verifier passed | Students supply research workloads and select enabled profiles |
+| TLC proof `4984ed1` | Actual latest TLC/JVM positive and deliberately false models checked; structured verdicts validated | Other offered tools remain catalog options, not implemented adapters |
+| Separate badges and review fetch | Blocks generated from actual workflow files/live repo metadata; exact-run transport fetch repair has 39 review tests | Live hosted workflow/badge state after landing |
+| Maintenance ownership `2152f0e` | Exact trusted canonical path policy and 6 tests; controller owner received contract | Two-way PR/copy implementation and real App-token pilot |
 | Runner #27 `035b0bd` | Native offline isolation/cleanup and hosted toolkit checks | GitHub session/container/egress integration and routing evidence |
 
-Code/scratch imports and paper relocation/root proxies are underway in their existing workstreams. Workflow execution/badge handoff, proof adapters, real benchmark scaffold, full onboarding and maintenance automation remain unfinished. Tests of isolated components are not evidence that the whole monorepo works.
+Main CI source `078363b` and its clean-run fix `b85b7a6` are integrated. The owner's clean local orchestration built both paper PDFs, lint/review evidence, maintainer suites and latest presentation, and the shared verifier accepted its exact clean source report. This is local evidence, not a live GitHub, Overleaf or BME workload result. Root integration added tests for badges, ownership, benchmark, proof, code hygiene and scratch lifecycle to the maintainer source suite.
+
+The controller repository exists and setup PR #1 has a passing plan test job; its credentialed scan is intentionally skipped on PRs. The App is not registered. Base organization permission is now none and member repository creation is off. Martin deferred the remaining organization UI changes (2FA and member deletion/transfer/visibility). Keep invitations blocked on authenticated policy readback until those are applied; do not reopen those choices. Merge authority follows repository roles, not an exclusive-Martin policy.
 
 Setup and CI share one root `project.json` with schema 1. CI owns its loader and component commands; setup preserves those fields while managing repository identity and bounded paper metadata. The editable paper source is separate from the root draft/final compilation entrypoints. Both consumers bind evidence to the exact config bytes. Account identifiers and local operational state stay in the ignored private `.onboarding/` directory.
 
 Delivery order:
 
-1. Preserve/import code and scratch history and outstanding intent; integrate scoped module commits.
-2. Move paper sources and adapt root entrypoints, bibliography/helper cwd, Git-root hygiene, annotations and artifact paths. Do not silently disable Git protections when `.git` is above paper/.
+1. Done locally: preserve/import code and scratch history and outstanding intent; continue integrating scoped module commits.
+2. Done locally: move paper sources and adapt root entrypoints, bibliography/helper cwd, Git-root hygiene, annotations and artifact paths. Do not silently disable Git protections when `.git` is above paper/.
 3. Wire configured component execution, latest resolution, separate badges, external references and public template manifests.
 4. Complete resumable onboarding, student publication and maintenance using the accepted ownership, credential and licensing policies.
 5. Run a disposable new-project pilot through accounts/access, Docker, paper/code/proof/benchmark/presentation, native Overleaf round trip, conflicts/modes/symlinks, release staging/publishing in sandbox and both maintenance directions.
@@ -109,7 +115,7 @@ Delivery order:
 
 Authorized deletion scope is exactly `FTSRG-BCLab-TDK/tdk-paper-template`, `tdk-code-template`, and `tdk-notes-template`, after the monorepo is complete and verified. Do not substitute indefinite archival for the user's deletion instruction, and do not delete them early.
 
-Code PRs #1-#3 remain open and change Docker/CI/publication hygiene. Notes PR #2 changes draft/final references. Import or explicitly supersede them. Preserve local notes commit `6665d1d` and assess 11 uncommitted notes-main changes without modifying that dirty checkout. Paper PR #1 needs a content comparison with its apparent canonical successor. Six existing student guides link to the retiring templates; authorized mechanical update PRs repair those links and setup instructions separately from migration.
+Code PRs #1-#3 and notes PR #2 are imported with history; their source PRs remain open. See `docs/component-import-dispositions.md` for adaptations. Local notes commit `6665d1d` is superseded by the shared root skills; its source commit and the 11 uncommitted notes-main changes remain untouched in the original checkout. Paper PR #1 needs a content comparison with its apparent canonical successor. Six existing student guides link to the retiring templates; authorized mechanical update PRs repair those links and setup instructions separately from migration.
 
 Final recovery exports go to `/home/blacklight/Projects/TDK/retirement-archives/<timestamp>/`, mode 0700. The parent is itself a Git repository; `/retirement-archives/` was added to its local `.git/info/exclude` and verified ignored. The inventory is saved there. Test bundles restore successfully, but final mirror/bundle, PR/settings/comments and selected artifacts/logs must be refreshed immediately before deletion, hashed and test-restored. Check associated packages and live consumers. No repository has been deleted.
 

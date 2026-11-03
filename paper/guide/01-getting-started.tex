@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------
 \chapter{Getting started}\label{app:start}
 %----------------------------------------------------------------------------
-Start these steps in your first week, alongside the research. Each step names its owner. By the first consultation, send your identifiers, create the notes and code repositories, and verify your paper access and both advisors' access as described below. Bring a problem paragraph and initial sources to that consultation. Finish the VM and bibliography integration alongside early research; optional editor and operating-system tooling must not delay the work.
+Start these steps in your first week, alongside the research. Each step names its owner. By the first consultation, complete your account checklist and verify access to the project repository and Overleaf with both advisors as described below. Bring a problem paragraph and initial sources to that consultation. Finish the VM and bibliography integration alongside early research; optional editor and operating-system tooling must not delay the work.
 
 %----------------------------------------------------------------------------
 \section{Share your identifiers}\label{app:start:ids}
@@ -13,31 +13,27 @@ Start these steps in your first week, alongside the research. Each step names it
 
 Register with the name you intend to use on your papers. Add a personal email address that you will retain after graduation as well as your university address, and verify the addresses using ORCID's emails. Choose the visibility settings for your record; ORCID's \href{https://support.orcid.org/hc/en-us/articles/360006897454-How-do-I-register-for-an-ORCID-ID}{registration guide} explains the options. If you already have an iD, recover access to that record rather than creating another one.
 
-Send both advisors the full \texttt{https://orcid.org/} link to your record and save it in your notes repository's README. Use the same iD when identifying yourself as an author in publication submissions and Zenodo deposits (\cref{app:zenodo}).
+Send both advisors the full \texttt{https://orcid.org/} link to your record and record it through the setup command. Use the same iD when identifying yourself as an author in publication submissions and Zenodo deposits (\cref{app:zenodo}).
 
 %----------------------------------------------------------------------------
 \section{Accounts and access}\label{app:start:access}
 Set the same recognisable profile picture on every account you use with us, including GitHub, your university e-mail, Moodle, Outlook, Teams, Overleaf and Zotero. This helps us recognise you across services.
 
-\paragraph{Overleaf project.} \emph{We} create your semester's project from this template under our Overleaf Pro subscription. Ask us to set it up.
+\paragraph{Project repository and Overleaf.} \emph{We} create one private repository in the lab organization from \href{https://github.com/FTSRG-BCLab-TDK/TDK-template}{TDK-template}, grant you write access to your project, and import the whole repository into our premium Overleaf project. We invite the paper collaborators there. You accept the invitations and clone the project with ordinary \texttt{git clone}. The components share one history; no submodules are needed.
 
-\paragraph{Repositories.} Your work lives in three GitHub repositories, cloned as one (\cref{app:code:github}):
-\begin{itemize}
-  \item \textbf{Notes repository}, at the top level, holds notes, drawings, consultation summaries, slides and a README linking them. \emph{You} create a private repository from \href{https://github.com/FTSRG-BCLab-TDK/tdk-notes-template}{tdk-notes-template}. Its CI maintains \texttt{lifecycle.md}, a status page for the lifecycle (\cref{app:code:paperci}).
-  \item \textbf{\texttt{paper/}}, the paper repository. \emph{We} create it through Overleaf's GitHub integration and add you. Only the project's owner can link it, and the link needs an empty GitHub repository, so this step is ours. Use the GitHub dialog in Overleaf's menu to sync changes in either direction; see \href{https://www.overleaf.com/learn/how-to/GitHub_Synchronization}{GitHub Synchronization}.
-  \item \textbf{\texttt{code/}}, the code repository. \emph{You} create it from \href{https://github.com/FTSRG-BCLab-TDK/tdk-code-template}{tdk-code-template}, which supplies recipes, CI and the files needed for Zenodo archiving (\cref{app:code:github}, \cref{app:zenodo}).
-\end{itemize}
-Add both advisors to all three repositories. Add \texttt{paper/} and \texttt{code/} as submodules of the notes repository, then clone it with \texttt{git clone --recurse-submodules}; see the Git book's chapter on \href{https://git-scm.com/book/en/v2/Git-Tools-Submodules}{submodules}. This gives you one workspace for local paper builds, GitHub features and AI agents working across notes, paper and code (\cref{app:code:ai}).
+Paper sources live in \texttt{paper/}. In Overleaf, select XeLaTeX and the agreed TeX Live version, with root \texttt{paper-draft.tex} as the main document. Select root \texttt{paper-final.tex} for the submission format. Use Overleaf's GitHub menu to pull and push changes; after a GitHub push, pull in Overleaf before editing. See \href{https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/github-synchronization}{GitHub synchronization}. Edit the paper in Overleaf and use your normal tools for code, proofs, benchmarks, scratch notes and slides. The whole tracked tree is synchronized, including scratch notes. File-mode and symlink checks are part of setup even when those files are not edited in Overleaf.
 
-By the first consultation, verify that you can edit the Overleaf project and push to the paper repository, and that both advisors can open the project and all three repositories. Create the code repository now, even if it only contains the template, so the implementation has a home from the start.
+By the first consultation, verify that you can edit the paper and push to the project repository, and that both advisors can open the repository and Overleaf project. An invitation waiting for acceptance is still an unfinished step.
 
 \paragraph{Zotero group.} \emph{We} add you to \href{https://www.zotero.org/groups/6715800/ftsrg_blockchain_lab}{ftsrg\_blockchain\_lab}, our shared literature library. \emph{You} install \href{https://www.zotero.org/}{Zotero} and its \href{https://www.zotero.org/download/connectors}{browser connector}, then save every source you read to the group. Allow ten minutes for the \href{https://www.zotero.org/support/quick_start_guide}{quick start guide}. \Cref{app:latex:cite} explains how to cite the library's sources.
 
-Import the library through Overleaf's Zotero integration, included in our Pro subscription. In Overleaf's account settings, link Zotero under \emph{Reference Managers}; see \href{https://www.overleaf.com/learn/how-to/How_to_link_your_Overleaf_account_to_Mendeley_and_Zotero}{linking your account to Zotero}. In the project, delete the placeholder \texttt{bib/zotero.bib}. Choose \emph{New file}, then \emph{From Zotero}, select the group library and name the file \texttt{bib/zotero.bib}. Use \emph{Refresh} to import new sources. Refresh overwrites this file, so keep hand-written entries, such as the Zenodo artifact, in \texttt{bib/references.bib}. The paper reads both files. For local work without Overleaf, Zotero's \href{https://retorque.re/zotero-better-bibtex/}{Better BibTeX} plugin can export the group to the same file.
+Import the library through Overleaf's Zotero integration, included in our Pro subscription. In Overleaf's account settings, link Zotero under \emph{Reference Managers}; see \href{https://www.overleaf.com/learn/how-to/How_to_link_your_Overleaf_account_to_Mendeley_and_Zotero}{linking your account to Zotero}. In the project, replace the initial placeholder at \texttt{paper/bib/zotero.bib} only during first setup. Choose \emph{New file}, then \emph{From Zotero}, select the group library and name the file \texttt{paper/bib/zotero.bib}. Use \emph{Refresh} to import new sources. Refresh overwrites this file, so keep hand-written entries, such as the Zenodo artifact, in \texttt{paper/bib/references.bib}. The paper reads both files. For local work without Overleaf, Zotero's \href{https://retorque.re/zotero-better-bibtex/}{Better BibTeX} plugin can export the group to the same file.
 
 \paragraph{GitHub Student Developer Pack.} You can apply for the free \href{https://education.github.com/pack}{GitHub Student Developer Pack} with your \texttt{@edu.bme.hu} address; it includes GitHub Pro and GitHub Copilot.
 
 %----------------------------------------------------------------------------
+\input{guide/01-onboarding}
+
 \section{Calendar}\label{app:start:calendar}
 \paragraph{Neptun timetable.} \emph{You.} In Neptun's calendar, choose \emph{Naptár kezelése}, then \emph{Feliratkozás link másolása} (\cref{fig:neptun-export}). This gives you a subscription link that keeps your timetable up to date. Add it to your calendar. In Google Calendar, choose \emph{Settings}, \emph{Add calendar}, then \emph{From URL} (\cref{fig:google-calendar-url}).
 \begin{figure}[!ht]
@@ -61,7 +57,7 @@ Import the library through Overleaf's Zotero integration, included in our Pro su
 
 %----------------------------------------------------------------------------
 \section{Development environment}\label{app:start:env}
-\paragraph{Operating system.} We recommend Linux on bare metal if possible, ideally \href{https://omarchy.org/}{Omarchy}, a distribution configured for development; ask Martin for his setup. Ubuntu and Pop!\_OS are also good options. Omarchy includes a Windows virtual machine. If you occasionally need Windows on bare metal, you can dual boot. We recommend Windows Subsystem for Linux (WSL) only if you must use Windows daily, for example for video editing.
+\paragraph{Operating system.} Use Linux or WSL for the command-line tools. macOS uses the Linux-container build route; check the selected tools and container architecture during setup. Native Windows builds are outside the supported route. On WSL, browser and desktop application steps, including the Zotero connector, usually run on the Windows host; the repository and command-line tools run inside WSL.
 
 \paragraph{Editor.} We use \href{https://code.visualstudio.com/}{Visual Studio Code}. Useful extensions include Remote - SSH for the VM, GitHub Pull Requests, Claude Code, Codex and the extensions for your programming languages.
 
@@ -71,6 +67,6 @@ Import the library through Overleaf's Zotero integration, included in our Pro su
 
 \paragraph{Virtual machine and remote work.} In the message with your identifiers, ask us to request a VM in the BME cloud. Verify SSH access alongside early research; start reading and writing while provisioning is in progress. We can provide 8 cores and 16\,GB of memory in the \href{https://cloud.bme.hu/}{BME cloud}, usually in its \href{https://fured.cloud.bme.hu/}{Füred} environment. Host your editor and repositories there, or run AI agents while your laptop is closed. Connect through SSH, RDP, VS Code Remote or Tailscale. Agents and their harnesses (\cref{app:code:ai}) can run on the VM directly or through remote access.
 
-\paragraph{Workspace layout.} Keep the clone of the notes repository (\cref{app:start:access}) on your machine or VM. We recommend opening it in one VS Code window, with the \LaTeX{} build and AI agent in the same folder. This gives the agent the paper's claims and consultation decisions while it edits code or prose, which helps avoid mistakes. Commit each submodule separately. After a consultation, commit the submodule pointers in the notes repository so we can check out the state we discussed.
+\paragraph{Workspace layout.} Keep one clone of the project repository on your machine or VM. Open the generated \texttt{tdk.code-workspace} in VS Code. The paper, code, proofs, benchmarks, scratch notes and presentation share one commit history. After a consultation, commit its summary in \texttt{scratch/notes/consultations/} together with any agreed source changes. Keep generated outputs and local credentials out of Git.
 
 \paragraph{Do not overdo it.} Limit the time you spend setting up your environment. We learned this the hard way.
