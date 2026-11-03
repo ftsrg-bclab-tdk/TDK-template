@@ -1,47 +1,34 @@
-name: presentation
+# Presentation execution is owned by ci.yml to share planning/runtime/evidence.
+# This explicit manual entry remains for authenticated component-only diagnostics.
+name: Presentation diagnostics
 on:
-  pull_request:
-    paths:
-      - 'presentation/**'
-      - '.github/workflows/presentation.yml'
-  push:
-    branches: [main, master]
-    paths:
-      - 'presentation/**'
-      - '.github/workflows/presentation.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   presentation:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
-      # Ubuntu ships an AppArmor user-namespace allowance for this stable binary.
-      # PATH may prefer an unpackaged Chromium build with no usable sandbox.
       CHROME_PATH: /opt/google/chrome/chrome
-    defaults:
-      run:
-        working-directory: presentation
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@main
         with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: presentation/package-lock.json
-      - name: Install PDF inspection tools
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
-      - name: Build HTML, PDFs, and review images
-        run: npm run render
-      - name: Check slides and PDFs
-        run: npm run check
-      - uses: actions/upload-artifact@v4
+          python-version: '3.x'
+          check-latest: true
+      - uses: actions/setup-node@main
         with:
-          name: presentation-${{ github.sha }}
-          path: presentation/dist/
+          node-version: '*'
+          check-latest: true
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - run: python3 scripts/ci/run.py --component presentation
+      - uses: actions/upload-artifact@main
+        if: always()
+        with:
+          name: presentation-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/checks/
           retention-days: 14
+          if-no-files-found: error

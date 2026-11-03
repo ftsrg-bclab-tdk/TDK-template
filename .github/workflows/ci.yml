@@ -1,0 +1,133 @@
+name: Project checks
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+  push:
+    branches: ['**']
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Component (all runs every enabled component)
+        type: choice
+        options: [all, paper, code, proof, benchmark, scratch, presentation]
+        default: all
+      mode:
+        description: Ordinary, strict paper submission, or full benchmark
+        type: choice
+        options: [ordinary, submit, full]
+        default: ordinary
+permissions:
+  contents: read
+concurrency:
+  group: project-checks-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'automatic' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+jobs:
+  source:
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - name: Validate shared configuration and source interfaces
+        run: python3 scripts/ci/template.py source
+  execute:
+    needs: source
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHROME_PATH: /opt/google/chrome/chrome
+    steps:
+      - uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - uses: actions/setup-node@main
+        with:
+          node-version: '*'
+          check-latest: true
+      - name: Install current PDF inspection tools
+        if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Plan and execute configured checks
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          IS_DRAFT: ${{ github.event.pull_request.draft || false }}
+          COMPONENT: ${{ inputs.component || 'all' }}
+          MODE: ${{ inputs.mode || 'ordinary' }}
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          args = ['python3', 'scripts/ci/run.py', '--head', os.environ['SOURCE_SHA'], '--mode', os.environ['MODE']]
+          if os.environ['EVENT_NAME'] == 'pull_request':
+              args += ['--scope', 'affected', '--base', os.environ['BASE_SHA']]
+          if os.environ['IS_DRAFT'] == 'true':
+              args += ['--draft']
+          if os.environ['COMPONENT'] != 'all':
+              args += ['--component', os.environ['COMPONENT']]
+          raise SystemExit(subprocess.call(args))
+          PY
+      - name: Preserve exact run evidence, including failures
+        if: always()
+        id: evidence
+        uses: actions/upload-artifact@main
+        with:
+          name: checks-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/checks/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Preserve detailed paper review evidence
+        if: always() && hashFiles('.project/review/manifest.json') != ''
+        uses: actions/upload-artifact@main
+        with:
+          name: review-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/review/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Preserve bulky presentation previews
+        if: always() && hashFiles('.project/runtime/presentation/dist/*.png') != ''
+        uses: actions/upload-artifact@main
+        with:
+          name: previews-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/runtime/presentation/dist/*.png
+          retention-days: 7
+          if-no-files-found: error
+      - name: Record immutable artifact identity
+        if: always()
+        env:
+          ARTIFACT_ID: ${{ steps.evidence.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.evidence.outputs.artifact-digest }}
+          ARTIFACT_URL: ${{ steps.evidence.outputs.artifact-url }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          value = {k.lower(): os.environ.get(k) for k in ('ARTIFACT_ID','ARTIFACT_DIGEST','ARTIFACT_URL','GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','GITHUB_SHA')}
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write('Artifact transport receipt (created after upload):\n```json\n' + json.dumps(value,indent=2) + '\n```\n')
+          PY
+  required:
+    name: ci/required
+    if: always() && (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch)
+    needs: [source, execute]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every expected job
+        env:
+          SOURCE_RESULT: ${{ needs.source.result }}
+          EXECUTE_RESULT: ${{ needs.execute.result }}
+        run: test "$SOURCE_RESULT" = success && test "$EXECUTE_RESULT" = success

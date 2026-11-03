@@ -66,7 +66,7 @@ def make_plan(root, config, config_digest, args):
     if requested:
         selected = set(requested)
         pending = list(requested)
-        while pending:
+        while pending and not getattr(args, "no_dependencies", False):
             for dep in config["components"][pending.pop()]["depends_on"]:
                 if dep not in selected:
                     selected.add(dep)
@@ -78,7 +78,8 @@ def make_plan(root, config, config_digest, args):
             value["components"][name] = {"selected": name in requested, "reasons": ["not configured"]}
     value.update(source=source, configuration={"project_config_sha256": config_digest},
                  base_sha=args.base, merge_base_sha=merge_base, changed_paths=paths, diff_complete=complete,
-                 draft=args.draft, mode=args.mode, profile=args.profile, requested_components=requested)
+                 draft=args.draft, mode=args.mode, profile=args.profile, requested_components=requested,
+                 dependency_execution="external" if getattr(args, "no_dependencies", False) else "included")
     return value
 
 
@@ -118,15 +119,20 @@ def run_check(root, component, step, output, strict):
         result.update(execution_status="error", outcome="unknown", gate_outcome="fail", reason=str(exc))
     for relative in step["outputs"]:
         path = inside(cwd, relative)
-        if not path.is_file() or path.stat().st_size == 0:
+        paths = [path] if path.is_file() else sorted(p for p in path.rglob("*") if p.is_file()) if path.is_dir() else []
+        if not paths or any(p.is_symlink() for p in path.rglob("*")):
             result.update(outcome="unknown", gate_outcome="fail", reason="Required output missing: " + relative)
             continue
-        target = output / "files" / step["name"] / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(path, target)
-        result["files"].append({"path": str(target.relative_to(output)), "source_path": relative,
-                                "sha256": file_hash(target), "bytes": target.stat().st_size,
-                                "audience": "private_review"})
+        for member in paths:
+            if member.stat().st_size == 0:
+                result.update(outcome="unknown", gate_outcome="fail", reason="Required output empty: " + relative)
+                continue
+            target = output / "files" / step["name"] / member.relative_to(cwd)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(member, target)
+            result["files"].append({"path": str(target.relative_to(output)), "source_path": str(member.relative_to(cwd)),
+                                    "sha256": file_hash(target), "bytes": target.stat().st_size,
+                                    "audience": "private_review"})
     return result
 
 
@@ -225,6 +231,7 @@ def main(argv=None):
     parser.add_argument("--base")
     parser.add_argument("--head")
     parser.add_argument("--component", action="append")
+    parser.add_argument("--no-dependencies", action="store_true", help="Run only requested components; an outer aggregate must verify dependencies")
     parser.add_argument("--mode", choices=("ordinary", "submit", "full"), default="ordinary")
     parser.add_argument("--profile")
     parser.add_argument("--draft", action="store_true")

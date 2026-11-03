@@ -39,3 +39,7 @@ paper-final.pdf
 
 # Per-run CI evidence and resolved dependency staging.
 /.project/
+/paper/lint.json
+/paper/lint.stderr
+/paper/skim/
+/paper/review-bundle/
