@@ -2,7 +2,7 @@
 
 Status: draft proposal for the monorepo plan. Official sources checked on 2026-11-03. The profiles, commands, examples, and CI policy below are proposed; this report does not implement or test them.
 
-Policy update: Martin subsequently requested "latest everywhere" for toolchains. Resolve the latest selected tooling for each run and record actual versions/digests/solver dependencies in evidence. Earlier references below to committed pins are superseded as policy recommendations; they must not be implemented as mandatory source-version pins. Tool compatibility and limitations still apply, and unsupported combinations must be reported rather than silently counted as verified.
+Accepted policy: resolve the latest selected tooling for each run and record actual versions/digests/solver dependencies in evidence. Reuse that resolution within the run. Tool compatibility and limitations still apply; unsupported combinations must be reported rather than silently counted as verified. This does not require committed toolchain pins.
 
 Keep `proof/` optional and let each project select the tools needed for its claims. A protocol model, an implementation contract, and a mathematical theorem establish different results. Record the relationship between the artifact and the paper's claim, including assumptions, abstractions, and bounds.
 
@@ -47,9 +47,9 @@ Use one small wrapper with three operations, illustrated here as `proof doctor -
 - `smoke` runs the profile's supplied acceptance examples and verifies their expected outcomes.
 - `check` verifies the project's explicitly selected claims, models, harnesses, or contracts.
 
-Store profile selection and artifact paths in committed project configuration. Each adapter should declare its toolchain/solver pins, supported host or container route, installation instructions, resource limits, and expected result format. Keep tool-native files and commands available for debugging. A project may enable several profiles.
+Store profile selection and artifact paths in committed project configuration. Each adapter declares its latest-tool resolution procedure, compatible solver requirements, supported host or container route, installation instructions, resource limits, and expected result format. Keep tool-native files and commands available for debugging. A project may enable several profiles.
 
-Install only selected profiles through explicit onboarding setup. Prefer isolated environments or pinned container images where practical; do not add every prover to the paper image. Validate Linux/WSL first, and validate each native macOS route separately if that platform enters scope. Treat local Certora compilation and hosted credentials as separate onboarding steps; installing the client alone does not establish access or completed verification.
+Install only selected profiles through explicit onboarding setup. Prefer isolated environments or containers, resolving latest images once per run and recording their digests; keep prover environments separate from the paper image. Validate Linux/WSL and the accepted macOS container route, including its actual architecture. Native macOS verifier support is not promised. Treat local Certora compilation and hosted credentials as separate onboarding steps; installing the client alone does not establish access or completed verification.
 
 ## Acceptance examples and CI
 
@@ -66,7 +66,7 @@ Each adapter needs a small passing example and a deliberately invalid variant th
 
 A passing smoke run establishes that an adapter works, not that the student's project is verified. Keep the project's proof/model sources and configuration in `proof/`; reference implementation files in `code/` explicitly to avoid stale copies.
 
-Run only enabled profiles in student CI, with path filters that include their implementation dependencies. The template's adapter maintenance CI should exercise every profile it claims to support. Pin toolchains, solvers, libraries, actions, and images; save the source revision, configuration, assumptions/bounds, named obligations, and result summary with each run.
+Run only enabled profiles in student CI, with path filters that include their implementation dependencies. The template's adapter maintenance CI exercises every profile it claims to support. Record the resolved toolchains, solvers, libraries, actions and image identities alongside source revision, configuration, assumptions/bounds, named obligations and result summary. A later same-source run can resolve newer tools and produces separate evidence.
 
 Normalize results as verified, violated, unknown/timeout, error, or not configured. Include whether a verified result is bounded, finite-model, or deductive. An enabled profile with missing tools or no checked obligations must fail. Unknown results must not satisfy a required proof check. Unselected profiles should be visibly skipped.
 
