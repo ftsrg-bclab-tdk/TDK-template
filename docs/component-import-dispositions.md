@@ -67,3 +67,13 @@ The imported recipe names remain available for project implementation, but uncon
 now fail explicitly instead of printing TODO and succeeding. The starter does not claim a
 published DOI, built research image, or measured research result. The code container is a
 latest-resolved development scaffold; enabling research checks still requires actual commands.
+
+## Generated template review evidence
+
+The 134 generated files formerly under `work/template-review/` were archived before removal
+from the starter tree. Their Git history is preserved. The local private recovery archive is
+`/home/blacklight/Projects/TDK/retirement-archives/template-review-20261103T233754Z/template-review.zip`
+(SHA-256 `39ffc9de025bb506122a9692edbf8a5e3611b987af12d4fcd845dad80be0c2b8`). Its adjacent receipt records source commit
+`1a0407ab580e580731a935cc9719e9074e13992d` and every member's path, mode, blob ID, size and SHA-256.
+All archived members were read back and compared with the source Git bytes. This local archive
+is separate from the final legacy-repository recovery exports, which are still pending.
