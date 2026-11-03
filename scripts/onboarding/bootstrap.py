@@ -62,6 +62,10 @@ def check(run, *, smoke_image=None, smoke_command=(), execute_smoke=False):
 
     for name in ("git", "python3", "gh", "docker"):
         probe(name, [name, "--version"], version=True)
+        if name == "python3" and results[-1]["status"] == "verified":
+            match = re.search(r"Python (\d+)\.(\d+)", results[-1].get("version", ""))
+            if not match or tuple(map(int, match.groups())) < (3, 11):
+                results[-1].update(status="failed", reason="python_3_11_required")
     daemon = probe("docker_daemon", ["docker", "info", "--format", "{{.ServerVersion}}"], version=True)
     if not execute_smoke:
         results.append({"check": "container_smoke", "status": "pending",

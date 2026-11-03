@@ -1,6 +1,7 @@
 """Accepted human responsibilities and independently observable external steps."""
 
 STEPS = (
+    ("two_factor", "advisor/student", "Check existing accounts and verify 2FA before any new collaborator invitation"),
     ("repository", "advisor", "Create private organization repository and populate project metadata"),
     ("access", "advisor/student", "Advisor grants project write access; student accepts invitation"),
     ("overleaf", "advisor", "Import whole GitHub repository into premium Overleaf; invite paper collaborators"),
@@ -8,7 +9,8 @@ STEPS = (
     ("workspace", "student", "Clone project and open workspace; install selected optional component tools"),
     ("roundtrip", "advisor/student", "Verify compile and both native sync directions, including modes and symlinks"),
     ("component_checks", "student", "Run required component checks from fresh clone after roundtrip"),
-    ("publication", "lead student/advisor", "Prepare meaningful artifact draft; advisor reviews, lead student publishes deliberately"),
+    ("publication", "lead student/advisor", "Advisor reviews exact artifact receipt; lead student invokes project publication workflow using own Zenodo repository secret"),
+    ("maintenance", "lab administrator", "Verify private tdk-maintenance controller and selected-repository organization App deployment"),
 )
 
 

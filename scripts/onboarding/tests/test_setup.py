@@ -183,7 +183,7 @@ class SetupTest(unittest.TestCase):
             calls.append(argv)
             if "inspect" in argv:
                 return {"returncode": 0, "stdout": json.dumps({"RepoDigests": [digest], "Id": "sha256:fixture", "Os": "linux", "Architecture": "amd64"})}
-            return {"returncode": 0, "stdout": "version"}
+            return {"returncode": 0, "stdout": "Python 3.11" if argv[0] == "python3" else "version"}
         report = setup.bootstrap_report(fake, smoke=True)
         self.assertTrue(report["ready"])
         self.assertEqual(sum("pull" in c for c in calls), 1)
@@ -227,6 +227,12 @@ class SetupTest(unittest.TestCase):
     def test_dry_run_never_calls_remote_or_bootstrap(self):
         with patch.object(setup, "bootstrap_report", side_effect=AssertionError):
             code, output = self.call("student", "--dry-run", "--smoke")
+        self.assertEqual(code, 0, output)
+        self.assertFalse((self.root / ".onboarding").exists())
+
+    def test_install_and_github_flags_dry_run_do_not_execute(self):
+        with patch.object(setup, "run_install", side_effect=AssertionError), patch.object(setup.provision.Gh, "request", side_effect=AssertionError):
+            code, output = self.call("student", "--dry-run", "--skip-accounts", "--install-tools", "--github-account", "--inspect-repository")
         self.assertEqual(code, 0, output)
         self.assertFalse((self.root / ".onboarding").exists())
 

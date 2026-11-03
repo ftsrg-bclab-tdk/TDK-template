@@ -8,7 +8,7 @@ class BootstrapTest(unittest.TestCase):
         calls = []
         def run(argv, *, timeout):
             calls.append(argv)
-            return {"returncode": 1 if fail and fail(argv) else 0, "stdout": "version"}
+            return {"returncode": 1 if fail and fail(argv) else 0, "stdout": "Python 3.11" if argv[0] == "python3" else "version"}
         return calls, run
 
     def test_version_only_never_ready_or_runs_container(self):
@@ -47,3 +47,10 @@ class BootstrapTest(unittest.TestCase):
         self.assertEqual(installation_plan("Linux", wsl=True)["route"], "wsl")
         self.assertTrue(installation_plan("Darwin")["runtime_choice_required"])
         self.assertIn("docker", installation_plan("Linux")["required"])
+
+    def test_python_below_shared_minimum_fails_readiness(self):
+        def old(argv, timeout=30):
+            return {"returncode": 0, "stdout": "Python 3.10" if argv[0] == "python3" else "version"}
+        result = check(old, execute_smoke=True, smoke_image="alpine@sha256:" + "a" * 64, smoke_command=["true"])
+        self.assertFalse(result["ready"])
+        self.assertEqual(next(row for row in result["checks"] if row["check"] == "python3")["reason"], "python_3_11_required")

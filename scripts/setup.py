@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 
-from onboarding import accounts, bootstrap, session, workflow
+from onboarding import accounts, bootstrap, session, workflow, platforms, workspace, provision, checks
 
 from ci.config import MACROS, inside, load_project, validate_project
 
@@ -29,6 +29,12 @@ def run(argv, timeout=30, cwd=None):
     except subprocess.TimeoutExpired:
         return {"returncode": 124, "stdout": ""}
     return {"returncode": result.returncode, "stdout": result.stdout}
+
+
+def run_install(argv, timeout=900):
+    """Package managers retain their terminal prompts; no shell or captured secrets."""
+    result = subprocess.run(argv, timeout=timeout)
+    return {"returncode": result.returncode}
 
 
 def git(root, *args):
@@ -225,12 +231,26 @@ def main(argv=None):
     parser.add_argument("--smoke", action="store_true", help="Explicitly pull latest smoke image and run a container")
     parser.add_argument("--init-config", metavar="ORG/REPO")
     parser.add_argument("--apply-metadata", action="store_true")
+    parser.add_argument("--install-plan", action="store_true")
+    parser.add_argument("--install-tools", action="store_true", help="Execute the displayed package-manager commands (may request sudo)")
+    parser.add_argument("--docker-runtime", choices=["existing", "engine", "desktop"], default="existing")
+    parser.add_argument("--workspace", action="store_true", help="Generate tdk.code-workspace without overwriting edits")
+    parser.add_argument("--github-account", action="store_true", help="Read authenticated GitHub identity and 2FA status")
+    parser.add_argument("--inspect-repository", action="store_true", help="Read current repository identity/privacy/access")
+    parser.add_argument("--inspect-access", metavar="GITHUB_USER", help="Read effective collaborator role without inviting")
+    parser.add_argument("--provision-pilot", action="store_true", help="Create/initialize ONLY an onboarding-pilot-* private organization repository")
+    parser.add_argument("--invite-pilot", metavar="GITHUB_USER", help="Scoped pilot invitation after authenticated organization 2FA readback")
+    parser.add_argument("--template", default="FTSRG-BCLab-TDK/TDK-template")
+    parser.add_argument("--ingest-ci", metavar="REPORT", help="Verify component report with shared CI verifier; native sync/clone remains separate")
+    parser.add_argument("--report-sha256", help="Expected raw report digest from trusted receipt")
     args = parser.parse_args(argv)
+    if sys.version_info < (3, 11):
+        parser.error("Python 3.11+ is required; install a supported Python before setup")
     if platform.system() == "Windows":
         parser.error("Run setup inside WSL; native Windows is unsupported")
-    if (args.init_config or args.apply_metadata or args.paper_source) and args.role != "advisor":
+    if (args.init_config or args.apply_metadata or args.paper_source or args.provision_pilot or args.invite_pilot) and args.role != "advisor":
         parser.error("Only advisor mode prepares/applies shared metadata")
-    if args.role == "status" and (args.check_bootstrap or args.smoke):
+    if args.role == "status" and (args.check_bootstrap or args.smoke or args.install_tools or args.workspace or args.github_account or args.inspect_repository or args.inspect_access or args.ingest_ci):
         parser.error("Status is read-only; use student --check-bootstrap --smoke")
     if args.paper_source and not args.init_config:
         parser.error("--paper-source requires --init-config ORG/REPO")
@@ -238,9 +258,8 @@ def main(argv=None):
         exit_code = 0
         root = Path(git(Path(args.root).resolve(), "rev-parse", "--show-toplevel")).resolve()
         local = state_path(root, args.state_dir)
-        for child in ("accounts.json", "bootstrap.json", "session.lock"):
-            target = local / child
-            if target.exists() and (target.is_symlink() or not target.is_file()):
+        for target in local.iterdir() if local.exists() else []:
+            if target.is_symlink() or not target.is_file() or target.stat().st_mode & 0o077 or target.stat().st_uid != os.getuid():
                 raise ValueError("State entries must be regular files")
         config_path = inside(root, args.config)
         if config_path == local or config_path.is_relative_to(local):
@@ -265,6 +284,76 @@ def main(argv=None):
                     config = proposed
             if args.role == "advisor" and config:
                 print(metadata(root, config, apply=args.apply_metadata and not args.dry_run) or "Metadata unchanged.")
+            if args.install_plan or args.install_tools:
+                planned = platforms.plan(platforms.host(), args.docker_runtime)
+                print(json.dumps(planned, indent=2))
+                result = platforms.install(planned, run_install, execute=args.install_tools and not args.dry_run)
+                if result["status"] == "failed":
+                    exit_code = 1
+                if args.install_tools and not args.dry_run:
+                    atomic_json(local / "installation.json", result)
+                    print("Installation commands completed; run Docker smoke separately to verify readiness.")
+            if args.workspace:
+                receipt_path = local / "workspace.json"
+                prior = json.loads(receipt_path.read_text()) if receipt_path.exists() else None
+                prepared = workspace.prepare(root, config, prior)
+                print(json.dumps(prepared["value"], indent=2))
+                if not args.dry_run:
+                    receipt = workspace.apply(prepared, atomic_json)
+                    receipt["config_digest"] = config_digest
+                    atomic_json(receipt_path, receipt)
+            if args.github_account:
+                if args.dry_run:
+                    print("Would observe authenticated GitHub identity and 2FA; no invitation or permission change.")
+                else:
+                    expected = None
+                    if args.role == "student":
+                        saved = session.load(local / "accounts.json", catalog)["github"]["identifier"]
+                        if not saved:
+                            raise ValueError("Record student GitHub identifier before verifying authenticated account")
+                        expected = saved["value"]
+                    observed = provision.github_account(provision.Gh(), expected)
+                    atomic_json(local / "github-account.json", observed)
+                    print("Authenticated GitHub 2FA: " + observed["two_factor"])
+                    if observed["two_factor"] != "verified":
+                        exit_code = 1
+            if args.inspect_repository:
+                if args.dry_run:
+                    print("Would observe repository identity, privacy and effective permissions.")
+                else:
+                    observed = provision.inspect_repository(provision.Gh(), config["repository"])
+                    observed["config_digest"] = config_digest
+                    atomic_json(local / "repository.json", observed)
+                    print(json.dumps(observed, indent=2))
+            if args.provision_pilot:
+                receipt = provision.provision_pilot(provision.Gh(), config, args.template, root, execute=not args.dry_run)
+                print(json.dumps(receipt, indent=2))
+                if not args.dry_run:
+                    atomic_json(local / "provision.json", receipt)
+            if args.invite_pilot:
+                receipt = provision.invite_pilot(provision.Gh(), config["repository"], args.invite_pilot, execute=not args.dry_run)
+                print(json.dumps(receipt, indent=2))
+                if not args.dry_run:
+                    atomic_json(local / "invitation.json", receipt)
+            if args.inspect_access:
+                if args.dry_run:
+                    print("Would inspect collaborator effective access; no invitation or 2FA claim.")
+                else:
+                    observed = provision.inspect_access(provision.Gh(), config["repository"], args.inspect_access)
+                    atomic_json(local / "access.json", observed)
+                    print(json.dumps(observed, indent=2))
+            if args.ingest_ci:
+                if args.dry_run:
+                    print("Would verify report for all enabled components with shared CI verifier; native sync/clone and artifact authority remain independent.")
+                else:
+                    if git(root, "status", "--porcelain"):
+                        raise ValueError("Current checkout is dirty; CI evidence cannot qualify current working changes")
+                    receipt = checks.ingest(Path(args.ingest_ci), config, config_digest,
+                                            git(root, "rev-parse", "HEAD"), report_digest=args.report_sha256)
+                    if load_project(root, args.config)[1] != config_digest:
+                        raise ValueError("Project config changed during CI verification")
+                    atomic_json(local / "component-checks.json", receipt)
+                    print(json.dumps(receipt, indent=2))
             if args.role == "student" and not args.skip_accounts:
                 outcome = session.collect(local / "accounts.json", catalog, ask,
                     lambda event: print("Saved " + event["service"] if event["event"] == "saved" else "Invalid answer; try again."), dry_run=args.dry_run)
@@ -300,7 +389,8 @@ def main(argv=None):
                 print(item["service"] + ": " + item["next_action"] + " (" + item["account"] + ")")
             for item in workflow.observations(config or {}):
                 print(item["status"] + " — " + item["actor"] + ": " + item["action"])
-            print("Unconfigured policy: maintenance controller/authentication; publication credential/execution; 2FA. No remote mutations performed.")
+            print("Settled policy: private tdk-maintenance controller with selected-repo organization App; org-required 2FA before new invitations; lead student publishes exact reviewed receipt via project workflow and own Zenodo repo secret.")
+            print("Deployment/permission/roundtrip evidence remains pending. Advisor review is policy, not an enforced boundary on student-writable workflows.")
             print("Overall onboarding remains pending external access, sync and component evidence.")
         return exit_code
     except (ValueError, OSError, subprocess.TimeoutExpired) as error:

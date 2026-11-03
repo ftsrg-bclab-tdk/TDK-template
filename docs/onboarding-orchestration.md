@@ -26,7 +26,7 @@ The accepted workflow assigns concrete responsibilities:
 
 ## Working terminal commands
 
-Use Python 3.9 or newer inside a clone. Linux/WSL and macOS are supported hosts;
+Use Python 3.11 or newer inside a clone. Linux/WSL and macOS are supported hosts;
 native Windows must use WSL. Commands below run from the repository root.
 
 ```sh
@@ -96,15 +96,101 @@ dirty flag and shared-config digest. Pull failure never silently reuses an old
 image. Old successful receipts are historical observations, not current runtime
 or remote authorization evidence.
 
-Host installation remains explicit under the platform's chosen policy. Missing
-tools are reported; this command does not install packages, enable daemons,
-change group permissions or choose Docker Desktop. The same CLI runs inside WSL;
-desktop VS Code, browser and Zotero setup may be on the Windows host.
+## Installation, workspace and GitHub adapters
 
-These are responsibilities, not claims that remote automation is implemented.
-Controller authentication, credential placement/final publication execution and
-2FA policy remain explicit unresolved integration inputs. There are no live
-service mutations in the current onboarding modules.
+```sh
+# Preview host-specific commands; no package manager is invoked.
+python3 scripts/setup.py student --skip-accounts --install-plan --docker-runtime engine
+# Explicitly execute the displayed commands, retaining sudo/package prompts.
+python3 scripts/setup.py student --skip-accounts --install-tools --docker-runtime engine
+# On macOS choose desktop, or existing if a Docker runtime is already configured.
+python3 scripts/setup.py student --skip-accounts --install-plan --docker-runtime desktop
+python3 scripts/setup.py student --skip-accounts --workspace
+# Read-only authenticated GitHub checks; never changes policy or invites anyone.
+python3 scripts/setup.py student --skip-accounts --github-account
+python3 scripts/setup.py advisor --inspect-repository --inspect-access STUDENT_USERNAME
+```
+
+Package adapters cover Ubuntu/Debian through apt, Arch through pacman and macOS
+through an existing Homebrew installation. Unsupported hosts get explicit manual
+steps. Only missing required tools are requested; there is no blanket system
+upgrade, remote shell installer, group membership change or reboot. Package
+installation may itself start services according to the host package policy.
+Docker runtime selection is explicit. The WSL Desktop route points to host-side
+installation/integration and does not install a competing Linux engine. Homebrew
+installation itself and Docker service/user-access setup remain human actions.
+A Python older than 3.11 must be upgraded before running this entrypoint.
+
+The workspace command creates `tdk.code-workspace` from existing component
+folders and retains root agent guidance. It records the generated hash privately;
+modified files are not overwritten, and concurrent edits fail application.
+
+Provisioning and invitation mutations are restricted to disposable repository
+names `FTSRG-BCLab-TDK/onboarding-pilot-*` until a real pilot establishes the path.
+These commands are implemented but have only been exercised with fake services:
+
+```sh
+python3 scripts/setup.py advisor --provision-pilot --dry-run
+python3 scripts/setup.py advisor --provision-pilot
+python3 scripts/setup.py advisor --invite-pilot STUDENT_USERNAME --dry-run
+python3 scripts/setup.py advisor --invite-pilot STUDENT_USERNAME
+```
+
+Before the first command, `project.json` must name the disposable destination.
+Use unchanged template component/metadata configuration for provisioning; populate
+and apply paper metadata locally afterward. The provisioner authenticates the
+advisor, verifies organization-owner authority, creates a private repository from
+the configured template, and writes `role: project` and the correct repository
+identity into its shared config. Readback is mandatory. A lost creation response
+is recovered by observing the existing repo on rerun; mismatched private/owner/
+template/config values stop the process. No public flip or existing repo deletion
+is implemented. Controller/App deployment belongs to the organization owner;
+this pilot adapter uses the advisor's existing `gh` authentication.
+
+Invitations require an authenticated organization read with
+`two_factor_requirement_enabled: true`, verified private-repo admin access, and
+an invitee who is not an organization member. Missing/forbidden policy evidence
+blocks the invitation. The command grants write only, preserves a matching pending
+invitation without re-sending it, and reports accepted access only after a later
+readback. Organization-required 2FA prevents acceptance until the invitee enables
+it; a local student receipt is not used as enforcement proof. Existing-account
+compliance must be reviewed before the organization owner enables that policy;
+setup never toggles it. Personal `--github-account` 2FA output may be unavailable
+when the token does not expose private user fields, which is reported explicitly.
+
+Policies are settled: the private `tdk-maintenance` controller uses an organization
+App installed on selected registered repositories; the lead student invokes the
+project publication workflow with their own Zenodo repository secret after
+advisor review of the exact artifact receipt. Deployments/permissions and the
+actual pilot remain pending. Imre's agreement is not assumed. Advisor review is
+policy, not an enforced boundary on student-writable workflows.
+
+Sources reviewed 2026-11-04: [gh API](https://cli.github.com/manual/gh_api),
+[template generation](https://docs.github.com/en/rest/repos/repos#create-a-repository-using-a-template),
+[collaborator API](https://docs.github.com/en/rest/collaborators/collaborators),
+[authenticated user/2FA fields](https://docs.github.com/en/rest/users/users#get-the-authenticated-user),
+[organization 2FA](https://docs.github.com/en/organizations/keeping-your-organization-secure/managing-two-factor-authentication-for-your-organization/requiring-two-factor-authentication-in-your-organization),
+[Ubuntu Docker package](https://packages.ubuntu.com/noble/docker.io),
+[Docker Desktop Homebrew cask](https://formulae.brew.sh/cask/docker-desktop), and
+[WSL integration](https://docs.docker.com/desktop/features/wsl/).
+
+## Shared CI evidence
+
+```sh
+python3 scripts/setup.py student --skip-accounts --ingest-ci .project/checks/report.json
+```
+
+Setup imports `ci.evidence.verify_report` and requires every enabled component,
+current repository/SHA/raw-config digest, clean source, runtime resolution and
+valid evidence file hashes. `--report-sha256` optionally binds the exact bytes to
+a separately trusted receipt. Missing/failed/tampered reports do not advance the
+private `component-checks.json` receipt. That receipt reports component consistency,
+not full onboarding readiness. Native Overleaf roundtrip, fresh-clone boundaries
+and artifact transport authority remain independent evidence. No arbitrary CLI
+timestamp or editable JSON is accepted as verified synchronization. The trusted
+pilot adapter may supply a boundary to the ingestion function; the shared verifier
+then requires execution to start after it. Presenter notes remain private review
+evidence and are never published by setup.
 
 ## Local account session
 
@@ -129,15 +215,14 @@ No account credentials are accepted; no account module source was duplicated.
 
 Implemented here: terminal rendering, ignored/private path enforcement, per-state
 serialized writers, latest-image resolution and Docker observations, bounded
-metadata preview/application. Still required for full project onboarding: host
-installation adapters, workspace generation, remote actions with identity/access
-checks, shared paper-guide placement and CI evidence ingestion. The CI owner's
+metadata preview/application. Still required for full project onboarding: real disposable service/host pilots,
+controller/App deployment, native Overleaf verification, shared paper-guide
+placement and authoritative CI artifact-transport integration. The CI owner's
 shared interface must be used rather than introducing a competing project-check
 command here. No live disposable GitHub/Overleaf pilot has been performed.
 
 `workflow.observations` accepts an injected read-only remote adapter for tests
 and later integration. A timeout leaves the step pending; a different project
-identity fails; verified evidence requires method/time/reference. No real remote
-adapter is wired to the CLI, so external steps remain pending with their exact
-actor and action. They cannot be marked complete by account-format checks or
+identity fails; verified evidence requires method/time/reference. The separate GitHub adapters above provide explicit observations; the aggregate
+checklist remains pending until the complete pilot evidence is integrated. They cannot be marked complete by account-format checks or
 repository/project URL existence.
