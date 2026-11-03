@@ -282,7 +282,7 @@
 \setabbreviationstyle{long-short}          % first use "long form (SHORT)", then "SHORT"
 \glssetcategoryattribute{abbreviation}{nohyperfirst}{true}
 \renewcommand*{\glsnamefont}[1]{\textbf{#1}} % the first column in bold, as a table head would be
-\setlength{\glsdescwidth}{0.62\linewidth} % with the name column the tables come to about three quarters of the text width, centred
+\setlength{\glsdescwidth}{0.50\linewidth}
 \makenoidxglossaries
 % \commonentry{key}{declaration} declares a common entry unless the paper has declared the key,
 % and lists the key, so the guide can print the common glossary
@@ -291,13 +291,29 @@
 \loadglsentries{content/glossary}
 \loadglsentries{include/glossary-common} % the entries our topics share; a paper's own declaration wins
 \ifdefined\reviewermode\else\loadglsentries{guide/glossary}\fi % the guide's own examples, only when the guide is built
+% Set the section or definition that introduces an entry, including common entries.
+% Call after the entries are loaded, e.g. in include/macros.tex:
+% \glsintroduced{vc}{sec:credentials}
+\newcommand{\glsintroduced}[2]{\glssetentryfield{#1}{user2}{\cref{#2}}}
+\newglossarystyle{tdk-introduced}{%
+  \setglossarystyle{long-booktabs}%
+  \renewcommand*{\glossarysection}[2][]{\subsection*{##2}}%
+  \renewenvironment{theglossary}{%
+    \begin{longtable}{@{}p{0.18\linewidth}p{0.50\linewidth}p{0.22\linewidth}@{}}}{\end{longtable}}%
+  \renewcommand*{\glossaryheader}{%
+    \toprule\textbf{\entryname} & \textbf{\descriptionname} & \textbf{Introduced in}\\\midrule\endhead
+    \bottomrule\endfoot}%
+  \renewcommand*{\glossentry}[2]{%
+    \glstarget{##1}{\glossentryname{##1}} & \glossentrydesc{##1} &
+    \ifglshasfield{user2}{##1}{\glsentryuserii{##1}}{---}\tabularnewline}%
+}
 % The three lists, as booktabs tables with their own column heads, each with a sentence
-% that says what the table is for. \printlists goes after the acknowledgements in thesis.tex.
-% The chapter, and each list in it, is left out while the text uses none of its entries (an entry
+% that says what the table is for. \printlists is called inside the appendix in content/10-appendices.tex.
+% The appendix section, and each list in it, is left out while the text uses none of its entries (an entry
 % counts once the .aux records a use of it, so a change shows one compile later, as references
 % do). A list starts on a new page unless its heading, its sentence, its column heads
 % and about two lines per entry fit on this one (at most 15 entries' worth), so a short list is not
-% split across two pages. The first list follows the chapter heading on a fresh page, so it never
+% split across two pages. The first list follows the appendix section heading, so it never
 % asks: a break there would leave the heading alone on its page. (\Needspace, not \needspace: the
 % latter leaves the break to be decided inside the next longtable, which then prints its head and
 % foot around the break.)
@@ -313,19 +329,19 @@
 \newif\iftdk@firstlist
 \newcommand{\tdk@keeplist}{\iftdk@firstlist\global\tdk@firstlistfalse\else\Needspace{\numexpr 8+2*\ifnum\tdk@used>15 15\else\tdk@used\fi\relax\baselineskip}\fi}
 \newcommand{\printlists}{\tdk@ifused{abbreviations,symbols,main}{%
-  \chapter*{Abbreviations, notation and terms}\addcontentsline{toc}{chapter}{Abbreviations, notation and terms}%
+  \section{Abbreviations, notation and terms}\label{app:glossary-lists}%
   \global\tdk@firstlisttrue
   \tdk@ifused{abbreviations}{\tdk@keeplist
    {\renewcommand*{\entryname}{Abbreviation}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=abbreviations, style=long-booktabs, title={Abbreviations},
+    \printnoidxglossary[type=abbreviations, style=tdk-introduced, title={Abbreviations},
       preamble={Every abbreviation is spelled out where it first appears in the text; this table repeats the expansions for a reader who starts in the middle, and each use in the text links here.}]}}%
   \tdk@ifused{symbols}{\tdk@keeplist
    {\renewcommand*{\entryname}{Symbol}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=symbols, style=long-booktabs, title={Notation},
-      preamble={The symbols of the formal model, in one place. Each is introduced once, in the definition the description points at, and keeps that meaning in every chapter; nothing is overloaded.}]}}%
+    \printnoidxglossary[type=symbols, style=tdk-introduced, title={Notation},
+      preamble={The symbols of the formal model, in one place. Each is introduced once, at the location in the Introduced in column, and keeps that meaning in every chapter; nothing is overloaded.}]}}%
   \tdk@ifused{main}{\tdk@keeplist
    {\renewcommand*{\entryname}{Term}\renewcommand*{\descriptionname}{Meaning}%
-    \printnoidxglossary[type=main, style=long-booktabs, title={Terms},
+    \printnoidxglossary[type=main, style=tdk-introduced, title={Terms},
       preamble={Words this paper uses in one fixed sense, often narrower than everyday or vendor usage. The description is that sense; where the literature uses the word differently, the background chapter says so.}]}}%
 }}
 \makeatother
