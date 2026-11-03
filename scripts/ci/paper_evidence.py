@@ -21,6 +21,7 @@ def main():
     image = report["runtime"]["images"]["texlive"]
     argv = ["python3","scripts/review/review.py","bundle","--built",".","--lint","lint.json","--lint-stderr","lint.stderr","--skim","skim","--out","review-bundle",
             "--by","ci" if os.environ.get("GITHUB_ACTIONS") else "local","--sha",report["source"]["tested_sha"],
+            "--repo",report["source"]["repository"],
             "--ref",os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME","local"),
             "--image-ref",image["requested"],"--image-digest",image["manifest_digest"]]
     for name in ("draft","final","lint"):

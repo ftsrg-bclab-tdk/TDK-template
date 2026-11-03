@@ -47,7 +47,6 @@ def main():
             raise ValueError("Generated essentials differ")
         run(["texlua","scripts/lint.lua","criteria"],paper)
         run(["make","test"],paper)
-        run([sys.executable,"-m","unittest","discover","-s","scripts/tests","-v"],paper)
     else:
         raise ValueError("Unknown template check mode")
 

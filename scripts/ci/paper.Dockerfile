@@ -1,4 +1,4 @@
-ARG TEX_IMAGE
+ARG TEX_IMAGE=danteev/texlive:latest
 FROM ${TEX_IMAGE}
 # TEX_IMAGE is resolved from latest once by run.py. This build resolves current
 # Python review dependencies once and records the installed versions in evidence.
