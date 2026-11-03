@@ -108,6 +108,9 @@ jobs:
       - name: source / chapters (check)
         if: always()
         run: texlua scripts/lint.lua chapters
+      - name: source / appendix-core (check)
+        if: always()
+        run: texlua scripts/lint.lua appendix-core
       - name: source / orphans (advice)
         if: always()
         run: texlua scripts/lint.lua orphans
