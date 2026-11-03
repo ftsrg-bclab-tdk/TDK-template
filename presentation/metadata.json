@@ -1,0 +1,10 @@
+{
+  "title": "Your research title",
+  "subtitle": "The problem and your contribution",
+  "shortTitle": "Research project",
+  "author": "Student Name",
+  "affiliation": "Critical Systems Research Group · BME",
+  "event": "TDK conference",
+  "date": "Presentation date",
+  "projectUrl": "https://example.org/your-project"
+}
