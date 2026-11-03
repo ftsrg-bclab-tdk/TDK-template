@@ -69,8 +69,17 @@ A successful verification does not prove all project checks ran.
 The fetcher checks repository ID (not name alone), published immutable release,
 tag, numeric asset ID, size, available API digest, archive digest and every member
 hash. `gh` owns credential handling; no token appears in arguments, manifests or
-result JSON. HTTP credentials are neither copied into project files nor obtained
-from the private canonical repository. Downloads are bounded and timed out.
+result JSON. HTTP credentials are not copied into project files. Normal project
+CI reads its own accepted package mirror; it needs no canonical-maintainer or
+private-upstream credential. Downloads are bounded and timed out.
+
+The template is intended to become public after disclosure preparation; student
+projects stay private. Package bytes and provenance need reviewed redistribution
+terms before a public canonical release. The presentation assets' matching
+ancestor repository, `BlackLight54/avn-tamarin-tutorial`, is private according to
+the coordinator's live API audit. Its commit is provenance, not a student fetch
+endpoint. Authorized maintainer ingestion can supply accepted packages once terms
+are settled; fresh student builds must not depend on access to that upstream.
 
 The content-addressed local cache is only an outage aid. Approved release assets
 must outlive routine Actions artifacts; package publication/replication, durable
