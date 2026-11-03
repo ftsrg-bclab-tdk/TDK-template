@@ -53,6 +53,22 @@ class HygieneScopeTests(unittest.TestCase):
         return subprocess.run([sys.executable, "code/scripts/hygiene.py"], cwd=self.root,
                               capture_output=True, text=True)
 
+    def add_original_source_history(self):
+        content = b"Old source tree: https://overleaf.com/" + b"project/private\n"
+        blob = subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=self.root,
+                              input=content, check=True, capture_output=True, text=False).stdout.decode().strip()
+        tree = subprocess.run(["git", "mktree"], cwd=self.root,
+                              input=f"100644 blob {blob}\tREADME.md\n", check=True,
+                              capture_output=True, text=True).stdout.strip()
+        env = os.environ.copy()
+        env.update({"GIT_AUTHOR_NAME": "Test Maintainer", "GIT_AUTHOR_EMAIL": "maintainer@example.invalid",
+                    "GIT_COMMITTER_NAME": "Test Maintainer", "GIT_COMMITTER_EMAIL": "maintainer@example.invalid"})
+        head = subprocess.run(["git", "commit-tree", tree, "-m", "Old source snapshot"], cwd=self.root,
+                              env=env, check=True, capture_output=True, text=True).stdout.strip()
+        (self.root / "code/scripts/source-history.txt").write_text(head + "\n", encoding="utf-8")
+        self.git("add", "code/scripts/source-history.txt")
+        self.git("commit", "-m", "Record source history root")
+
     def test_ignores_paper_tree_and_history(self):
         result = self.run_hygiene()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -67,6 +83,13 @@ class HygieneScopeTests(unittest.TestCase):
         result = self.run_hygiene()
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("private-link", result.stdout)
+
+    def test_scans_pre_import_history_at_its_original_repository_root(self):
+        self.add_original_source_history()
+        result = self.run_hygiene()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("warning[private-link]", result.stdout)
+        self.assertIn("README.md", result.stdout)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from pathlib import Path
 
 SELF = "scripts/hygiene.py"
 COMPONENT_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = COMPONENT_ROOT.parent
 
 # Patterns are POSIX extended regexes, because `git log -G` takes no Perl syntax.
 # Places a reader of a public archive cannot open, or must not see before the conference.
@@ -93,18 +94,35 @@ def tree_grep(rule, rx, msg, pathspec=".", allow=None):
 
 
 def history_grep(rule, rx, msg, level, exclude=None):
-    # Commits whose diff adds or removes a matching line, on every branch.
-    out = git("log", "--all", "-i", "-E", f"-G{rx}", "--format=@%h", "--name-only",
-              "--", ".", f":!{SELF}")
+    # Scan current monorepo history in this component, then the pre-import source history at its
+    # original repository root. The latter keeps subtree imports covered without scanning paper/.
+    outputs = [git("log", "--all", "-i", "-E", f"-G{rx}", "--format=@%h", "--name-only",
+                   "--", ".", f":!{SELF}")]
+    for head in source_history_heads():
+        result = subprocess.run(
+            ["git", "log", head, "-i", "-E", f"-G{rx}", "--format=@%h", "--name-only", "--", "."],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode not in (0, 1):
+            sys.exit(f"hygiene: source history {head} scan failed: {result.stderr.strip()}")
+        outputs.append(result.stdout)
     commit, seen = None, set()
-    for l in out.splitlines():
-        if l.startswith("@"):
-            commit = l[1:]
-        elif l and l not in seen:  # newest commit per path is enough to find it
-            seen.add(l)
-            if exclude and re.search(exclude, blob(commit, l)):
-                continue  # for example a standalone figure, which may stay
-            report(level, rule, f"{msg} (history, commit {commit})", l)
+    for output in outputs:
+        for line in output.splitlines():
+            if line.startswith("@"):
+                commit = line[1:]
+            elif line and line not in seen:  # newest commit per path is enough to find it
+                seen.add(line)
+                if exclude and re.search(exclude, blob(commit, line)):
+                    continue  # for example a standalone figure, which may stay
+                report(level, rule, f"{msg} (history, commit {commit})", line)
+
+
+def source_history_heads():
+    return [line.strip() for line in read("scripts/source-history.txt").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")]
 
 
 def read(path):
@@ -292,8 +310,15 @@ def main():
     tree_grep("paper-source", PAPER_SOURCE, "paper source; it belongs in the paper repository", "*.tex", STANDALONE)
     history_grep("private-link", PRIVATE_LINKS, "link to a private or unpublished place", hist)
 
+    identities = git("log", "--all", "--format=%an <%ae>%n%cn <%ce>", "--", ".").splitlines()
+    for head in source_history_heads():
+        result = subprocess.run(["git", "log", head, "--format=%an <%ae>%n%cn <%ce>"],
+                                cwd=REPOSITORY_ROOT, capture_output=True, text=True)
+        if result.returncode != 0:
+            sys.exit(f"hygiene: source history {head} author scan failed: {result.stderr.strip()}")
+        identities.extend(result.stdout.splitlines())
     seen = set()
-    for ident in git("log", "--all", "--format=%an <%ae>%n%cn <%ce>", "--", ".").splitlines():
+    for ident in identities:
         if ident not in seen and re.search(AGENT_IDENTITY, ident, re.I):
             seen.add(ident)
             report(hist, "agent-author", f"commits authored or committed as {ident}; commit as yourself "
