@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Accepted external inputs delivery",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "receipt_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*/(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+    },
+    "repository_id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "release_id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "tag": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_id": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9223372036854775807
+    },
+    "schema": {
+      "const": "external-inputs-delivery/v1"
+    },
+    "package_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 536870912
+    }
+  },
+  "required": [
+    "schema",
+    "receipt_sha256",
+    "package_sha256",
+    "repository",
+    "repository_id",
+    "release_id",
+    "tag",
+    "asset_id",
+    "size"
+  ]
+}
