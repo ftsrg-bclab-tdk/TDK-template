@@ -1,22 +1,29 @@
 # BME cloud runner pilot
 
-BME cloud is the preferred eventual backend. GitHub-hosted runners remain active
-and are the fallback. This directory prepares a **pilot**, not a deployed runner
-pool. Nothing here creates cloud resources, changes organization permissions, or
-routes the paper workflow to BME. `smoke.yml.example` is deliberately outside
+BME cloud is the preferred backend. The existing `bme-cloud-29136` organization
+runner is now running with [trusted-job hardening](native/README.md). Separately,
+a native offline sandbox has passed live cross-job isolation tests on that host.
+The persistent GitHub runner is **not** automatically using that sandbox and is
+not ready for arbitrary untrusted workflows. See the [measured evidence](native/evidence-2026-11-03.md).
+
+Active paper workflows remain GitHub-hosted. This directory also retains the
+original disposable-VM pilot below. Nothing here creates cloud resources or
+changes organization permissions. `smoke.yml.example` is deliberately outside
 `.github/workflows/` and has no effect until installed in a separate pilot repo.
 
 ## What was verified
 
-On 2026-11-03, `FTSRG-BCLab-TDK/TDK-template` was private and its repository runner
+During the initial inventory on 2026-11-03, `FTSRG-BCLab-TDK/TDK-template` was private and its repository runner
 API returned zero runners. The organization runner API returned HTTP 403 with the
 current token; this does not establish that the organization has no runners.
 The organization workstream reports a Free organization and student write access.
 Students can therefore author arbitrary workflows. A workflow label, approval
 convention, or guest cleanup script cannot enforce the trust boundary.
 
-The local SSH configuration and cloud configuration locations yielded no BME
-access profile. A local student benchmark report mentions a BME VM; it supplies
+The initial SSH/cloud configuration search yielded no BME access profile.
+Later that day Martin added `bclab-runner` SSH access and registered the org
+runner under `/home/cloud/actions-runner`; these supersede the initial absence
+finding. The native runbook records its current configuration. A local student benchmark report mentions a BME VM; it supplies
 no authorization or configuration for this deployment. No cloud credentials were
 requested or read. The operator's existing GitHub login was sufficient for the
 read-only repository inventory.
@@ -25,8 +32,8 @@ read-only repository inventory.
 based VM creation, leases and administrator requests. That instance is marked for
 IIT staff. It does **not** identify our allocation, establish access, or establish
 an OpenStack API. No provider endpoints, template IDs, network IDs, or quotas are
-assumed here. The coordinator is collecting the actual dashboard, allocation and
-administrator contact.
+assumed here. The external CIRCLE lifecycle/network interfaces remain unknown. This does not
+prevent the native host-enforced controls implemented later in this task.
 
 ## Execution contract
 
