@@ -330,6 +330,7 @@
 \newcommand{\tdk@keeplist}{\iftdk@firstlist\global\tdk@firstlistfalse\else\Needspace{\numexpr 8+2*\ifnum\tdk@used>15 15\else\tdk@used\fi\relax\baselineskip}\fi}
 \newcommand{\printlists}{\tdk@ifused{abbreviations,symbols,main}{%
   \section{Abbreviations, notation and terms}\label{app:glossary-lists}%
+  \setglossarysection{subsection}
   \global\tdk@firstlisttrue
   \tdk@ifused{abbreviations}{\tdk@keeplist
    {\renewcommand*{\entryname}{Abbreviation}\renewcommand*{\descriptionname}{Meaning}%
