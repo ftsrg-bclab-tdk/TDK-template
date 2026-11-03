@@ -8,5 +8,9 @@
   "creators": [
     { "name": "TODO Surname, Given name", "affiliation": "Budapest University of Technology and Economics", "orcid": "TODO or remove" }
   ],
+  "contributors": [
+    { "name": "Farkas, Martin", "type": "Supervisor", "affiliation": "Budapest University of Technology and Economics" },
+    { "name": "Kocsis, Imre", "type": "Supervisor", "affiliation": "Budapest University of Technology and Economics" }
+  ],
   "keywords": ["TODO"]
 }
