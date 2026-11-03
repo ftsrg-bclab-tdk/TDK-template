@@ -12,6 +12,7 @@ Keep your work in the three GitHub repositories described in \cref{app:start:acc
     \item \texttt{code/}: submodule, the code repository: the code in \texttt{src/} and \texttt{tests/}, the measurement scripts and their raw results in \texttt{experiments/}, and at the root \texttt{README.md}, \texttt{LICENSE}, \texttt{.zenodo.json}, \texttt{CITATION.cff}, the \texttt{justfile}, the \texttt{Dockerfile} and \texttt{.devcontainer/}.
   \end{itemize}
 \end{itemize}
+
 Include the code and data behind the paper's results in each release (\cref{app:zenodo}).
 
 \paragraph{One command.} The \href{https://github.com/FTSRG-BCLab-TDK/tdk-code-template}{tdk-code-template} provides the layout above, Zenodo files, Docker images and one GitHub Actions workflow per recipe: \texttt{ci} (build, test and smoke reproduction), \texttt{evaluate}, \texttt{benchmark}, \texttt{robustness}, \texttt{demo} and \texttt{release}.
@@ -122,6 +123,26 @@ For behaviour-driven development (BDD), you can write the expected behaviour as 
 \begin{itemize}
   \item For research, we recommend the strongest models. We prefer Claude Fable and ChatGPT Astra; ask whether we can help with a subscription.
   \item Prefer an agent working in your repository: Claude Code or Codex, ideally through T3 Code, GitKraken Kepler or herdr. This gives the agent access to your files and its repository tools. You \emph{need} version control when AI edits files.
-  \item Plugins and skills: the Matt Pocock and poetato plugins for productivity; caveman, ponytail, squeez and TRON if you want to spare tokens. Three we use daily: \href{https://www.aihero.dev/skills-grill-me}{grill-me} (\href{https://claudemarketplaces.com/skills/mattpocock/skills/grill-me}{marketplace page}) interrogates a plan before you build it; \href{https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md}{unslop} takes the machine out of generated prose; \href{https://github.com/DietrichGebert/ponytail/blob/main/skills/ponytail/SKILL.md}{ponytail} cuts the tokens an agent spends.
+  \item Plugins and skills: the Matt Pocock and poetato plugins for productivity; caveman, ponytail, squeez and TRON if you want to spare tokens. Three we use daily: \href{https://www.aihero.dev/skills-grill-me}{grill-me} (\href{https://claudemarketplaces.com/skills/mattpocock/skills/grill-me}{marketplace page}) structures a Socratic dialogue with the AI (\cref{app:code:grill}); \href{https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md}{unslop} takes the machine out of generated prose; \href{https://github.com/DietrichGebert/ponytail/blob/main/skills/ponytail/SKILL.md}{ponytail} cuts the tokens an agent spends.
   \item We recommend concise instructions. Overloaded \texttt{AGENTS.md} files and memories can impair model performance. Prefer skills that clearly describe the range of tasks they apply to.
 \end{itemize}
+
+\subsection{Socratic dialogue with AI}\label{app:code:grill}
+Use a Socratic dialogue with the AI to work through your understanding: you explain a claim or decision, the AI asks what it means and what supports it, and you test and refine the answer together. Ask it to expose assumptions, request examples and propose counterexamples. You should leave able to reconstruct the reasoning yourself. Challenge the AI's premise when it does not fit your work, and check its answers as carefully as it checks yours.
+
+The \texttt{grill-me} skill is a way to structure this dialogue. Use it on a bounded question: the problem in your topic manifest, a contribution in your spine, an evaluation design or a concept you cannot yet explain. Give the agent the relevant artifact and say what you want to understand or settle. A whole thesis is too broad for one useful round.
+
+\paragraph{An example.} Suppose you tell the AI that a signed diploma status proves the diploma is still valid. It asks what the signature establishes. You answer that the issuer signed the status. It then asks whether a verifier could receive an authentic status after the diploma was revoked. Your answer exposes the need for a freshness condition. The dialogue continues: how old may the evidence be, whose clock measures its age, and what happens when no recent evidence is available? Each answer changes what the next question can assume. You leave with a narrower claim, explicit timing assumptions and a test with delayed evidence, or a specific question that needs a proof or a source.
+
+\paragraph{Make the answer yours.} Explain in your own words, with a small example if needed. If you cannot explain a term or an AI-generated argument, ask for a hint or explanation, then apply it to a different case. Agreement alone does not show understanding; predicting what happens in the changed case does.
+
+Treat the decisions as a tree. First settle the choices on which other choices depend. For example, agree on the intended use and acceptable evidence age before choosing refresh intervals or benchmark workloads. Ask questions whose prerequisites are settled in the current round, answer them, then move to the questions those answers unlock. The agent should inspect available files for facts; you supply your intended scope and make the decisions. If evidence is missing, record the investigation needed rather than accepting a guess.
+
+\paragraph{A prompt to adapt.}
+\begin{quote}
+Use grill-me to help me test the evaluation plan in [file]. Read the plan and the claims it is meant to check. Ask questions in dependency order, waiting for my answers between rounds. Challenge vague terms, unsupported assumptions and cases where the proposed evidence would not establish the claim. Look up facts available in the repository yourself and identify anything you cannot verify. For each decision, explain your recommendation and its tradeoffs; ask me to justify my choice and test it on a counterexample. Do not edit the plan during the interview. Finish by summarising the decisions, their reasons, unresolved questions and the evidence I need next. Ask me to confirm that the summary matches my understanding.
+\end{quote}
+
+\paragraph{Use recommendations critically.} A fluent recommendation can make agreement too easy. Explain why it fits your case and what would make you reject it. Ask the agent to challenge that explanation. If the discussion becomes repetitive, ask which unresolved decision blocks progress and what evidence would resolve it. The useful output is a decision you can defend, or a specific investigation to carry out.
+
+End the dialogue when you can explain the decision and its reasons, or when further progress needs evidence you do not yet have. Record what would settle each remaining question and the next investigation to carry out. Save the decisions and open questions in your notes and retain the conversation as described in \cref{app:writing:ai}. Bring the artifact and the questions that remain to consultation. An AI interview does not approve an anchor: changes to the topic manifest, spine or approved draft still need our agreement (\cref{app:lifecycle}). Verify suggested sources before citing them and account for AI assistance in your declaration.
