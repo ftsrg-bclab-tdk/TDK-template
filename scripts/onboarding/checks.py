@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 
 from ci.evidence import verify_report
+from overleaf.boundary import VerifiedBoundary
 
 
 def ingest(report_path, config, config_digest, tested_sha, *, report_digest=None,
@@ -13,11 +14,17 @@ def ingest(report_path, config, config_digest, tested_sha, *, report_digest=None
     remains pending. A hash proves consistency, not the authority of its producer.
     """
     required = [name for name, component in config["components"].items() if component["enabled"]]
-    after = verified_boundary["completed_at"] if verified_boundary else None
-    if verified_boundary and any(verified_boundary.get(key) != value for key, value in (
+    if verified_boundary is not None and type(verified_boundary) is not VerifiedBoundary:
+        raise ValueError("Expected an authenticated native pilot boundary, not local JSON")
+    after = verified_boundary.completed_at if verified_boundary else None
+    if verified_boundary and any(getattr(verified_boundary, key) != value for key, value in (
             ("repository", config["repository"]), ("tested_sha", tested_sha),
             ("config_digest", config_digest))):
-        raise ValueError("Independent boundary does not match current project/source/config")
+        raise ValueError("Trusted observer boundary does not match current project/source/config")
+    if verified_boundary:
+        if report_digest and report_digest != verified_boundary.report_sha256:
+            raise ValueError("Report differs from native pilot evidence")
+        report_digest = verified_boundary.report_sha256
     report = verify_report(report_path, repository=config["repository"], tested_sha=tested_sha,
                            config_sha256=config_digest, required_components=required,
                            expected_report_sha256=report_digest, after=after,
@@ -28,6 +35,6 @@ def ingest(report_path, config, config_digest, tested_sha, *, report_digest=None
             "report_sha256": hashlib.sha256(Path(report_path).read_bytes()).hexdigest(),
             "required_components": required, "execution": report["execution"],
             "runtime_sha256": report["runtime_sha256"],
-            "roundtrip_and_clone": "independently_verified" if verified_boundary else "pending",
+            "roundtrip_and_clone": "trusted_observer_verified" if verified_boundary else "pending",
             "artifact_transport": "pending_authoritative_envelope",
             "onboarding_ready": False}
