@@ -1,10 +1,15 @@
 {
+  // Built from the runtime Dockerfile, so development and `docker run ... reproduce` share one environment.
   "name": "tdk-code",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-  "features": {
-    "ghcr.io/guiyomh/features/just:0": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
+  "build": { "dockerfile": "../Dockerfile", "context": ".." },
+  // The image's entry point is `just`; keep the container running for the editor instead.
+  "overrideCommand": true,
+  // ubuntu:24.04's uid-1000 user, remapped to your uid, so files you create are not owned by root.
+  "remoteUser": "ubuntu",
+  "features": { "ghcr.io/devcontainers/features/docker-in-docker:2": {} },
   "customizations": { "vscode": { "extensions": ["GitHub.vscode-pull-request-github", "ms-vscode-remote.remote-ssh"] } },
+  // The editor works in your mounted checkout, not in the image's /work, so project-local dependencies
+  // the Dockerfile installed there (node_modules, a Python venv) are missing: reinstall them here,
+  // for example "npm ci && just --list". Toolchains installed system-wide are already there.
   "postCreateCommand": "just --list"
 }

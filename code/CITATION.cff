@@ -7,6 +7,6 @@ authors:
     given-names: TODO
     affiliation: Budapest University of Technology and Economics
 version: 1.0.0
-date-released: TODO-YYYY-MM-DD
+# date-released: YYYY-MM-DD   Uncomment with the first release; the same date as publication_date in .zenodo.json.
 license: MIT
 doi: 10.5281/zenodo.TODO

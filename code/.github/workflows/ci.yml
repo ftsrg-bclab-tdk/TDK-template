@@ -7,6 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: extractions/setup-just@v2
+      - run: sudo apt-get update && sudo apt-get install -y hyperfine
       - name: Build
         run: just build
       - name: Test

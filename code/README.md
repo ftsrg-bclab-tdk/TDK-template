@@ -8,10 +8,11 @@ sentences: what the artifact is and what it shows.
 ## Reproduce everything
 
 ```sh
-docker run --rm -v "$PWD/out:/out" ghcr.io/<you>/<repo>:v1.0.0 reproduce
+mkdir -p out && docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/out:/out" ghcr.io/<you>/<repo>:v1.0.0 reproduce
 ```
 
-regenerates every figure and table of the paper into `out/`. With the repository cloned and the
+regenerates every figure and table of the paper into `out/`, owned by you. `just check` then
+compares them with the results committed under `experiments/`, ignoring timings. With the repository cloned and the
 dependencies below installed, `just reproduce` does the same, and `just reproduce --smoke` runs a
 reduced workload in minutes; CI runs the smoke version on every push.
 

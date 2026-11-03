@@ -1,0 +1,4 @@
+# gitleaks findings checked by hand and accepted as not secret, for example a public key in an example.
+# One finding per line: the exact fingerprint gitleaks prints (commit:file:rule:line), never a pattern.
+# Put a one-line comment above each entry saying why it is not a secret. A real secret is never listed
+# here: replace it, then remove it from the history (see the guide, "Before the repository goes public").
