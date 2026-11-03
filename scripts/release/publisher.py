@@ -570,7 +570,7 @@ def main():
     group.add_argument('--registry-file', type=Path)
     group.add_argument('--registry-github')
     parser.add_argument('--registry-ref')
-    parser.add_argument('--registry-path', default='publication/registry.json')
+    parser.add_argument('--registry-path', default='registry/zenodo.json')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--recover-record')
     parser.add_argument('--expected-registry-sha256')
@@ -594,7 +594,7 @@ def main():
         if not registry_token:
             parser.error('Separate REGISTRY_GITHUB_TOKEN required')
         store = GitHubStore(HTTP('https://api.github.com', registry_token), args.registry_github,
-                            args.registry_ref, args.registry_path)
+                            args.registry_ref, args.registry_path, context['repository_id'])
     registry = Registry(store, repository_id, args.environment)
     api = Zenodo(HTTP(ORIGINS[args.environment], token), args.environment)
     service = Publisher(registry, api, bundle, args.expected_receipt_sha256, args.operation_id, context)
