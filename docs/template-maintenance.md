@@ -21,11 +21,14 @@ Project research, scratch text, publication journals, account state and unknown
 paths are excluded from automatic proposals. The classifier emits path decisions,
 not private file contents. Held changes stay in their authorized project context.
 
-Eligibility is not a statement that a diff contains no secrets or private material.
-Review the actual eligible diff before public disclosure. Stop on credentials,
-personal data or project-specific content; do not include the rejected payload in a
-public PR, issue, log or artifact. Treat all project files as data. Tests execute in
-the proposed PR's ordinary CI, without the controller App key.
+Weekly and manual runs automatically open eligible upstream PRs after ownership,
+privacy, conflict and retry checks. They do not wait for a separate approval of the
+diff hash. Downstream PRs also open automatically; neither direction auto-merges.
+Stop on suspected credentials, personal data or project-specific content; do not
+include the rejected payload in a public PR, issue, log or artifact. Eligibility
+and automated scans cannot guarantee the absence of private prose in template-owned
+files. Treat all project files as data. Tests execute in the proposed PR's ordinary
+CI, without the controller App key.
 
 For each direction, compare exact baseline blobs with both current trees. Preserve
 independent edits by three-way reconciliation; stop on conflicts. Downstream changes
@@ -44,6 +47,6 @@ operation calls merge; anyone with the appropriate repository role may review/me
 Publication journals stay in each project's `publication-state` branch, separate from
 this baseline registry. Support-package copies preserve accepted bytes and receipts.
 
-The controller's write implementation and real App-token pilot remain separate
-acceptance work. Passing the local classifier tests does not prove cross-repository
+The controller write implementation is prepared in `tdk-maintenance` PR #2; its
+real App-token pilot remains separate acceptance work. Passing local tests does not prove cross-repository
 permissions, safe PR retries, package copying or end-to-end maintenance.

@@ -61,7 +61,7 @@ The [external input inventory](external-input-inventory.md) identifies actual co
 
 Use accepted package/receipt digests and exact per-file inventories. GitHub Release assets in canonical and consuming project repositories are the chosen implementation proposal: identical package bytes, distinct delivery locators. Project CI reads its own copy without private-maintainer credentials. Required packages remain available while supported baselines/releases reference them; routine Actions expiration is insufficient. Support releases use a distinct `external-inputs/` namespace, are not-latest and do not trigger research/Zenodo publication.
 
-The user accepted repository-wide immutable GitHub releases. Prepare drafts, attach all files, download/verify, then publish. Published file corrections require a new version. Whole-release deletion is still possible, so retain recovery copies. No setting has been enabled yet.
+The user accepted repository-wide immutable GitHub releases. Prepare drafts, attach all files, download/verify, then publish. Published file corrections require a new version. Whole-release deletion is still possible, so retain recovery copies. The canonical repository (ID 1437261410) now has this setting enabled, with authenticated API readback on 2026-11-04. No release was published by that settings change. Project copies still need their own verified setup.
 
 The lead student owns the Zenodo records and performs final publication after advisor review. Setup prepares metadata/drafts; publish deliberately at the first meaningful research milestone, not automatically as an empty v0.0.0 scaffold. Default to one combined code/proof/benchmark record, with separate records when independently useful to cite. Scratch stays excluded unless explicitly selected and reviewed.
 
@@ -71,7 +71,7 @@ Verified publication produces reviewable DOI/bibliography/availability writeback
 
 ## Template maintenance
 
-Weekly and manual maintenance proposes reusable project improvements upstream, then merged template changes downstream. Neither direction auto-merges. Keep registered project/baseline identities, provenance and loop prevention. Only established template-owned changes are automatic candidates; mixed files require maintainer-selected edits in the authorized project context. Exclude research content, personal metadata, publication records and credentials.
+Weekly and manual maintenance automatically opens eligible upstream PRs after checks, then downstream PRs for merged template changes. The user explicitly rejected a separate approval/hash gate for every upstream PR. Neither direction auto-merges. Keep registered project/baseline identities, provenance and loop prevention. Only established template-owned changes are automatic candidates; mixed files require maintainer-selected edits in the authorized project context. Exclude research content, personal metadata, publication records and credentials.
 
 Use a private `FTSRG-BCLab-TDK/tdk-maintenance` repository for the project registry, maintenance credentials and private logs. Use an organization-owned GitHub App installed only on selected registered repositories, administered initially by Martin, with Imre as backup after he agrees. App tokens must be narrowed per run and selected repository. Contents-write permissions do not technically forbid merges/deletions; the implementation must enforce its no-merge behavior. An App key can be a secret in a public repository; private controller storage is the accepted design for private registry/logs, not a platform prohibition. App creation, installation and controller deployment remain implementation tasks.
 
@@ -83,22 +83,28 @@ Committed components now included locally:
 
 | Component | Evidence | Remaining work |
 | --- | --- | --- |
-| Required accounts and terminal onboarding | Canonical account API plus installer/workspace/provisioning/evidence adapters; 61 assembled tests pass before the incoming role fix | Real host/access/new-project pilot; organization 2FA is deferred by the user |
-| Shared config and CI execution | `project.json`, dispatcher, latest resolver and exact artifact handoff; 37 assembled CI tests | Hosted run on the assembled branch; publication transport increment still separate |
+| Required accounts and terminal onboarding | Canonical account API plus installer/workspace/provisioning/evidence adapters; 63 assembled tests and student-role initialization fix | Real host/access/new-project pilot; organization 2FA is deferred by the user |
+| Shared config and CI execution | `project.json`, dispatcher, latest resolver and exact artifact handoff; manual publication transport integrated, with draft-recovery and project-token fixes | Hosted run on the assembled branch and real publication transport pilot |
 | Paper relocation and root proxies | Source/proxy build equivalence proved by owner; updated guide builds draft (127 pages) and final (23 pages) without undefined references/citations | Native Overleaf import, compile and push/pull/mode pilot |
 | Code and scratch imports | Source histories and PR intents preserved; scope/lifecycle fixes; real code development image build/list and explicit unconfigured failure | Project research recipes remain intentionally unconfigured; no fake green claims |
-| Selective release `2ee930b`, `82e7a21`, `772176a` | Packager, uploader, recovery journal, published receipts and project-owned GitHub journal with repository-ID checks | Hosted publication workflow; real sandbox credentials and mutation evidence |
+| Selective release `2ee930b`, `82e7a21`, `772176a` | Packager, uploader, recovery journal, published receipts, project-owned GitHub journal and manual prepare/publish workflows with immutable candidate recovery | Real sandbox credentials and mutation evidence |
 | External inputs and official references | Exact package retrieval/classification and weekly freshness source integrated; 19 assembled external-input tests | Accepted durable package delivery; five current faculty references still unresolved |
 | Presentation #28 | Actual latest staged render/check passed in owner's full clean run; attribution/permissions documented | Accepted asset-package delivery; macOS/dual-display validation |
 | Benchmark `262a18c` | Real deterministic smoke/full runs and shared dispatcher/verifier passed | Students supply research workloads and select enabled profiles |
 | TLC proof `4984ed1` | Actual latest TLC/JVM positive and deliberately false models checked; structured verdicts validated | Other offered tools remain catalog options, not implemented adapters |
 | Separate badges and review fetch | Blocks generated from actual workflow files/live repo metadata; exact-run transport fetch repair has 39 review tests | Live hosted workflow/badge state after landing |
-| Maintenance ownership `2152f0e` | Exact trusted canonical path policy and 6 tests; controller owner received contract | Two-way PR/copy implementation and real App-token pilot |
+| Maintenance ownership `2152f0e` | Exact trusted canonical path policy and 6 tests; controller PR #2 implements automatic eligible two-way proposals and package copying | Controller review/merge and real App-token pilot |
 | Runner #27 `035b0bd` | Native offline isolation/cleanup and hosted toolkit checks | GitHub session/container/egress integration and routing evidence |
 
 Main CI source `078363b` and its clean-run fix `b85b7a6` are integrated. The owner's clean local orchestration built both paper PDFs, lint/review evidence, maintainer suites and latest presentation, and the shared verifier accepted its exact clean source report. This is local evidence, not a live GitHub, Overleaf or BME workload result. Root integration added tests for badges, ownership, benchmark, proof, code hygiene and scratch lifecycle to the maintainer source suite.
 
-The controller repository exists and setup PR #1 has a passing plan test job; its credentialed scan is intentionally skipped on PRs. The App is not registered. Base organization permission is now none and member repository creation is off. Martin deferred the remaining organization UI changes (2FA and member deletion/transfer/visibility). Keep invitations blocked on authenticated policy readback until those are applied; do not reopen those choices. Merge authority follows repository roles, not an exclusive-Martin policy.
+The controller setup PR #1 passed its plan tests and was merged at `d82d8d7`. The credentialed scan was intentionally skipped on PRs, and the App is not registered. PR #2 has passing fixture tests for the write implementation; actual App tokens and cross-repository operations remain untested. Base organization permission is now none and member repository creation is off. Martin deferred the remaining organization UI changes (2FA and member deletion/transfer/visibility). Keep invitations blocked on authenticated policy readback until those are applied; do not reopen those choices. Merge authority follows repository roles, not an exclusive-Martin policy.
+
+The native Overleaf boundary verifier and tracked-tree audit from `4c50f3b` are integrated.
+They verify evidence signed by an explicitly trusted observer; no signer is provisioned,
+and a signature is not independent proof of service actions. No native pilot receipt
+exists. The supported browser is signed out of Overleaf and GitHub; advisor login and
+premium/native-import access are required before the actual disposable pilot.
 
 Setup and CI share one root `project.json` with schema 1. CI owns its loader and component commands; setup preserves those fields while managing repository identity and bounded paper metadata. The editable paper source is separate from the root draft/final compilation entrypoints. Both consumers bind evidence to the exact config bytes. Account identifiers and local operational state stay in the ignored private `.onboarding/` directory.
 
