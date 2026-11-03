@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "services": {
+    "github": {
+      "name": "GitHub",
+      "required": true,
+      "signup_url": "https://github.com/signup",
+      "profile_url": "https://docs.github.com/en/account-and-profile/tutorials/personalize-your-profile",
+      "profile_link_kind": "instructions",
+      "prompt": "Enter your existing GitHub username, or create a personal account using the signup link. Never enter a password, API token, recovery code or cookie. Reuse your existing account.",
+      "link_verification": {
+        "checked_on": "2026-11-03",
+        "method": "official_page_and_documentation_review",
+        "sources": [
+          "https://github.com/signup",
+          "https://docs.github.com/en/account-and-profile/tutorials/personalize-your-profile"
+        ],
+        "notes": "Official signup form inspected; official profile instructions used because settings require authentication."
+      }
+    },
+    "overleaf": {
+      "name": "Overleaf",
+      "required": true,
+      "signup_url": "https://www.overleaf.com/register",
+      "profile_url": "https://www.overleaf.com/user/settings",
+      "profile_link_kind": "authenticated_settings",
+      "prompt": "Enter an email address confirmed on your existing Overleaf account for project invitations, or create an account using the signup link. Never enter a password, API token, recovery code or cookie. Reuse your existing account.",
+      "link_verification": {
+        "checked_on": "2026-11-03",
+        "method": "official_page_and_documentation_review",
+        "sources": [
+          "https://www.overleaf.com/register",
+          "https://docs.overleaf.com/accounts-and-security/understanding-your-overleaf-account"
+        ],
+        "notes": "Signup inspected; settings redirects to sign-in, and the settings URL is documented officially."
+      }
+    },
+    "orcid": {
+      "name": "ORCID",
+      "required": true,
+      "signup_url": "https://orcid.org/register",
+      "profile_url": "https://orcid.org/my-orcid",
+      "profile_link_kind": "authenticated_settings",
+      "prompt": "Enter your existing ORCID iD (0000-0000-0000-0000) or full https://orcid.org/ URL. Search for your existing record before registering another one. Never enter a password, API token, recovery code or cookie. Reuse your existing account.",
+      "link_verification": {
+        "checked_on": "2026-11-03",
+        "method": "official_page_and_documentation_review",
+        "sources": [
+          "https://orcid.org/register",
+          "https://orcid.org/my-orcid",
+          "https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier"
+        ],
+        "notes": "Official application routes respond with JavaScript shell; identifier structure and checksum documented by ORCID."
+      }
+    },
+    "zotero": {
+      "name": "Zotero",
+      "required": true,
+      "signup_url": "https://www.zotero.org/user/register",
+      "profile_url": "https://www.zotero.org/settings/profile",
+      "profile_link_kind": "authenticated_settings",
+      "prompt": "Enter your existing Zotero username, or register using the signup link. Group membership will be checked separately. Never enter a password, API token, recovery code or cookie. Reuse your existing account.",
+      "link_verification": {
+        "checked_on": "2026-11-03",
+        "method": "official_page_and_documentation_review",
+        "sources": [
+          "https://www.zotero.org/user/register",
+          "https://www.zotero.org/settings/profile"
+        ],
+        "notes": "Registration page inspected; profile settings redirects to official sign-in."
+      }
+    },
+    "zenodo": {
+      "name": "Zenodo",
+      "required": true,
+      "signup_url": "https://zenodo.org/signup/",
+      "profile_url": "https://help.zenodo.org/docs/profile/",
+      "profile_link_kind": "instructions",
+      "prompt": "Enter the username shown in your existing Zenodo profile, or register using the signup link. This does not choose a publisher or authorize publication. Never enter a password, API token, recovery code or cookie. Reuse your existing account.",
+      "link_verification": {
+        "checked_on": "2026-11-03",
+        "method": "official_page_and_documentation_review",
+        "sources": [
+          "https://zenodo.org/signup/",
+          "https://help.zenodo.org/docs/profile/"
+        ],
+        "notes": "Signup form and official profile navigation inspected. Use documented Profile menu; do not guess an account settings route."
+      }
+    }
+  }
+}
