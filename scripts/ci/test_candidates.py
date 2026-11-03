@@ -1,4 +1,3 @@
-import copy
 import hashlib
 import json
 from pathlib import Path
@@ -21,14 +20,14 @@ class CandidateTests(unittest.TestCase):
             archive.writestr("receipt.json",'{"fixture":true}')
         self.transport={"schema":"ci-artifact/v1","repository_id":10,"source_sha":"a"*40,"run_id":20,"run_attempt":1,"artifact_id":30,
                         "artifact_sha256":hashlib.sha256(self.archive.read_bytes()).hexdigest(),"workflow_path":".github/workflows/release-prepare.yml"}
-        owner=self
         class Remote:
             def __init__(self):self.value=None;self.data={};self.posts=0
             def request(self,method,path,value=None,data=None):
                 if path=="/repos/org/project":return {"id":10}
-                if path.endswith("immutable-releases"):return {"enabled":True}
+                if path.endswith("immutable-releases"):raise RemoteError(403)
+                if "/releases?" in path:return [self.value] if self.value else []
                 if "/releases/tags/" in path:
-                    if not self.value:raise RemoteError(404)
+                    if not self.value or self.value["draft"]:raise RemoteError(404)
                     return self.value
                 if method=="POST" and path.endswith("/releases"):
                     self.posts+=1
@@ -64,3 +63,31 @@ class CandidateTests(unittest.TestCase):
         self.remote.data[50]=b"corrupt"
         with self.assertRaisesRegex(ValueError,"digest"):
             recover(self.remote,"org/project",10,"b"*64,self.transport,self.root/"bad",self.remote)
+
+    def test_lost_draft_creation_is_found_without_tag_lookup_or_second_post(self):
+        self.remote.value={"id":40,"tag_name":"release-candidates/"+"b"*64,"draft":True,"immutable":False,"assets":[]}
+        retain(self.remote,self.remote,"org/project",10,"a"*40,"b"*64,self.archive,self.transport,self.remote)
+        self.assertEqual(self.remote.posts,0)
+        self.assertTrue(self.remote.value["immutable"])
+
+    def test_ambiguous_drafts_block_creation(self):
+        original=self.remote.request
+        def request(method,path,**kwargs):
+            if "/releases?" in path:
+                return [{"tag_name":"release-candidates/"+"b"*64,"id":40},
+                        {"tag_name":"release-candidates/"+"b"*64,"id":41}]
+            return original(method,path,**kwargs)
+        self.remote.request=request
+        with self.assertRaisesRegex(ValueError,"ambiguous"):
+            retain(self.remote,self.remote,"org/project",10,"a"*40,"b"*64,self.archive,self.transport,self.remote)
+        self.assertEqual(self.remote.posts,0)
+
+    def test_mutable_published_candidate_never_becomes_durable_receipt(self):
+        original=self.remote.request
+        def request(method,path,**kwargs):
+            value=original(method,path,**kwargs)
+            if method=="PATCH":self.remote.value["immutable"]=False
+            return value
+        self.remote.request=request
+        with self.assertRaisesRegex(ValueError,"not immutable"):
+            retain(self.remote,self.remote,"org/project",10,"a"*40,"b"*64,self.archive,self.transport,self.remote)

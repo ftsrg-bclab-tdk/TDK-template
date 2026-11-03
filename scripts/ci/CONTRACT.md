@@ -145,3 +145,22 @@ These are implemented source interfaces and fixture-tested transports. No real
 registry branch, GitHub release, secret or Zenodo record has been provisioned by
 the CI session. Native Overleaf roundtrip and live Actions transport remain
 separate acceptance evidence.
+
+### Candidate draft recovery and immutability
+
+Candidate lookup paginates the authenticated release listing, including drafts;
+the tag lookup endpoint returns published releases only. Ambiguous matches or an
+incomplete listing stop before creation. A lost draft-create response is therefore
+reconciled on the next explicit invocation without creating another candidate.
+
+Project `GITHUB_TOKEN` has Contents write but cannot read the repository's
+Administration-only immutable-release setting. The owner enables that setting in
+setup. Publication verifies bytes in the draft, publishes the reviewed candidate,
+then requires the returned release to be immutable before issuing a durable receipt
+or performing any Zenodo action. If the setting was off, the candidate may now be a
+published mutable support release; the workflow stops and requires owner recovery.
+It never labels those bytes durable, deletes the release, or continues to Zenodo.
+A preflight setting read would not remove the need for this post-publication check.
+
+Official API contracts: [release listing and published tag lookup](https://docs.github.com/en/rest/releases/releases),
+[immutable-setting Administration read requirement](https://docs.github.com/en/rest/repos/repos#check-if-immutable-releases-are-enabled-for-a-repository).

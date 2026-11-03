@@ -3,7 +3,6 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
-import urllib.parse
 
 from ci.handoff import MAX_BYTES, require, sha_file, extract
 from external_inputs.external_inputs import GitHub
@@ -12,13 +11,19 @@ from publication_io import RemoteError
 
 def release(http, repository, receipt_digest):
     tag="release-candidates/"+receipt_digest
-    try:
-        value=http.request("GET","/repos/"+repository+"/releases/tags/"+urllib.parse.quote(tag,safe=""))
-    except RemoteError as exc:
-        if exc.status==404:return None
-        raise
-    require(value.get("tag_name")==tag,"Candidate tag mismatch")
-    return value
+    # The tag endpoint only returns published releases. List drafts before creating
+    # anything so a lost draft-create response does not produce another release.
+    matches=[]
+    for page in range(1,21):
+        values=http.request("GET",f"/repos/{repository}/releases?per_page=100&page={page}")
+        require(isinstance(values,list),"Invalid release listing")
+        matches.extend(value for value in values if value.get("tag_name")==tag)
+        if len(values)<100:
+            break
+    else:
+        raise ValueError("Release listing incomplete; reconcile before retry")
+    require(len(matches)<=1,"Candidate tag is ambiguous; reconcile before retry")
+    return matches[0] if matches else None
 
 
 def asset(value,name):
@@ -30,14 +35,15 @@ def asset(value,name):
 def retain(http, uploads, repository, repository_id, source_sha, receipt_digest, archive, transport, client=None):
     prefix="/repos/"+repository
     require(http.request("GET",prefix).get("id")==repository_id,"Candidate repository mismatch")
-    settings=http.request("GET",prefix+"/immutable-releases")
-    require(settings.get("enabled") is True or settings.get("enforced_by_owner") is True,"Enable accepted immutable-release setting before durable candidate promotion")
+    # GITHUB_TOKEN cannot request Administration:read for the settings endpoint.
+    # An owner enables immutability during setup. Verify the actual published
+    # release below before returning any durable receipt or calling Zenodo.
     archive=Path(archive)
     require(transport.get("schema")=="ci-artifact/v1","Expected verified CI transport receipt")
     require(sha_file(archive)==transport["artifact_sha256"],"Candidate bytes differ from verified artifact")
     value=release(http,repository,receipt_digest)
     if value is None:
-        # A failed POST is never blindly replayed; the next explicit invocation reads by tag.
+        # A failed POST is reconciled against the draft-inclusive listing next time.
         value=http.request("POST",prefix+"/releases",value={"tag_name":"release-candidates/"+receipt_digest,"target_commitish":source_sha,
                            "name":"Reviewed research candidate "+receipt_digest[:12],"draft":True,"prerelease":True,"make_latest":"false"})
     names={"candidate.zip":archive.read_bytes(),"transport.json":(json.dumps(transport,sort_keys=True,indent=2)+"\n").encode()}
@@ -63,7 +69,7 @@ def retain(http, uploads, repository, repository_id, source_sha, receipt_digest,
     if value.get("draft"):
         http.request("PATCH",prefix+"/releases/"+str(value["id"]),value={"draft":False,"make_latest":"false"})
         value=http.request("GET",prefix+"/releases/"+str(value["id"]))
-    require(value.get("immutable") is True and value.get("draft") is False,"Candidate release is not immutable")
+    require(value.get("immutable") is True and value.get("draft") is False,"Candidate release is not immutable; owner must enable immutable releases and reconcile this candidate before retry")
     return {"repository_id":repository_id,"release_id":value["id"],"tag":value["tag_name"],
             "asset_id":asset(value,"candidate.zip")["id"],"artifact_sha256":transport["artifact_sha256"]}
 
