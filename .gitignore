@@ -31,3 +31,5 @@ final.pdf
 .claude/settings.local.json
 # Python bytecode of scripts/
 __pycache__/
+# Private resumable onboarding state; shared onboarding.json contains no accounts.
+/.onboarding/
