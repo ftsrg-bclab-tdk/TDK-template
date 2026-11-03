@@ -14,7 +14,7 @@ Keep your work in the three GitHub repositories described in \cref{app:start:acc
 \end{itemize}
 Include the code and data behind the paper's results in each release (\cref{app:zenodo}).
 
-\paragraph{One command.} The \href{https://github.com/BlackLight54/tdk-code-template}{tdk-code-template} provides the layout above, Zenodo files, Docker images and one GitHub Actions workflow per recipe: \texttt{ci} (build, test and smoke reproduction), \texttt{evaluate}, \texttt{benchmark}, \texttt{robustness}, \texttt{demo} and \texttt{release}, plus \texttt{hygiene}, which checks what must not reach a public repository (\cref{app:zenodo:public}).
+\paragraph{One command.} The \href{https://github.com/FTSRG-BCLab-TDK/tdk-code-template}{tdk-code-template} provides the layout above, Zenodo files, Docker images and one GitHub Actions workflow per recipe: \texttt{ci} (build, test and smoke reproduction), \texttt{evaluate}, \texttt{benchmark}, \texttt{robustness}, \texttt{demo} and \texttt{release}, plus \texttt{hygiene}, which checks what must not reach a public repository (\cref{app:zenodo:public}).
 
 Put recurring commands in a \texttt{justfile} for the \href{https://github.com/casey/just}{just} command runner. We require that \texttt{just reproduce} regenerates every paper figure and table. Name individual recipes after their outputs: \texttt{just fig-scalability} for the scalability figure (\cref{fig:guide:scalability}) and \texttt{just tab-robustness} for the robustness table (\cref{tab:guide:robustness}). Provide \texttt{just reproduce --smoke} with a reduced workload that finishes in minutes. GitHub Actions runs it on every push to catch broken README commands.
 
