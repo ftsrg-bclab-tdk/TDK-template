@@ -82,14 +82,18 @@ Committed components now included locally:
 
 | Component | Evidence | Remaining work |
 | --- | --- | --- |
-| Required accounts `51a46c4` | 14 deterministic tests | Terminal workflow, real access evidence and guide integration |
+| Required accounts `51a46c4` | 14 deterministic tests, used by terminal setup | Real access evidence and guide integration |
 | Docker bootstrap `f9ff699` | 20 combined account/bootstrap tests pass here | Actual OS adapters/runtime smoke and full onboarding |
+| Terminal setup `9d17bf9` + source discovery `17fa890` | 40 onboarding tests; advisor dry-run against current draft source | Shared-config adapter, installation/workspace/provisioning adapters and real pilot |
+| Shared project config `54334d6` + corrections `efd2725` | 17 config/planner tests; strict metadata and actual presentation output paths | Dispatcher and setup must consume the same loader/digest; declared paper paths await relocation |
 | Selective packager `2ee930b` | 23 packager + 13 schema tests; complete-ZIP size-bound regression repaired | Uploader, durable publication state and live sandbox verification |
 | External inputs + dependency planner `6644ddb` | 18 fetch/verify fixtures + 7 planner tests reported passing in assembled tree; canonical receipt schema matches | Real immutable-release delivery/copy, consumers and workflows |
 | Presentation #28 `07bb8bd` | Local/hosted builds, visual and audience/presenter checks | Latest-runtime integration, accepted asset fetch and public terms |
 | Runner #27 `035b0bd` | Native offline isolation/cleanup and hosted toolkit checks | GitHub session/container/egress integration and routing evidence |
 
-Code/scratch imports are underway in the integration workstream. Paper relocation/root proxies, workflow execution/badge handoff, proof adapters, real benchmark scaffold, full onboarding and maintenance automation remain unfinished. Tests of isolated components are not evidence that the whole monorepo works.
+Code/scratch imports and paper relocation/root proxies are underway in their existing workstreams. Workflow execution/badge handoff, proof adapters, real benchmark scaffold, full onboarding and maintenance automation remain unfinished. Tests of isolated components are not evidence that the whole monorepo works.
+
+Setup and CI share one root `project.json` with schema 1. CI owns its loader and component commands; setup preserves those fields while managing repository identity and bounded paper metadata. The editable paper source is separate from the root draft/final compilation entrypoints. Both consumers bind evidence to the exact config bytes. Account identifiers and local operational state stay in the ignored private `.onboarding/` directory.
 
 Delivery order:
 
