@@ -153,18 +153,21 @@ end)
 -- personal settings of an AI coding agent. git exists in CI and in a clone, not on Overleaf
 local BUILD_OUTPUT = { "aux", "bbl", "blg", "fdb_latexmk", "fls", "lof", "lol", "lot", "out", "synctex.gz", "tdo", "thm", "toc", "xdv" }
 rule("repo-hygiene", "tools", "check", "always", "the repository tracks no build output (aux, log, draft.pdf, final.pdf, minted caches, ...) and no personal agent settings", function()
-  if not C.exists(".git") or not C.have("git") then C.skip("not a git checkout"); return end
+  if not C.have("git") then C.skip("not a git checkout"); return end
   if not (C.run("git rev-parse --is-inside-work-tree 2>/dev/null") or ""):match("true") then C.skip("git cannot read this checkout"); return end
+  local prefix = (C.run_quiet("git rev-parse --show-prefix") or ""):gsub("%s+$", "")
+  local back = prefix:gsub("[^/]+/", "../")
   local n = 0
-  for f in (C.run_quiet("git ls-files") or ""):gmatch("[^\n]+") do
+  for f in (C.run_quiet("git ls-files --full-name -- :/") or ""):gmatch("[^\n]+") do
+    local relative = f:sub(1, #prefix) == prefix and f:sub(#prefix + 1) or (back .. f)
     local why
-    for _, ext in ipairs(BUILD_OUTPUT) do if f:sub(-#ext - 1) == "." .. ext and f ~= "guide/guide.bbl" then why = "build output" end end
-    if f:match("%.log$") or f == "draft.pdf" or f == "final.pdf" or f == "lint-checks.tex" or f:match("^_minted") or f:match("^svg%-inkscape/") then why = "build output" end
+    for _, ext in ipairs(BUILD_OUTPUT) do if f:sub(-#ext - 1) == "." .. ext and relative ~= "guide/guide.bbl" then why = "build output" end end
+    if f:match("%.log$") or relative == "draft.pdf" or relative == "final.pdf" or f == "paper-draft.pdf" or f == "paper-final.pdf" or relative == "lint-checks.tex" or relative:match("^_minted") or relative:match("^svg%-inkscape/") then why = "build output" end
     if f:match("^%.claude/settings%.local%.json$") then why = "personal settings of an AI coding agent" end
     if why then
       -- a command, so the fix is shown and never written
-      local q = f:match("^[%w%._/%-]+$") and f or "'" .. f:gsub("'", "'\\''") .. "'"
-      n = n + 1; fail(f, nil, why .. " is tracked", "git rm --cached it (the .gitignore keeps it out afterwards)", C.fix("review", "stop tracking it", C.command("git rm --cached " .. q)))
+      local q = relative:match("^[%w%._/%-]+$") and relative or "'" .. relative:gsub("'", "'\\''") .. "'"
+      n = n + 1; fail(relative, nil, why .. " is tracked", "git rm --cached it (the .gitignore keeps it out afterwards)", C.fix("review", "stop tracking it", C.command("git rm --cached " .. q)))
     end
   end
   return string.format("tracked=%d", n)

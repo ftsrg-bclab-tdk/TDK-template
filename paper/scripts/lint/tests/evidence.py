@@ -295,7 +295,11 @@ def main():
         shutil.copytree(a.built, d, ignore=shutil.ignore_patterns(".git", "_minted-*", "svg-inkscape", "review-bundle", "skim", "__pycache__"))
         shutil.rmtree(d / "scripts")
         if a.scripts_ref:
-            archive = subprocess.run(["git", "archive", a.scripts_ref, "scripts"], cwd=TEMPLATE,
+            # Support both pre-monorepo audit baselines and current paper trees.
+            nested = subprocess.run(["git", "cat-file", "-e", a.scripts_ref + ":paper/scripts"],
+                                    cwd=TEMPLATE, capture_output=True).returncode == 0
+            tree = a.scripts_ref + (":paper" if nested else "")
+            archive = subprocess.run(["git", "archive", tree, "scripts"], cwd=TEMPLATE,
                                      capture_output=True, check=True).stdout
             with tarfile.open(fileobj=io.BytesIO(archive)) as tf:
                 tf.extractall(d, filter="data")
