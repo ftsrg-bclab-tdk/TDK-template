@@ -258,6 +258,42 @@ hidden = [r"\verb|TEXT|", r"\verb%TEXT%", r"\lstinline[language=TeX]|TEXT|",
           "\\todo[inline,\ncaption={bracket ] here}]\n {TEXT}",
           "\\todo[inline]% comment\n {TEXT}",
           r"\guidetodo{TEXT}{TEXT}", r"\beat{TEXT}{TEXT}{TEXT}{TEXT}"]
+# Citation placement: explicit blocks are checkable; continued prose is not.
+for name, attribution in (
+    ("missing", "Author"), ("empty", ""), ("author-only", r"\citeauthor{known}"),
+    ("empty-cite", r"Author, \cite{}"),
+    ("url", r"\url{https://example.org/\cite{known}}"),
+    ("note", r"Author\todo{\cite{known}}"),
+    ("literal", r"Author \texttt{\cite{known}}"),
+):
+    reader("quotation-" + name, r"\begin{sourcequote}{" + attribution +
+           r"}Words.\cite{known}\end{sourcequote}", True, "quotations", "has no citation")
+for name, attribution in (
+    ("valid", r"Author, \cite[p.~12]{known}"),
+    ("nested", r"\emph{Author}, \citep[see][Section~2]{known}"),
+    ("multiline", "Author, \\citet*% comment\n [p.~12]\n{known}"),
+):
+    reader("quotation-" + name, r"\begin{sourcequote}" + "\n{" + attribution +
+           r"}Words [\textit{sic}] [\ldots].\end{sourcequote}", False, "quotations", "has no citation")
+reader("quotation-body-cite-is-checked", r"\begin{sourcequote}{Author, \cite[p.~12]{missingkey}}Words.\end{sourcequote}",
+       True, "bib", "missingkey")
+reader("quotation-prose-continuation", "\\citet{known} describe a protocol.\n\nTheir next phase verifies it.\n\nWe call this \\enquote{verification}.",
+       False, "quotations", "citation")
+for i, template in enumerate(hidden):
+    reader(f"quotation-hidden-{i}", template.replace("TEXT", r"\begin{sourcequote}{Author}Words.\end{sourcequote}"),
+           False, "quotations", "has no citation")
+
+@case("quotation-warning-and-phase")
+def quotation_warning_and_phase(d):
+    fixture(d, r"\begin{sourcequote}{Author, \cite{known}}Words.\end{sourcequote}" +
+            r"\begin{quote}Words.\end{quote}")
+    data = lint(d, "quotations", exit=0)
+    assert any("no locator" in f["msg"] for f in data["findings"]), data
+    assert any("plain quote" in f["msg"] for f in data["findings"]), data
+    (d / MAIN).write_text(r"\begin{sourcequote}{Author}Words.\end{sourcequote}")
+    lint(d, "quotations", phase="plan", exit=0)
+    lint(d, "quotations", phase="draft", exit=1)
+
 for i, template in enumerate(hidden):
     reader(f"hidden-link-{i}", template.replace("TEXT", "\\url{" + LINK + "}"), False)
     reader(f"hidden-cite-{i}", template.replace("TEXT", r"\cite{missingkey}"), False, "bib", "missingkey")

@@ -991,6 +991,56 @@ rule("companion", "source", "check", "always", "a TDK paper of the same year is 
   end)
 end)
 
+-- Only explicit quotation blocks have mechanically knowable citation scope.
+-- \enquote also marks terms, labels and invented examples; ordinary paragraphs
+-- may continue an already attributed source, so neither requires a nearby cite.
+rule("quotations", "source", "check", "draft", "sourcequote has a citation in its attribution; missing locators and plain quote/quotation environments are reported for review; citation scope in prose is checked by the reader", function()
+  local T = require("texscan")
+  local cites = { cite=true, citep=true, citet=true, citealt=true, citealp=true,
+    Citep=true, Citet=true, Citealt=true, Citealp=true }
+  C.each_call(CONTENT, function(name) return name == "begin" end, function(f, n, _, env, _, last, text)
+    if env == "quote" or env == "quotation" then
+      warn(f, n, "plain " .. env .. " environment", "use sourcequote with a cited attribution for a borrowed passage")
+    elseif env == "sourcequote" then
+      local attribution = T.group(text, last + 1)
+      local found, located = false, false
+      local a = attribution or ""
+      local i = 1
+      while i <= #a do
+        if a:sub(i, i) ~= "\\" then i = i + 1
+        else
+          local name, after = T.command(a, i)
+          i = after
+          if cites[(name:gsub("%*$", ""))] then
+            local key, finish = T.argument(a, after)
+            if finish then
+              if key:match("%S") then
+                found = true
+                local opt, optend = T.group(a, after, "[")
+                if optend then
+                  local second = T.group(a, optend + 1, "[")
+                  located = located or (second or opt):match("%S") ~= nil
+                end
+              end
+              i = finish + 1
+            end
+          elseif T.LINK[name] or name == "path" then
+            local _, finish
+            if name == "url" or name == "path" or name == "nolinkurl" then _, finish = T.address(a, after)
+            else _, finish = T.argument(a, after, true) end
+            if finish then i = finish + 1 end
+          end
+        end
+      end
+      if not found then
+        fail(f, n, "sourcequote attribution has no citation", "include the author and \\cite[p.~12]{key} in the attribution argument; a name, URL or citation in the body is not enough")
+      elseif not located then
+        warn(f, n, "sourcequote citation has no locator", "add a page, section or paragraph locator so the reader can find the passage")
+      end
+    end
+  end)
+end)
+
 -- the reference list as BibTeX printed it: the \bibitem keys of the .bbl, so a citation counts
 -- however it was written in the sources, and a \cite in a comment does not; each key is then
 -- looked up in the .bib files to tell papers, arXiv preprints and web pages apart

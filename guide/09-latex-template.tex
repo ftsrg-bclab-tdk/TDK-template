@@ -58,6 +58,20 @@ The bibliography uses IEEE style through \texttt{tdkieee.bst}: entries are numbe
 \texttt{\textbackslash citet} names the author: \citet{guide:lamport1978time} introduced logical clocks.
 \texttt{\textbackslash citep} brackets the reference~\citep{guide:lamport1978time}.
 
+Place citations next to the material they support; \cref{app:writing:citation-placement} explains paragraph-level citations and continued discussion of one source. These invented examples show placement only; replace the claims and placeholder keys with checked sources.
+\begin{minted}{latex}
+The protocol uses a revocation registry~\cite{source-key}.
+Unlike the online check in~\cite{first-source}, the second
+protocol permits offline verification~\cite{second-source}.
+
+\citet{source-key} describe a protocol with two phases.
+The first phase registers the issuer's key.
+
+Their second phase verifies the credential against that key.
+In our implementation, we add a cache to this phase.
+\end{minted}
+The second paragraph continues the same source without repeating its citation; the final sentence explicitly introduces the student's own work.
+
 Links: \url{https://github.com/ftsrg} prints the address, \href{https://ftsrg.mit.bme.hu}{the research group} hides it.
 The PDF bookmarks in the viewer's sidebar come from hyperref and bookmark.
 Icons: \faGithub~source code, \faFilePdf~paper, \faEnvelope~contact. Author ORCID: \orcidlink{0000-0000-0000-0000}.
@@ -492,6 +506,37 @@ Quotes adapt to the language: \enquote{revocation is final}, and nested: \enquot
 ulem marks edits: \uline{underlined}, \sout{struck out}, \uwave{wavy}. xcolor colors text: \textcolor{red!70!black}{red}, \colorbox{yellow!40}{highlighted}.
 Abbreviation macros use xspace, so they need no trailing braces: \eg the issuer, \ie the registry, Lamport \etal showed.
 babel switches the hyphenation and quotes per phrase: \foreignlanguage{magyar}{\enquote{visszavont tanúsítvány}}.
+
+\subsection{Quotations}\label{app:latex:quotations}
+Use \texttt{\textbackslash enquote} for short quotations and \texttt{sourcequote} for longer passages (\cref{app:writing:refs}). The following examples are invented to demonstrate syntax; replace the wording, author, citation key and locator with those of the source you checked. The key \texttt{source-key} is a placeholder, not a bibliography entry.
+
+\begin{minted}{latex}
+The specification states that \enquote{revocation is final}
+\cite[p.~12]{source-key}.
+
+\begin{sourcequote}{Author, \cite[Section~3.2]{source-key}}
+Copy the longer passage here, preserving its wording.
+The environment supplies a grey left rule and places the
+attribution below the quotation, aligned to the right.
+
+Preserve any paragraph breaks in the quoted passage.
+\end{sourcequote}
+\end{minted}
+
+The attribution argument is required; include both the author or organisation and the citation there. The box can break across pages. It supplies neither quotation marks nor italics around the passage.
+
+These invented fragments show how to mark an original error, a replacement and an omission. Square brackets distinguish your editorial changes from the source's words.
+\begin{minted}{latex}
+\enquote{The credentials is [\textit{sic}] valid}
+\cite[p.~12]{source-key}.
+
+\enquote{[The verifier] rejects expired credentials}
+\cite[p.~12]{source-key}.
+
+\enquote{The verifier checks the signature [\ldots]
+ before accepting the credential}
+\cite[pp.~12--13]{source-key}.
+\end{minted}
 
 \begin{onehalfspace}
 setspace changes the line spacing for a block; this paragraph uses one-and-a-half spacing.
