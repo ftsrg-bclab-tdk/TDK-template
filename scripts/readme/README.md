@@ -73,3 +73,11 @@ license. No legacy mirror badges are generated.
 ```sh
 python3 -m unittest discover -s scripts/readme -p 'test_*.py'
 ```
+
+The compatibility test consumes the release owner's canonical
+`scripts/release/fixtures/publication-receipt.synthetic.json` without duplicating
+it. In an isolated component checkout, set `TDK_PUBLICATION_TEST_FIXTURE` to that
+file in the release checkout. If the component is not integrated and no override
+is supplied, that test reports a skip. An explicit missing override fails.
+The fixture and its test-computed digest are synthetic test inputs, never actual
+publication evidence or a source for README DOI badges.

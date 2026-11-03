@@ -79,6 +79,29 @@ class BadgeTests(unittest.TestCase):
             path, digest = self.receipt(Path(tmp), environment='sandbox')
             self.assertEqual(badges.published_badges(path, digest, 72), [])
 
+    def test_release_owners_canonical_synthetic_receipt(self):
+        default = Path(__file__).resolve().parents[1] / 'release/fixtures/publication-receipt.synthetic.json'
+        fixture = Path(os.environ.get('TDK_PUBLICATION_TEST_FIXTURE', str(default)))
+        if not fixture.is_file() and 'TDK_PUBLICATION_TEST_FIXTURE' not in os.environ:
+            self.skipTest('release component fixture not integrated in this checkout')
+        # Test-only trust: these are synthetic bytes, never evidence of a live DOI.
+        raw = fixture.read_bytes()
+        receipt = json.loads(raw)
+        digest = hashlib.sha256(raw).hexdigest()
+        rows = badges.published_badges(fixture, digest, receipt['repository_id'])
+        self.assertEqual(len(rows), 1)
+        self.assertIn('research DOI', rows[0])
+        self.assertIn(receipt['records']['research']['version_doi'], rows[0])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'receipt.json'
+            for field in ('concept_doi', 'verified_at'):
+                altered = json.loads(raw)
+                del altered['records']['research'][field]
+                path.write_text(json.dumps(altered))
+                with self.assertRaises(ValueError):
+                    badges.published_badges(path, hashlib.sha256(path.read_bytes()).hexdigest(),
+                                           receipt['repository_id'])
+
     def test_rejects_tampering_wrong_repository_and_reserved_doi(self):
         with tempfile.TemporaryDirectory() as tmp:
             path, digest = self.receipt(Path(tmp))
