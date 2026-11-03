@@ -243,6 +243,31 @@ rule("markers", "source", "check", "draft", "gaps are marked with \\tbd{...} or 
   return string.format("gaps=%d", gaps)
 end)
 
+-- Core statements must be readable without opening supplementary material.
+rule("appendix-core", "source", "check", "always", "no theorem, definition or other core element is placed in an appendix; supporting proofs and extra detail may go there", function()
+  local core = {}
+  for name in ("theorem lemma proposition corollary claim property invariant definition notation requirements derivedrequirements contributions rqlist assumptions guarantees threats limitations"):gmatch("%S+") do core[name] = true end
+  local appendix = false
+  for _, f in ipairs(CONTENT) do
+    local text = table.concat(C.printed_lines(f), "\n")
+    local boundary
+    local scanner, pos = require("texscan"), 1
+    while pos <= #text do
+      if text:sub(pos, pos) == "\\" then
+        local name, after = scanner.command(text, pos)
+        if name == "appendix" then boundary = pos; break end
+        pos = after
+      else pos = pos + 1 end
+    end
+    C.each_call({ f }, function(cmd) return cmd == "begin" end, function(file, n, _, env, start)
+      if (appendix or (boundary and start > boundary)) and core[env:gsub("%*$", "")] then
+        fail(file, n, "core element " .. env .. " is in an appendix", "move its statement to the main text; keep only supporting proof or detail in the appendix")
+      end
+    end)
+    if boundary then appendix = true end
+  end
+end)
+
 rule("chapters", "source", "check", "always", "one chapter per file: no file holds two numbered chapters, and a chapter keeps its text in its own file instead of \\input pieces", function()
   for _, f in ipairs(main_chapters()) do
     local n = 0
@@ -923,7 +948,7 @@ end)
 -- Two papers submitted to the same year's TDK, by one student or by two on neighbouring topics,
 -- are each other's companion paper. Each is reviewed on its own while the other is unpublished,
 -- so neither cites or links the other: the text says "a companion paper", and what this paper
--- needs from it is restated in the background, or as a last resort in an appendix (the guide's
+-- needs from it is restated in the background (the guide's
 -- app:tdk:companion). A TDK paper of an earlier year is on the portal and is cited like any
 -- other source; so is this year's once a thesis builds on it (LINT_PROFILE=thesis).
 local TDK_NAMES = { "%f[%a]o?tdk%f[%A]", "tudom%S*nyos%s+di%S*kk%S*ri", "scientific%s+students?%f[%A]",
@@ -972,7 +997,7 @@ rule("companion", "source", "check", "always", "a TDK paper of the same year is 
       local ey = tonumber(e.body:match("[,%s][yY][eE][aA][rR]%s*=%s*[{\"]?%s*(%d%d%d%d)") or e.body:match("[,%s][dD][aA][tT][eE]%s*=%s*[{\"]?%s*(%d%d%d%d)"))
       local cited = string.format("cited %d time%s", times[k], times[k] == 1 and "" or "s")
       if tdk and (not ey or ey >= year) then
-        flag(at[1], at[2], string.format("%s is a TDK paper of %s, %s: a paper of the same TDK is a companion paper; write \"a companion paper\" instead of citing it, and restate what this paper needs from it in the background, or as a last resort in an appendix", k, ey or "unknown year", cited))
+        flag(at[1], at[2], string.format("%s is a TDK paper of %s, %s: a paper of the same TDK is a companion paper; write \"a companion paper\" instead of citing it, and restate what this paper needs from it in the background; core elements must stay in the main text", k, ey or "unknown year", cited))
       else
         for url in e.body:gmatch("https?://[^%s{}\"]+") do
           local what = companion_link(url, year, own)
