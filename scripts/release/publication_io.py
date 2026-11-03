@@ -119,13 +119,18 @@ class FileStore:
 
 class GitHubStore:
     """CAS on one file in an existing registry branch; no branch creation."""
-    def __init__(self, http, repository, ref, path):
+    def __init__(self, http, repository, ref, path, repository_id):
         parts = repository.split('/')
         if len(parts) != 2 or any(not p or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-' for c in p) for p in parts):
             raise ValueError('Invalid registry repository')
         safe_path(path)
         if not ref:
             raise ValueError('Registry branch required')
+        if type(repository_id) is not int or repository_id <= 0:
+            raise ValueError('Positive publication repository ID required')
+        remote = http.request('GET', '/repos/' + repository)
+        if type(remote.get('id')) is not int or remote['id'] != repository_id:
+            raise ValueError('Registry repository differs from publication context')
         self.http, self.ref = http, ref
         self.endpoint = '/repos/' + repository + '/contents/' + urllib.parse.quote(path, safe='/')
 

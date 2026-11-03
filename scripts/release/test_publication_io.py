@@ -81,6 +81,8 @@ class FakeContents:
         self.writes=0
 
     def request(self, method, path, value=None):
+        if method=='GET' and path == '/repos/org/student-project':
+            return {'id': 42}
         if method=='GET':
             if self.value is None:
                 raise RemoteError(404)
@@ -99,9 +101,22 @@ class FakeContents:
 
 
 class RemoteRegistryTests(unittest.TestCase):
+    def test_foreign_repository_rejected_before_registry_access(self):
+        remote=FakeContents()
+        with self.assertRaisesRegex(ValueError, 'differs from publication context'):
+            GitHubStore(remote,'org/student-project','publication-state','registry/zenodo.json',99)
+        self.assertEqual(remote.writes,0)
+        self.assertIsNone(remote.value)
+
+    def test_missing_repository_id_rejected(self):
+        remote=FakeContents()
+        with self.assertRaisesRegex(ValueError, 'Positive publication repository ID'):
+            GitHubStore(remote,'org/student-project','publication-state','registry/zenodo.json',True)
+        self.assertEqual(remote.writes,0)
+
     def test_lost_put_reply_reads_exact_persisted_state(self):
         remote=FakeContents()
-        store=GitHubStore(remote,'org/private-registry','publication-state','registry.json')
+        store=GitHubStore(remote,'org/student-project','publication-state','registry/zenodo.json',42)
         value={'schema':'fixture','owner':None}
         remote.lose=True
         version=store.put(value,None)
@@ -110,7 +125,7 @@ class RemoteRegistryTests(unittest.TestCase):
 
     def test_conflicting_write_not_replayed(self):
         remote=FakeContents()
-        store=GitHubStore(remote,'org/private-registry','publication-state','registry.json')
+        store=GitHubStore(remote,'org/student-project','publication-state','registry/zenodo.json',42)
         store.put({'value':1},None)
         with self.assertRaises(ValueError):
             store.put({'value':2},None)
