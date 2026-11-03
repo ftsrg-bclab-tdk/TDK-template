@@ -10,7 +10,7 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
 \begin{enumerate}
   \item Complete \texttt{README.md} using \cref{app:code:readme}.
   \item Add a \texttt{LICENSE} file and ask us which license to use: Apache 2.0 for tools (\cref{app:code:readme}), MIT otherwise.
-  \item Add \texttt{.zenodo.json} at the repository root (\cref{lst:zenodo-json}). It supplies the record's title, authors, license and links; see the \href{https://help.zenodo.org/docs/github/describe-software/zenodo-json/}{format and example}. The code template's \texttt{hygiene} workflow checks that it parses and that \texttt{CITATION.cff} validates.
+  \item Add \texttt{.zenodo.json} at the repository root (\cref{lst:zenodo-json}). It supplies the record's title, authors, license and links, and lists your supervisors as \texttt{contributors} of type \texttt{Supervisor}; see the \href{https://help.zenodo.org/docs/github/describe-software/zenodo-json/}{format and example}. The code template's \texttt{hygiene} workflow checks that it parses and that \texttt{CITATION.cff} validates.
   \item Link related works with \texttt{related\_identifiers} (\cref{lst:zenodo-related}): \texttt{isDerivedFrom} the upstream repository of a fork, and \texttt{isSupplementTo} the paper once it has a DOI. Leave the field out until you have a real identifier, because a placeholder fails the release.
   \item If the repository has a \texttt{CITATION.cff}, keep its fields in line with \texttt{.zenodo.json}; Zenodo uses \texttt{.zenodo.json} when both exist.
 \end{enumerate}
@@ -26,6 +26,10 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
   "license": "MIT",
   "creators": [
     { "name": "TODO Surname, Given name", "affiliation": "Budapest University of Technology and Economics", "orcid": "TODO your ORCID iD, or remove this field" }
+  ],
+  "contributors": [
+    { "name": "Farkas, Martin", "type": "Supervisor", "affiliation": "Budapest University of Technology and Economics" },
+    { "name": "Kocsis, Imre", "type": "Supervisor", "affiliation": "Budapest University of Technology and Economics" }
   ],
   "keywords": ["TODO"]
 }
@@ -44,34 +48,19 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
 \end{listing}
 
 \section{Before the repository goes public}\label{app:zenodo:public}
-Making the repository public, on GitHub or through its Zenodo archive, publishes its whole history, not only the current files. A file you deleted last month is still in a commit, and Zenodo does not let you change the files of a published record. Check the following before the first release:
+Making the repository public, on GitHub or through its Zenodo archive, publishes its whole history, not only the current files. A file you deleted last month is still in a commit, and Zenodo does not let you change the files of a published record. We do not rewrite the history: keep the current files clean, and review what the history still holds. Check the following before the first release:
 \begin{itemize}
   \item \textbf{No links to private or unpublished places.} No Overleaf project, paper or notes repository, Notion, Teams or SharePoint page, or chat share link, in the README or anywhere else. Link only public URLs; the same-year rule for companion papers (\cref{app:tdk:companion}) applies here too.
   \item \textbf{No paper sources.} The paper lives in the paper repository; standalone TikZ figures that a script generates may stay.
-  \item \textbf{You author your commits.} Configure the agent to commit as you; an agent identity such as \texttt{Claude <noreply@anthropic.com>} lists the agent as a contributor on GitHub. A \texttt{Co-Authored-By} line naming the agent is fine. Do not add an AI app or bot as a collaborator.
+  \item \textbf{You author your commits.} Configure the agent to commit as you; an agent identity such as \texttt{Claude <noreply@anthropic.com>} lists the agent as a contributor on GitHub. A \texttt{Co-Authored-By} line naming the agent is fine, and so are commits by your advisors. Do not add an AI app or bot as a collaborator.
   \item \textbf{No agent files in the archive.} The code template's \texttt{.gitattributes} marks \path{.claude/}, \texttt{CLAUDE.md}, \texttt{AGENTS.md} and similar files \texttt{export-ignore}, which keeps them out of GitHub's release archive that Zenodo stores. Add any other agent file there. If your \texttt{CLAUDE.md} is really documentation of the code, rename it to \texttt{README.md} or move it under \path{docs/}; otherwise the archive silently drops it.
-  \item \textbf{No secrets, test keys included.} Keep keys, wallets and tokens in an untracked \texttt{.env}, and commit an \texttt{.env.example} with placeholders. A key that was ever committed is burned: replace it, then remove it from the history (\cref{app:zenodo:rewrite}).
+  \item \textbf{No secrets, test keys included.} Keep keys, wallets and tokens in an untracked \texttt{.env}, and commit an \texttt{.env.example} with placeholders. A key that was ever committed is burned, because the history keeps it: rotate it, so that the committed value no longer works or holds anything.
   \item \textbf{No machine-specific paths} such as \path{/home/you/}: use relative paths or variables.
   \item \textbf{A fork credits its upstream.} Create it with GitHub's \emph{Fork} button from the start: GitHub cannot turn an existing repository into a fork later, and only a real fork shows the ``forked from'' link. Keep the upstream license, name its authors in \texttt{.zenodo.json}, link the upstream with \texttt{isDerivedFrom} (\cref{lst:zenodo-related}), and say in the README what you changed.
 \end{itemize}
-The code template's \texttt{hygiene} workflow checks these on every push: secrets with gitleaks over the whole history, the rest with \texttt{scripts/hygiene.py}. Findings in the current files fail the run; findings in the history only warn, because fixing them means rewriting the history. Run \texttt{just hygiene --strict} before the first release; it fails on both. When gitleaks reports something that is not a secret, such as a public key in an example, add its exact fingerprint to \texttt{.gitleaksignore} with a one-line reason above it.
+The code template's \texttt{hygiene} workflow checks these on every push: secrets with gitleaks over the whole history, the rest with \texttt{scripts/hygiene.py}. Findings in the current files fail the run. Findings in the history only warn, because the history stays as it is: read each one, and decide whether it is harmless once public. A secret in the history fails the run until you rotate it; then add the finding's exact fingerprint to \texttt{.gitleaksignore}, with a one-line reason such as \enquote{rotated on 2026-11-02} directly above it. Use the same file for findings that are not secrets, such as a public key in an example. \texttt{just hygiene --strict}, which fails on history findings too, remains an optional local check.
 
-\subsection{If the history needs fixing}\label{app:zenodo:rewrite}
-Rewrite it with \href{https://github.com/newren/git-filter-repo}{git filter-repo} on a fresh bare clone, never on your working copy (\cref{lst:filter-repo}). \texttt{--invert-paths --path} drops files from every commit, \texttt{--mailmap} turns agent-authored commits into yours, and \texttt{--replace-text} blanks private links, paths and keys. Rerun \texttt{just hygiene --strict} and gitleaks on a clone of the result before you push. filter-repo rewrites the tags along with the branches, so push both. Every existing clone is then stale: delete it and clone again.
-
-\begin{listing}[!ht]
-\begin{minted}{bash}
-git clone --bare git@github.com:<you>/<repo>.git repo.git && cd repo.git
-echo 'Your Name <you@example.com> Claude <noreply@anthropic.com>' > ../mailmap
-echo 'regex:https://www\.overleaf\.com/\S+==>' > ../replacements  # one rule per line
-git filter-repo --invert-paths --path CLAUDE.md --path .claude/ --path paper/ \
-  --mailmap ../mailmap --replace-text ../replacements
-git push --force --all && git push --force --tags
-\end{minted}
-\caption{Removing files, agent identities and private links from the whole history.}\label{lst:filter-repo}
-\end{listing}
-
-GitHub keeps every pull request's commits reachable under \texttt{refs/pull/}, and anyone can fetch them from a public repository; only GitHub Support can purge them. Use a bare clone rather than \texttt{--mirror}, because GitHub rejects pushes to those refs. If the old commits must not be reachable at all, the simpler route is a new repository: push the cleaned tree as its first commit and archive or delete the old one. You lose the history, but nothing from it leaks.
+\paragraph{The publication gate.} When you start preparing the release, copy \path{scripts/publishing-checklist.md} to \texttt{PUBLISHING.md}. From then on, the workflow runs \texttt{just hygiene --publish} instead: it also fails on unfinished Zenodo metadata, missing supervisors, a README with \texttt{TODO}s or without its sections (\cref{app:code:readme}), missing lockfiles, and a missing release workflow. \texttt{PUBLISHING.md} lists what a script cannot check, such as rotated secrets, reviewed history warnings and the license choice. Fill in the evidence for each item; we sign it off by approving your pull request. Release only when the gate passes.
 
 \section{Publish the first release}
 \begin{enumerate}
