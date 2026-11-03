@@ -36,3 +36,6 @@ __pycache__/
 
 paper-draft.pdf
 paper-final.pdf
+
+# Per-run CI evidence and resolved dependency staging.
+/.project/
