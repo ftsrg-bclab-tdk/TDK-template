@@ -28,8 +28,9 @@ Account logic remains the unchanged canonical component from commit
 accepted-answer state to atomic local persistence in the eventual entrypoint.
 Do not duplicate its account validation or treat account format as access proof.
 
-Still outstanding: platform installation adapters after runtime policy is
-settled, concrete runner/image resolution, atomic state and interaction handling,
-project metadata and workspace generation, and the coordinator's actor/access
-decisions. No real container smoke or host installation was performed for this
-preparation. Deterministic tests use injected command results.
+The working terminal entrypoint and explicit package/workspace/GitHub adapters are
+in `scripts/setup.py`; see `docs/onboarding-orchestration.md`. Python 3.11+ is the
+shared runtime minimum. Installation or a successful version probe is never a
+substitute for daemon/container execution. No real host installation or remote
+provisioning was performed during implementation; package and mutation adapters
+were exercised with injected service responses.

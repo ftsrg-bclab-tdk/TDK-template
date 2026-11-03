@@ -1,0 +1,67 @@
+% Student-facing fragment for the paper guide; integrate after paper/ relocation.
+\subsection{Set up your project with your advisor}
+\label{app:setup:terminal}
+
+Create or reuse your personal GitHub, Overleaf, ORCID, Zotero and Zenodo accounts.
+Do not register a second ORCID if you already have one. The setup command displays
+the official signup and profile links and asks for non-secret identifiers:
+\href{https://github.com/signup}{GitHub},
+\href{https://www.overleaf.com/register}{Overleaf},
+\href{https://orcid.org/register}{ORCID},
+\href{https://www.zotero.org/user/register}{Zotero}, and
+\href{https://zenodo.org/signup/}{Zenodo}.
+Install Zotero and its browser connector. Use your university-provided identity
+for institutional services; conference registration is a separate dated task.
+
+Enable two-factor authentication before accepting project access. The advisor
+checks existing accounts before requiring it. An identifier with valid syntax
+does not prove account ownership, project access or two-factor authentication.
+Enter passwords, recovery codes and API tokens only into the relevant service,
+never into the setup identifier prompts.
+
+\begin{enumerate}
+  \item The student installs Git, Python 3.11 or newer, GitHub CLI and Docker. On Windows, run
+    the setup commands in WSL. On macOS, use the supported Linux-container route.
+    Choose the Docker runtime explicitly; Docker Desktop with WSL integration and
+    a separate in-distribution engine must not be installed as competing defaults.
+  \item The advisor creates the private organization project from the template,
+    sets its identity and author/title metadata, and grants the student write
+    access to that project. The student accepts the invitation. Repository and
+    access automation requires verified account/organization permissions.
+  \item The student clones the project and runs
+    \texttt{python3 scripts/setup.py student} from its root. Each accepted account
+    answer is saved privately before the next prompt. Stop and resume without
+    repeating valid answers. Use \texttt{--dry-run} to see the remaining steps
+    without changing files or services.
+  \item Preview installation with \texttt{--install-plan}. Apply the displayed
+    package commands only when intended, using \texttt{--install-tools} and an
+    explicit \texttt{--docker-runtime}. Package installation is not proof of a
+    working daemon. Verify tools and container execution with
+    \texttt{--skip-accounts --check-bootstrap --smoke}. This explicitly downloads
+    the selected latest smoke image and executes its resolved digest.
+  \item Generate the editor workspace with
+    \texttt{python3 scripts/setup.py student --skip-accounts --workspace}.
+    Open \texttt{tdk.code-workspace}; existing edited workspace files are preserved.
+    Optional local proof and benchmark tools follow the selected components.
+  \item The advisor imports the whole GitHub repository into premium Overleaf,
+    invites the paper collaborators, configures the root draft/final entrypoints,
+    and arranges Zotero group membership and bibliography refresh.
+  \item Together, verify compilation and both native synchronization directions.
+    Paper collaborators edit the paper in Overleaf and use their normal tools for
+    other components. This convention does not protect file modes or symlinks;
+    verify code, proof and benchmark execution from a fresh clone after syncing.
+\end{enumerate}
+
+Run \texttt{python3 scripts/setup.py status} to see remaining tasks.
+The shared \texttt{project.json} contains project identity, components and bounded
+metadata. Private account answers and local receipts belong only in the ignored
+\texttt{.onboarding/} directory. Do not commit or publish that directory.
+The advisor previews changes before \texttt{--apply-metadata}; conflicts preserve
+student edits, notes, the chosen lint phase and the Zotero-managed bibliography.
+
+The lead student owns the Zenodo records. Automated packaging prepares a draft;
+after advisor review of the exact receipt, the lead student deliberately invokes
+the project publication workflow with their own Zenodo repository secret.
+Review is a working policy, not a technical approval boundary on student-writable
+workflows. Account registration and a completed local checklist do not authorize
+publication or prove remote integration.
