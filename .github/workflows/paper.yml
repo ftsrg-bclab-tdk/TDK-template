@@ -132,6 +132,9 @@ jobs:
       - name: source / figures (check)
         if: always()
         run: texlua scripts/lint.lua figures
+      - name: source / figure-layout (advice, polish)
+        if: always()
+        run: texlua scripts/lint.lua figure-layout
       - name: source / captions (advice, polish)
         if: always()
         run: texlua scripts/lint.lua captions

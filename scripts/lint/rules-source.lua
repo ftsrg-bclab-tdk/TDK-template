@@ -487,6 +487,21 @@ rule("figures", "source", "check", "always", "every figure, table, listing, algo
   end
 end)
 
+rule("figure-layout", "source", "advice", "polish", "manual figure-layout review: reduce unnecessary whitespace, share legends and remove repeated text without shrinking labels; source inspection cannot judge the rendered layout", function()
+  local T = require("texscan")
+  local figures = { figure=true, ["figure*"]=true, wrapfigure=true, sidewaysfigure=true, ["sidewaysfigure*"]=true }
+  for _, f in ipairs(CONTENT) do
+    local source = T.mask(C.readfile(f) or "", "fix")
+    for pos, env in source:gmatch("()\\begin%s*{%s*([%a]+%*?)%s*}") do
+      if figures[env] then
+        local _, lines = source:sub(1, pos - 1):gsub("\n", "")
+        warn(f, lines + 1, env .. " needs manual layout review (not an automatic defect finding)",
+          "inspect the rendered figure: reduce unnecessary gaps, keep short labels on one line, share legends and remove text repeated in the caption; keep labels readable. After review, use % lint-ignore: figure-layout <reason> on the begin line or the line above")
+      end
+    end
+  end
+end)
+
 rule("captions", "source", "advice", "polish", "captions explain, not describe: a caption is at least a sentence, a result figure's caption says what it shows, and none starts with 'Figure showing' or ends without a full stop", function()
   C.each_line(MAIN, function(f, n, l)
     local cap = l:match("\\caption%b[]%b{}") or l:match("\\caption%b{}")
