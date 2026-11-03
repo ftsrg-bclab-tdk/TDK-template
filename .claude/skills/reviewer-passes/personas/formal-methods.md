@@ -1,6 +1,6 @@
 ---
 name: formal-methods
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper uses a model checker, a theorem prover, an SMT solver or a formal semantics
 ---
 

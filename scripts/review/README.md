@@ -18,12 +18,12 @@ bundle, never a revision. When a bundle has expired, rerun the workflow of that 
 ```text
 review-<sha7>/
   manifest.json      what ran, on what, with what result (below)
-  thesis.pdf         the draft, with notes, Checks page and guide
-  reviewer.pdf       what the reviewer gets
-  logs/thesis.log    the LaTeX logs of both builds
-  logs/reviewer.log
+  draft.pdf         the draft, with notes, Checks page and guide
+  final.pdf       what the reviewer gets
+  logs/draft.log    the LaTeX logs of both builds
+  logs/final.log
   logs/lint-stderr.txt  stderr captured by CI, including execution failures
-  lint.json          texlua scripts/lint.lua all --doc reviewer --json
+  lint.json          texlua scripts/lint.lua all --doc final --json
   skim/skim.md       the skim view, the skim persona's only input
   skim/skim.html     the same for a human, with the panels
   skim/skim.json     for skim.py compare
@@ -34,20 +34,20 @@ review-<sha7>/
 
 ```json
 {
-  "schema": 1,
+  "schema": 2,
   "repo": "BlackLight54/TDK26-Example",
   "sha": "<40 hex digits>",
   "ref": "main",
   "built": { "by": "ci", "run_url": "https://github.com/.../actions/runs/<id>", "run_attempt": 1 },
   "image": { "ref": "danteev/texlive:latest", "digest": "sha256:..." },
-  "phase": "polish", "phase_source": "\\lintphase in thesis.tex", "profile": "tdk",
+  "phase": "polish", "phase_source": "\\lintphase in draft.tex", "profile": "tdk",
   "builds": [
-    { "doc": "thesis",   "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
-    { "doc": "reviewer", "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
+    { "doc": "draft",   "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 98 },
+    { "doc": "final", "started": true, "engine": "xelatex", "latexmk_exit": 0, "errors": 0, "undefined": 0, "pages": 19 }
   ],
   "lint": { "exit": 1 },
   "skim": { "exit": 0 },
-  "files": { "reviewer.pdf": "<sha256>", "skim/skim.md": "<sha256>", "...": "..." }
+  "files": { "final.pdf": "<sha256>", "skim/skim.md": "<sha256>", "...": "..." }
 }
 ```
 
@@ -99,7 +99,7 @@ it besides the rule results and findings:
 
 ## What the skim reports
 
-The skim reads the reviewer PDF with its `.aux` and `.toc`, and `lint.json` for the roles and
+The skim reads the final PDF with its `.aux` and `.toc`, and `lint.json` for the roles and
 tags above. It never reaches outside the paper repository. Every piece of evidence it reports has
 exactly one of four states:
 
@@ -115,7 +115,7 @@ No state is shown in green, because the skim checks nothing; colour marks only `
 (including `\tagrow` rows of a table) has a page there, and the skim reads the printed item or
 table row on that page. A label the skim cannot read on its page is `unsure`, listed with the page
 at the top of the view. The summary counts the placeholders a reader can see, not the todo notes
-the reviewer build hides.
+the final build hides.
 
 ## Persona inputs
 
@@ -124,7 +124,7 @@ fresh directory per persona, outside every repository:
 
 | `reads` | Copied from |
 |---|---|
-| `reviewer-pdf` | `reviewer.pdf` of the bundle |
+| `final-pdf` | `final.pdf` of the bundle |
 | `skim-view` | `skim/skim.md` and `skim/assets/` of the bundle |
 | `spine` | the file given with `--spine`; without one, the persona is told there is no spine and judges overclaiming against the abstract and the introduction |
 
@@ -142,7 +142,7 @@ The skill collects the personas' answers into one file for `review.py record`:
   "mode": "draft",
   "panel": ["skim", "out-of-field", "reviewer-two", "champion", "cryptographer"],
   "skipped": { "process-modeling": "no BPMN or behavioural diagram in the contents" },
-  "inputs": { "cryptographer": { "reviewer.pdf": "<sha256>" } },
+  "inputs": { "cryptographer": { "final.pdf": "<sha256>" } },
   "model": "claude-opus-5-5",
   "scores": { "A": [4, 5], "B/1": [3, 4], "B/2": [2, 4], "C": [7, 8], "D/1": [3, 5], "D/2": [3, 5], "E": [5, 8] },
   "findings": [

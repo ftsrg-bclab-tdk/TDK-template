@@ -96,7 +96,7 @@ rule("spelling", "tools", "advice", "always", "aspell on the detexed chapters: u
     local h = io.open(tmp, "w")
     for _, f in ipairs(C.MAIN) do h:write(C.prose(table.concat(C.prose_lines(f), "\n")), "\n") end
     -- the title and the English abstract, which the reviewer reads first
-    local title = (C.readfile("thesis.tex") or ""):match("\\newcommand{\\vikcim}{([^}]*)}")
+    local title = (C.readfile("draft.tex") or ""):match("\\newcommand{\\vikcim}{([^}]*)}")
     if title then h:write(C.prose(title), "\n") end
     local abs = C.FILES.abstract and (C.readfile(C.FILES.abstract) or ""):match("\\chapter%*{Abstract}(.*)$")
     if abs then h:write(C.prose(table.concat((function() local t = {}; for l in abs:gmatch("[^\n]*") do t[#t + 1] = C.strip_comment(l) end; return t end)(), "\n")), "\n") end
@@ -152,14 +152,14 @@ end)
 -- tracked files no paper needs: build output (the CI publishes the PDFs as artifacts) and the
 -- personal settings of an AI coding agent. git exists in CI and in a clone, not on Overleaf
 local BUILD_OUTPUT = { "aux", "bbl", "blg", "fdb_latexmk", "fls", "lof", "lol", "lot", "out", "synctex.gz", "tdo", "thm", "toc", "xdv" }
-rule("repo-hygiene", "tools", "check", "always", "the repository tracks no build output (aux, log, thesis.pdf, reviewer.pdf, minted caches, ...) and no personal agent settings", function()
+rule("repo-hygiene", "tools", "check", "always", "the repository tracks no build output (aux, log, draft.pdf, final.pdf, minted caches, ...) and no personal agent settings", function()
   if not C.exists(".git") or not C.have("git") then C.skip("not a git checkout"); return end
   if not (C.run("git rev-parse --is-inside-work-tree 2>/dev/null") or ""):match("true") then C.skip("git cannot read this checkout"); return end
   local n = 0
   for f in (C.run_quiet("git ls-files") or ""):gmatch("[^\n]+") do
     local why
     for _, ext in ipairs(BUILD_OUTPUT) do if f:sub(-#ext - 1) == "." .. ext and f ~= "guide/guide.bbl" then why = "build output" end end
-    if f:match("%.log$") or f == "thesis.pdf" or f == "reviewer.pdf" or f == "lint-checks.tex" or f:match("^_minted") or f:match("^svg%-inkscape/") then why = "build output" end
+    if f:match("%.log$") or f == "draft.pdf" or f == "final.pdf" or f == "lint-checks.tex" or f:match("^_minted") or f:match("^svg%-inkscape/") then why = "build output" end
     if f:match("^%.claude/settings%.local%.json$") then why = "personal settings of an AI coding agent" end
     if why then
       -- a command, so the fix is shown and never written

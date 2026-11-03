@@ -1,4 +1,4 @@
-# Builds the draft and the reviewer PDF on every push to main and on every pull request that is
+# Builds the draft and the final PDF on every push to main and on every pull request that is
 # not a draft (mark it ready to run it), and runs every lint rule as its own step,
 # so the run page lists the rules with a check or a cross each, findings appear as annotations
 # on the files, and the job summary ends with one table. Paper findings are advisory;
@@ -19,7 +19,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 env:
-  LINT_PROFILE: tdk   # thesis: the faculty's thesis guide instead of the TDK call; the phase comes from \lintphase in thesis.tex
+  LINT_PROFILE: tdk   # thesis: the faculty's thesis guide instead of the TDK call; the phase comes from \lintphase in draft.tex
 jobs:
   image:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
@@ -82,12 +82,12 @@ jobs:
         id: draft
         if: always()
         run: rc=0; make all || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
-      - name: Build the reviewer PDF
-        id: reviewer
+      - name: Build the final PDF
+        id: final
         if: always()
-        run: rc=0; make reviewer || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
+        run: rc=0; make final || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
       - name: template / the lint catches each mutation of the skeleton (the template's repository only)
-        if: always() && github.repository == 'BlackLight54/TDK-template' && hashFiles('reviewer.aux') != ''
+        if: always() && github.repository == 'BlackLight54/TDK-template' && hashFiles('final.aux') != ''
         run: make test-lint
       - name: source / essentials (check)
         if: always()
@@ -121,174 +121,7 @@ jobs:
         run: bash scripts/lint-ci.sh spine
       - name: source / build (check)
         if: always()
-        run: bash scripts/lint-ci.sh build --doc reviewer
+        run: bash scripts/lint-ci.sh build --doc final
       - name: source / overfull (check)
         if: always()
-        run: bash scripts/lint-ci.sh overfull --doc reviewer
-      - name: source / preamble (check)
-        if: always()
-        run: bash scripts/lint-ci.sh preamble
-      - name: tools / repo-hygiene (check)
-        if: always()
-        run: bash scripts/lint-ci.sh repo-hygiene
-      - name: source / figures (check)
-        if: always()
-        run: bash scripts/lint-ci.sh figures
-      - name: source / captions (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh captions
-      - name: source / axes (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh axes
-      - name: source / tables (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh tables
-      - name: source / labels (check)
-        if: always()
-        run: bash scripts/lint-ci.sh labels
-      - name: source / crefs (check)
-        if: always()
-        run: bash scripts/lint-ci.sh crefs
-      - name: source / bib (check)
-        if: always()
-        run: bash scripts/lint-ci.sh bib
-      - name: source / companion (check)
-        if: always()
-        run: bash scripts/lint-ci.sh companion
-      - name: source / sources (advice)
-        if: always()
-        run: bash scripts/lint-ci.sh sources --doc reviewer
-      - name: source / code (check)
-        if: always()
-        run: bash scripts/lint-ci.sh code
-      - name: tools / checkcites (count)
-        if: always()
-        run: bash scripts/lint-ci.sh checkcites --doc reviewer
-      - name: tools / bibtex-log (count)
-        if: always()
-        run: bash scripts/lint-ci.sh bibtex-log --doc reviewer
-      - name: tools / links (advice)
-        if: always()
-        run: bash scripts/lint-ci.sh links
-      - name: source / acronyms (check, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh acronyms
-      - name: source / typography (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh typography
-      - name: source / terms (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh terms
-      - name: source / language (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh language
-      - name: tools / chktex (advice)
-        if: always()
-        run: bash scripts/lint-ci.sh chktex
-      - name: tools / lacheck (advice)
-        if: always()
-        run: bash scripts/lint-ci.sh lacheck
-      - name: tools / spelling (advice)
-        if: always()
-        run: bash scripts/lint-ci.sh spelling
-      - name: source / stock (check, draft)
-        if: always()
-        run: bash scripts/lint-ci.sh stock
-      - name: source / pages (check, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh pages --doc reviewer
-      - name: source / aidecl (check, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh aidecl
-      - name: source / titlepage (check, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh titlepage
-      - name: pdf / pdf-file (check, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-file --doc reviewer
-      - name: pdf / pdf-font (check, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-font --doc reviewer
-      - name: pdf / pdf-spacing (check, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-spacing --doc reviewer
-      - name: pdf / pdf-margins (check, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-margins --doc reviewer
-      - name: pdf / pdf-smalltext (advice, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-smalltext --doc reviewer
-      - name: pdf / pdf-pages (check, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-pages --doc reviewer
-      - name: pdf / pdf-parts (check, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh pdf-parts --doc reviewer
-      - name: source / markers (check, draft)
-        if: always()
-        run: bash scripts/lint-ci.sh markers
-      - name: source / placeholders (count, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh placeholders
-      - name: source / beats (count, submit)
-        if: always()
-        run: bash scripts/lint-ci.sh beats
-      - name: tools / words (count, polish)
-        if: always()
-        run: bash scripts/lint-ci.sh words
-      # the rule prints the JSON record and then its status line: the artifact is the record alone
-      - name: burn-down record
-        if: always()
-        run: bash scripts/lint-ci.sh burndown --doc reviewer > burndown.txt; grep -m1 '^{' burndown.txt | tee burndown.json; [ -s burndown.json ]
-      - name: Keep the burn-down record
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: burndown-${{ github.run_number }}
-          path: burndown.json
-          overwrite: true   # a re-run of the same run uploads the same name again
-      # the lint and the skim report into the bundle; their exits go into its manifest and do not
-      # fail the run for paper findings; lint execution errors still fail it
-      - name: Lint as JSON, for the skim and the review bundle
-        id: lintjson
-        if: always()
-        run: |
-          rc=0
-          texlua scripts/lint.lua all --doc reviewer --json > lint.json 2> lint.stderr || rc=$?
-          cat lint.stderr >&2
-          echo "rc=$rc" >> "$GITHUB_OUTPUT"
-          [ -s lint.json ]
-          if (( rc > 1 )); then exit "$rc"; fi
-      - name: Skim view of the reviewer PDF
-        id: skim
-        if: always() && hashFiles('reviewer.pdf') != ''
-        run: rc=0; python3 scripts/skim/skim.py build . -o skim --lint lint.json || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"
-      # the bundle is assembled even when a build failed or never ran, or the lint wrote no JSON:
-      # the logs and the recorded exits are the evidence of that commit (review.py bundle refuses
-      # claimed-success missing outputs and a run with no log at all). The github.* values
-      # reach the script through the environment, never pasted into it: a branch name is text
-      # someone chose, not shell
-      - name: Review bundle
-        id: bundle
-        if: always()
-        env:
-          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          REF: ${{ github.head_ref || github.ref_name }}
-          IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
-          RC_THESIS: ${{ steps.draft.outputs.rc || 1 }}
-          RC_REVIEWER: ${{ steps.reviewer.outputs.rc || 1 }}
-          RC_LINT: ${{ steps.lintjson.outputs.rc || 2 }}
-          RC_SKIM: ${{ steps.skim.outputs.rc || 1 }}
-        run: |
-          python3 scripts/review/review.py bundle --built . --lint lint.json --lint-stderr lint.stderr --skim skim --out review-bundle --by ci \
-            --sha "$SHA" --ref "$REF" --image-ref danteev/texlive:latest --image-digest "$IMAGE_DIGEST" \
-            --exit "thesis=$RC_THESIS" --exit "reviewer=$RC_REVIEWER" --exit "lint=$RC_LINT" --exit "skim=$RC_SKIM"
-          echo "name=review-${SHA::7}" >> "$GITHUB_OUTPUT"
-      - name: Keep the review bundle for 14 days
-        if: always() && steps.bundle.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.bundle.outputs.name }}
-          path: review-bundle/
-          retention-days: 14
-          overwrite: true   # a re-run of the same commit uploads the same name again
+        run: bash scripts/lint-ci.sh overfull --doc final

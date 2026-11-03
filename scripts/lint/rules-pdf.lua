@@ -67,8 +67,8 @@ rule("pdf-file", "pdf", "check", "polish", "the PDF exists, is A4, under 15 MB (
   if not (w and math.abs(w - 595.3) < 3 and math.abs(h - 841.9) < 3) then fail(nil, nil, string.format("page size %s x %s pt is not A4", tostring(w), tostring(h))) end
   local title = C.trim(info:match("Title:%s*([^\n]*)") or "")
   local author = C.trim(info:match("Author:%s*([^\n]*)") or "")
-  if title == "" or title:match("TODO") or title:match("Elektronikus terel") then fail("thesis.tex", nil, "PDF title metadata is empty or a placeholder", "set \\vikcim") end
-  if author == "" or author:match("Gipsz") then fail("thesis.tex", nil, "PDF author metadata is empty or the sample author") end
+  if title == "" or title:match("TODO") or title:match("Elektronikus terel") then fail("draft.tex", nil, "PDF title metadata is empty or a placeholder", "set \\vikcim") end
+  if author == "" or author:match("Gipsz") then fail("draft.tex", nil, "PDF author metadata is empty or the sample author") end
   local size = lfs.attributes(pdf(), "size") or 0
   if size > 15 * 1024 * 1024 then fail(nil, nil, string.format("PDF is %.1f MB; we allow 15 MB, the limit in the faculty's thesis guideline", size / 1048576))
   elseif size > 10 * 1024 * 1024 then warn(nil, nil, string.format("PDF is %.1f MB; we allow 15 MB, the limit in the faculty's thesis guideline", size / 1048576)) end
@@ -92,7 +92,7 @@ rule("pdf-font", "pdf", "check", "polish", "the body font is a serif at 12 pt (T
   local bf = body_font(d); if not bf then fail(nil, nil, "no text found in the PDF"); return end
   if not is_serif(bf.family) then fail("include/packages.tex", nil, string.format("body font %s is not a serif; the %s asks for Times New Roman or another readable serif", bf.family, p.name))
   elseif not is_times(bf.family) then warn("include/packages.tex", nil, string.format("body font is %s, a serif but not Times; the call names Times New Roman, and Times sets about seven percent more text per page", bf.family)) end
-  if bf.size < p.size[1] or bf.size > p.size[2] then fail("thesis.tex", nil, string.format("body font size is %d pt; the %s asks for %s", bf.size, p.name, C.opts.profile == "tdk" and "12 pt" or "11-12 pt")) end
+  if bf.size < p.size[1] or bf.size > p.size[2] then fail("draft.tex", nil, string.format("body font size is %d pt; the %s asks for %s", bf.size, p.name, C.opts.profile == "tdk" and "12 pt" or "11-12 pt")) end
   return string.format("font=%s size=%dpt", bf.family, bf.size)
 end)
 
@@ -128,7 +128,7 @@ rule("pdf-spacing", "pdf", "check", "polish", "line spacing of the body text is 
   end
   local ratio = pitch / bf.size
   if ratio < p.pitch[1] or ratio > p.pitch[2] then
-    fail("thesis.tex", nil, string.format("line pitch is %.1f pt at %d pt, %.2f times the font size; the %s asks for %s", pitch, bf.size, ratio, p.name, C.opts.profile == "tdk" and "single spacing (about 1.2)" or "one-and-a-half spacing (about 1.8)"))
+    fail("draft.tex", nil, string.format("line pitch is %.1f pt at %d pt, %.2f times the font size; the %s asks for %s", pitch, bf.size, ratio, p.name, C.opts.profile == "tdk" and "single spacing (about 1.2)" or "one-and-a-half spacing (about 1.8)"))
   end
   return string.format("pitch=%.1fpt ratio=%.2f", pitch, ratio)
 end)
@@ -142,7 +142,7 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
     local body = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then body = body + 1 end end
     if body >= 10 then
       local l, r, tp, b = 1e9, 0, 1e9, 0
-      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin (the reviewer build has none)
+      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin (the final build has none)
       local edge = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then edge = math.max(edge, t.left + t.w) end end
       for _, t in ipairs(page.texts) do
         local f = d.fonts[t.font]
@@ -256,5 +256,5 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   if text:find("TODO", 1, true) then
     local n = C.count(text, "TODO"); fail(nil, nil, n .. " TODO still printed in the PDF")
   end
-  if text:find("Beat%.") or text:find("Establishes:") then fail(nil, nil, "beats are printed: this is the draft, not the reviewer build") end
+  if text:find("Beat%.") or text:find("Establishes:") then fail(nil, nil, "beats are printed: this is the draft, not the final build") end
 end)

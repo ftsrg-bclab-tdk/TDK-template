@@ -25,8 +25,8 @@ lint-checks.tex
 _minted/
 _minted-*/
 svg-inkscape/
-thesis.pdf
-reviewer.pdf
+draft.pdf
+final.pdf
 # Personal settings of an AI coding agent
 .claude/settings.local.json
 # Python bytecode of scripts/

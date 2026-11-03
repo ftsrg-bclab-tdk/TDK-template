@@ -1,6 +1,6 @@
 ---
 name: out-of-field
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: always
 ---
 

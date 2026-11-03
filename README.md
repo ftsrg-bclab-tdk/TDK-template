@@ -20,10 +20,10 @@ Use `main` here for template maintenance. The public
 [tdk-paper-template](https://github.com/BlackLight54/tdk-paper-template) is a mirror
 of the same source. Overleaf receives updates through its GitHub sync menu.
 
-- `thesis.tex` builds the draft with notes, the Checks page and the guide.
+- `draft.tex` builds the draft with notes, the Checks page and the guide.
   The chapter files contain headings, stubs and notes linking to
   "The paper, chapter by chapter" in `guide/05-chapter-by-chapter.tex`, where the
-  instructions and worked examples live. `reviewer.tex` builds the PDF in submission
+  instructions and worked examples live. `final.tex` builds the PDF in submission
   format. It hides the notes and gap markers, so how it looks says nothing about
   readiness: it is ready to upload only when `make check-submit` passes and the advisors
   have reviewed it.
@@ -33,14 +33,14 @@ of the same source. Overleaf receives updates through its GitHub sync menu.
 - `scripts/lint.lua` checks the paper. `texlua scripts/lint.lua list` lists the rules,
   and `make check` runs them. `.github/workflows/paper.yml` runs each rule as a
   separate step on every push to main and every pull request that is not a draft.
-- Set `\lintphase` in `thesis.tex` to your current lifecycle phase. Checks become
+- Set `\lintphase` in `draft.tex` to your current lifecycle phase. Checks become
   required as you reach each phase.
 
 The companion templates are [tdk-notes-template](https://github.com/BlackLight54/tdk-notes-template)
 for the notes repository and [tdk-code-template](https://github.com/BlackLight54/tdk-code-template)
 for the code repository. The guide explains all three after the draft's appendices.
 
-Build locally with `make all` for the draft and `make reviewer` for the reviewer PDF.
+Build locally with `make all` for the draft and `make final` for the final PDF.
 Use TeX Live with XeLaTeX, Inkscape and shell escape enabled.
-`make check-reviewer` runs the lint on the reviewer build, and `make check-submit` runs it
+`make check-final` runs the lint on the final build, and `make check-submit` runs it
 at the submit phase: the check before you upload.

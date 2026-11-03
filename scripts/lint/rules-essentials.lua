@@ -691,7 +691,7 @@ end
 -- the running example --------------------------------------------------------------------
 local function eval_example(row, r)
   local box = C.example_box()
-  local name = (C.readfile("thesis.tex") or ""):match("\\newcommand{\\exname}{([^}]*)}")
+  local name = (C.readfile("draft.tex") or ""):match("\\newcommand{\\exname}{([^}]*)}")
   local found
   for _, f in ipairs(C.role_files("intro")) do
     local ls = lines(f)
@@ -708,12 +708,12 @@ local function eval_example(row, r)
   if not found then return 0, row.add end
   r.where = place(found.file, found.line, found.last)
   if not name or name:match("TODO") then
-    -- the finding sits on the example box; the fix shows the line to edit, in thesis.tex
-    for n, raw in ipairs(C.raw_lines("thesis.tex")) do
+    -- the finding sits on the example box; the fix shows the line to edit, in draft.tex
+    for n, raw in ipairs(C.raw_lines("draft.tex")) do
       local def = C.strip_comment(raw):match("\\newcommand{\\exname}%b{}")
-      if def then r.fix = C.fix("placeholder", "name the running example", C.replace_at("thesis.tex", n, def, "\\newcommand{\\exname}{<the example's name>}")); break end
+      if def then r.fix = C.fix("placeholder", "name the running example", C.replace_at("draft.tex", n, def, "\\newcommand{\\exname}{<the example's name>}")); break end
     end
-    return 1, "name the example: \\exname in thesis.tex is still a TODO"
+    return 1, "name the example: \\exname in draft.tex is still a TODO"
   end
   local w, ps = 0, plines(found.file)
   for i = found.line, found.last do w = w + C.own_words(ps[i] or "") end

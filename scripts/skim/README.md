@@ -10,12 +10,12 @@ weak.
 
 ## Run it
 
-Build the reviewer PDF and the lint's export first, then skim the build. From the paper
+Build the final PDF and the lint's export first, then skim the build. From the paper
 repository:
 
 ```fish
-make reviewer
-texlua scripts/lint.lua all --doc reviewer --json > lint.json
+make final
+texlua scripts/lint.lua all --doc final --json > lint.json
 uv run scripts/skim/skim.py build . -o /tmp/skim/my-paper
 uv run scripts/skim/skim.py build . -o /tmp/skim/my-paper --debug   # also debug/page-NNN.png
 ```
@@ -27,10 +27,10 @@ Without a local TeX Live, use the image CI uses:
 
 ```fish
 docker run --rm -u (id -u):(id -g) -e HOME=/tmp -e LINT_OFFLINE=1 -v $PWD:/w -w /w danteev/texlive:latest \
-    texlua scripts/lint.lua all --doc reviewer --json > lint.json
+    texlua scripts/lint.lua all --doc final --json > lint.json
 ```
 
-`build` takes the built paper directory: `reviewer.pdf` (else `thesis.pdf`, with a warning in the
+`build` takes the built paper directory: `final.pdf` (else `draft.pdf`, with a warning in the
 view) with its `.aux`, `.toc`, `.log` and `.bbl`. It writes `skim.md`, `skim.html`, `skim.json` and
 `assets/` into the output directory and prints one line with the cross-check counts (PDF/sources),
 the unsure items and the visible placeholders. Everything it reads is inside the paper
@@ -92,7 +92,7 @@ The summary counts the placeholders a reader can see: every block of the main te
 and the abstracts that shows template text (a heading, paragraph, tagged item, figure, table, box,
 list, listing or theorem-like), plus each page of front matter, back matter (the AI declaration),
 footnotes or margin notes that does. A table counts once, however many of its rows say TODO. The
-summary also gives how often `TODO` is printed. The reviewer build hides todo notes, so they are
+summary also gives how often `TODO` is printed. The final build hides todo notes, so they are
 not counted there. A draft build prints them: each inline note counts, and each page with margin
 notes counts once.
 
@@ -173,7 +173,7 @@ the sources give positions and cross-checks.
 - **Boxes**: a light tinted fill at least half the text width, or a coloured bar at the left of the
   column (tcolorbox `borderline west`, `framed`'s `\vrule`), with text inside; a box broken over a
   page is joined. Mostly monospace content is a listing, not a box. In a build without
-  `reviewer.tex`, an untitled box is reported as a todo note. A box style with neither fill nor
+  `final.tex`, an untitled box is reported as a todo note. A box style with neither fill nor
   left bar would be missed; the cross-check would show it.
 - **Theorem-like statements**: a bold `Definition|Theorem|Lemma|...|Invariant N.M` head. Only the
   first paragraph of the statement is kept; display math or a list inside it follows as counts.

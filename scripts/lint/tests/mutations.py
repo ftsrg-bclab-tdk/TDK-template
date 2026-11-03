@@ -3,7 +3,7 @@
 
   python3 scripts/lint/tests/mutations.py [<built-dir>] [--only NAME]
 
-<built-dir> is the template after a reviewer build (`make reviewer`), by default the checkout this
+<built-dir> is the template after a final build (`make final`), by default the checkout this
 file is in. For each mutation: copy the build, put this checkout's scripts/ in, apply the edit,
 run the one rule that should catch it, and check that the expected text is in that rule's output
 and not in the output of the unmutated copy. The rule must have run: its exit is 0 or 1 and its
@@ -12,7 +12,7 @@ negative case ("!text") cannot pass on a lint that crashed. A case may name anot
 2), other lint arguments ("args") or extra environment ("env"). Exits non-zero when a rule misses
 its mutation.
 
-The template's CI runs it after the reviewer build. It calls texlua directly when it is on the
+The template's CI runs it after the final build. It calls texlua directly when it is on the
 PATH (the CI container), and otherwise runs it in the docker image LINT_IMAGE (default
 danteev/texlive:latest, the CI's image). These cases test the template's own skeleton; a
 student's paper keeps the file but never runs it.
@@ -63,7 +63,7 @@ def append(rel, text):
 def rename(old, new):
     def f(d):
         (d / old).rename(d / new)
-        t = d / "thesis.tex"
+        t = d / "draft.tex"
         t.write_text(t.read_text().replace("{" + old[:-4] + "}", "{" + new[:-4] + "}"))
     return f
 
@@ -72,14 +72,14 @@ def second_evaluation(d):
     """The guarantee's rows move out of 05-evaluation into a second evaluation chapter."""
     drop_line("content/05-evaluation.tex", "\\ref{g:example} &")(d)
     (d / "content/05-more.tex").write_text("\\chapter{More results}\\label{ch:evaluation:more}\n\\Cref{g:example} holds in every run.\n")
-    sub("thesis.tex", "\\include{content/05-evaluation}\n", "\\include{content/05-evaluation}\n\\include{content/05-more}\n")(d)
+    sub("draft.tex", "\\include{content/05-evaluation}\n", "\\include{content/05-evaluation}\n\\include{content/05-more}\n")(d)
 
 
 def track(rel):
     """A git checkout that tracks a build output."""
     def f(d):
         subprocess.run(["git", "init", "-q", str(d)], check=True)
-        subprocess.run(["git", "-C", str(d), "add", "-f", "--", rel, "thesis.tex"], check=True)
+        subprocess.run(["git", "-C", str(d), "add", "-f", "--", rel, "draft.tex"], check=True)
     return f
 
 
@@ -196,7 +196,7 @@ def filled_gap(d):
     p.write_text(s[:a] + GAP + s[b:])
 
 
-NAMED = sub("thesis.tex", "\\newcommand{\\exname}{TODO name of the running example}", "\\newcommand{\\exname}{the shared ledger}")
+NAMED = sub("draft.tex", "\\newcommand{\\exname}{TODO name of the running example}", "\\newcommand{\\exname}{the shared ledger}")
 OWN_BOX = replace_line("content/01-introduction.tex", "TODO Two or three sentences: the actors", words(20))
 
 
@@ -295,8 +295,8 @@ MUTATIONS = [
     ("unicode lstinline", "code", append(BG, "The rule \\lstinline{∀x} holds."), "ASCII"),
     ("label prefix wrong", "labels", append(BG, "\\begin{table}\\caption{A table for the test.}\\label{fig:wrong}\\end{table}"), "expected prefix tab:"),
     ("running example missing from a chapter", "essentials", both(NAMED, OWN_BOX, lambda d: (d / BG).write_text(re.sub(r"\\begin\{runningexample\}.*?\\end\{runningexample\}", "", (d / BG).read_text(), flags=re.S))), "no example box in 02-background"),
-    ("own example box not used", "essentials", sub("thesis.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"), "○ Running example"),
-    ("own example box counts", "essentials", both(NAMED, OWN_BOX, sub("thesis.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"),
+    ("own example box not used", "essentials", sub("draft.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"), "○ Running example"),
+    ("own example box counts", "essentials", both(NAMED, OWN_BOX, sub("draft.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"),
         lambda d: [(f).write_text(f.read_text().replace("{runningexample}", "{cvd}")) for f in (d / "content").glob("0[1-7]-*.tex")]), "intro ◔◔●◔◔◔◔◔"),
     ("hyphen range", "typography", append(BG, "This holds for pages 12-18 of the book."), "with a hyphen"),
     ("a name is not a range", "typography", append(BG, "The curve BLS12-381 on an i7-9750H."), "!range 12-381"),
@@ -305,7 +305,7 @@ MUTATIONS = [
     ("own prose ends a stub", "stubs", append(BG, " ".join(["Own words of the author, written for this chapter."] * 25)), "!content/02-background.tex"),
     ("faculty placeholder text", "stock", append(BG, "A bevezető tartalmazza a diplomaterv-kiírás elemzését."), "placeholder text is still here"),
     ("a chapter after the conclusion", "spine", lambda d: ((d / "content/08-extra.tex").write_text("\\chapter{Future Work}\nText.\n"),
-        sub("thesis.tex", "\\include{content/07-conclusion}\n", "\\include{content/07-conclusion}\n\\include{content/08-extra}\n")(d)), "after the conclusion"),
+        sub("draft.tex", "\\include{content/07-conclusion}\n", "\\include{content/07-conclusion}\n\\include{content/08-extra}\n")(d)), "after the conclusion"),
     ("amssymb in the own preamble", "preamble", append("include/macros.tex", "\\usepackage{amssymb}"), "amssymb next to unicode-math"),
     ("a template theorem defined again", "preamble", append("include/macros.tex", "\\newtheorem{lemma}{Lemma}"), "defines the lemma environment"),
     ("an option clash", "preamble", append("include/macros.tex", "\\usepackage[noend]{algpseudocode}"), "option clash"),
@@ -315,7 +315,7 @@ MUTATIONS = [
     ("a chapter without a label", "roles", sub(BG, "\\chapter{Background}\\label{ch:background}", "\\chapter{Background}"), "no role label"),
     ("a named role label counts", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:approach:method}"), "!no approach chapter"),
     ("a role spans two chapters", "essentials", both(own_items("content/03-approach.tex", "g"), second_evaluation), "!g:example is not checked"),
-    ("tracked build output", "repo-hygiene", track("reviewer.pdf"), "reviewer.pdf: FAIL build output is tracked"),
+    ("tracked build output", "repo-hygiene", track("final.pdf"), "final.pdf: FAIL build output is tracked"),
     ("a typed TBD", "markers", append(BG, "The proving time is TBD for now."), "a typed TBD"),
     ("a typed citation marker", "markers", append(BG, "This is well known [CITE: the survey]."), "a typed [CITE"),
     ("a gap marker left at the submit phase", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "is still here"),
@@ -337,7 +337,7 @@ MUTATIONS = [
     ("this paper's own repository, cited in the implementation chapter", "companion", both(append("bib/references.bib", f"@misc{{owncode, title = {{The Code}}, year = {{{YEAR}}}, url = {{https://github.com/someone/tdk{YEAR % 100:02d}-code}}}}"),
         sub("content/04-implementation.tex", "\\url{https://github.com/TODO}", "\\cite{owncode}")), "!companion paper"),
     ("another same-year repository next to this paper's own", "companion", both(OWN_REPO, append(BG, f"The model is at \\url{{https://github.com/someone/tdk{YEAR % 100:02d}-model}}.")), "links the repository of a"),
-    ("the thesis profile skips the companion rule", "companion", tdk_entry(YEAR), "skipped", {"args": "--doc reviewer --phase submit --profile thesis", "exit": 0, "fresh": True}),
+    ("the thesis profile skips the companion rule", "companion", tdk_entry(YEAR), "skipped", {"args": "--doc final --phase submit --profile thesis", "exit": 0, "fresh": True}),
     ("a companion paper cited", "companion", append(BG, "A companion paper~\\cite{lamport1978time} verifies the protocol."), "attached to a companion paper"),
     ("a companion paper linked", "companion", append(BG, "The protocol is verified in \\href{https://example.org/paper.pdf}{a companion paper}."), "attached to a companion paper"),
     ("a companion paper named, its tool cited", "companion", append(BG, "A companion paper verifies the protocol in Tamarin~\\cite{lamport1978time}."), "!attached to a companion paper"),
@@ -350,15 +350,15 @@ MUTATIONS = [
     ("a citation in a picture is read", "bib", append(BG, "\\begin{tikzpicture}\\node {Prior work~\\cite{nosuchref}};\\end{tikzpicture}"), "nosuchref is in no .bib file"),
     ("a citation in a code listing is not read", "bib", append(BG, "\\begin{lstlisting}\n\\cite{nosuchref}\n\\end{lstlisting}"), "!nosuchref"),
     # the phase is one of the lifecycle's seven, wherever it comes from; final is no alias of submit
-    ("an old phase name is no alias", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'final'", {"args": "--doc reviewer --phase final", "exit": 2, "fresh": True}),
-    ("the first four phases share a level", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc reviewer --phase research", "fresh": True}),
-    ("an unknown phase stops the lint", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'fnial'", {"args": "--doc reviewer --phase fnial", "exit": 2, "fresh": True}),
-    ("an unknown phase in thesis.tex stops the lint", "markers", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "from \\lintphase in thesis.tex", {"args": "--doc reviewer", "exit": 2}),
-    ("an unknown phase on the Checks page", "markers", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "The lint did not run", {"args": "overleaf --tex", "exit": 2}),
+    ("an old phase name is no alias", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'final'", {"args": "--doc final --phase final", "exit": 2, "fresh": True}),
+    ("the first four phases share a level", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc final --phase research", "fresh": True}),
+    ("an unknown phase stops the lint", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'fnial'", {"args": "--doc final --phase fnial", "exit": 2, "fresh": True}),
+    ("an unknown phase in draft.tex stops the lint", "markers", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "from \\lintphase in draft.tex", {"args": "--doc final", "exit": 2}),
+    ("an unknown phase on the Checks page", "markers", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "The lint did not run", {"args": "overleaf --tex", "exit": 2}),
     # a rule that cannot run says skipped, and --json carries every rule's result
     ("an offline link check is skipped, not passed", "links", lambda d: None, "links         advice  skipped", {"fresh": True}),
     ("a PDF rule without a PDF is skipped", "pdf-margins", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
-    ("json carries the findings of every rule", "bib", append(BG, "See~\\cite{nosuchref}."), '"msg":"cited key nosuchref is in no .bib file","rule":"bib"', {"args": "all --doc reviewer --phase submit --json", "exit": 1}),
+    ("json carries the findings of every rule", "bib", append(BG, "See~\\cite{nosuchref}."), '"msg":"cited key nosuchref is in no .bib file","rule":"bib"', {"args": "all --doc final --phase submit --json", "exit": 1}),
     # fixes never edit literal text: code listings, inline verbatim, links, maths
     ("a code listing's Figure~\\ref is the program's text", "crefs", append(BG, "\\begin{lstlisting}\nFigure~\\ref{fig:overview}\n\\end{lstlisting}"), "!typed reference"),
     ("inline verbatim is the program's text", "crefs", append(BG, "The macro \\verb|Figure~\\ref{fig:overview}| is typed as text."), "!typed reference"),
@@ -368,9 +368,9 @@ MUTATIONS = [
     ("that that is grammar, not a doubled word", "typography", append(BG, "The protocol that that process uses is sound."), "!doubled word"),
     ("a doubled word", "typography", append(BG, "The protocol the the process uses is sound."), "doubled word: the the"),
     # the phase declaration is read as TeX reads it
-    ("a phase declared across two lines is read", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}\n  {submit}")), "is still here", {"args": "--doc reviewer"}),
-    ("a starred declaration is read", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand*{\\lintphase}{submit}")), "is still here", {"args": "--doc reviewer"}),
-    ("a typo across two lines stops the lint", "markers", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}\n  {fnial}"), "unknown phase 'fnial'", {"args": "--doc reviewer", "exit": 2}),
+    ("a phase declared across two lines is read", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}\n  {submit}")), "is still here", {"args": "--doc final"}),
+    ("a starred declaration is read", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand*{\\lintphase}{submit}")), "is still here", {"args": "--doc final"}),
+    ("a typo across two lines stops the lint", "markers", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}\n  {fnial}"), "unknown phase 'fnial'", {"args": "--doc final", "exit": 2}),
     # links are read as citations are: across line breaks, in the printed text only
     ("an Overleaf link across a line break", "companion", append(BG, "The draft is at \\url\n{https://www.overleaf.com/read/abcdefghijkl}."), "links an Overleaf project"),
     ("an Overleaf link in a comment environment is not read", "companion", append(BG, "\\begin{comment}\n\\url{https://www.overleaf.com/read/abcdefghijkl}\n\\end{comment}"), "!Overleaf"),
@@ -426,9 +426,9 @@ MUTATIONS = [
         append("content/03-approach.tex", "\\begin{definition}\\label{thm:definition} A witness is bounded when its age is below the limit.\\end{definition}"),
         sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:definition})")), "thm:definition is not an evaluation result"),
     # a rule whose own code fails did not run: exit 2, status error, never ok
-    ("a crashed rule stops the lint with exit 2", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), "the rule itself failed", {"args": "--doc reviewer --phase submit", "exit": 2}),
-    ("a crashed rule is not ok in the JSON", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), '"ok":false', {"args": "--doc reviewer --phase submit --json", "exit": 2}),
-    ("a misspelt title", "spelling", sub("thesis.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation"),
+    ("a crashed rule stops the lint with exit 2", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), "the rule itself failed", {"args": "--doc final --phase submit", "exit": 2}),
+    ("a crashed rule is not ok in the JSON", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), '"ok":false', {"args": "--doc final --phase submit --json", "exit": 2}),
+    ("a misspelt title", "spelling", sub("draft.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation"),
     # code is the program's text: no typography slip in \texttt, \lstinline or a verbatim block, and no
     # marker or abbreviation in a verbatim block, an \iffalse region or \verb
     ("a space before a colon in \\texttt is code", "typography", append(BG, "The kernel \\texttt{x : Nat} is typed."), "!space before punctuation"),
@@ -445,12 +445,12 @@ MUTATIONS = [
     ("an entry declared with \\newacronym", "acronyms", both(append("content/glossary.tex", "\\newacronym{mpc}{MPC}{multi-party computation}"), append(BG, "We use \\gls{mpc} here.")), "!mpc is not declared"),
     ("a \\newacronym short form typed by hand", "acronyms", both(append("content/glossary.tex", "\\newacronym{mpc}{MPC}{multi-party computation}"), append(BG, "Every MPC run ends.")), "MPC typed by hand"),
     # the job summary: the plain run writes it; --tex (every XeLaTeX pass) and --json do not
-    ("the plain run writes the job summary", "markers", lambda d: None, "| Group | Status | Check | Rule | Findings |", {"args": "all --doc reviewer --phase submit", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "fresh": True}),
-    ("the Checks page run leaves the job summary alone", "markers", lambda d: None, "!| Group | Status |", {"args": "overleaf --tex --doc reviewer", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "fresh": True}),
-    ("the JSON run leaves the job summary alone", "markers", lambda d: None, "!| Group | Status |", {"args": "all --doc reviewer --phase submit --json", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "exit": 1, "fresh": True}),
+    ("the plain run writes the job summary", "markers", lambda d: None, "| Group | Status | Check | Rule | Findings |", {"args": "all --doc final --phase submit", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "fresh": True}),
+    ("the Checks page run leaves the job summary alone", "markers", lambda d: None, "!| Group | Status |", {"args": "overleaf --tex --doc final", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "fresh": True}),
+    ("the JSON run leaves the job summary alone", "markers", lambda d: None, "!| Group | Status |", {"args": "all --doc final --phase submit --json", "env": {"GITHUB_STEP_SUMMARY": "/dev/stdout"}, "exit": 1, "fresh": True}),
     # the main text's first page comes from the .toc's first numbered chapter, whatever its title;
     # without a .toc the outline's titles still find it
-    ("the main text is counted without a .toc", "pdf-pages", lambda d: (d / "reviewer.toc").unlink(), "main text is", {"fresh": True}),
+    ("the main text is counted without a .toc", "pdf-pages", lambda d: (d / "final.toc").unlink(), "main text is", {"fresh": True}),
     # the PDF rules on a PDF of known text (pdf_with): a placeholder is a whole word, and no PDF is a skip
     ("a placeholder word printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "The proving time is TBD for now.")]), "TBD is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a roman numeral is not the XXX placeholder", "pdf-parts", pdf_with("tiny.pdf", [(700, "XXXVI. OTDK, Vol. TBDX")]), "!is printed in the PDF", {"args": "--doc tiny --phase submit"}),
@@ -459,17 +459,17 @@ MUTATIONS = [
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     ("too few lines to measure the pitch is a warning", "pdf-spacing", pdf_with("tiny.pdf", pitched([20, 20, 20, 20, 20])), "only 5 line pitches to measure", {"args": "--doc tiny --phase submit", "exit": 0}),
     # an overfull box is placed at the source lines the log names, so a lint-ignore there silences it; under a point it is invisible
-    ("an overfull box at its source lines", "overfull", append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "content/02-background.tex:7: FAIL overfull by 12.5pt at lines 7-9"),
-    ("an overfull box silenced where it is", "overfull", both(append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"),
+    ("an overfull box at its source lines", "overfull", append("final.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "content/02-background.tex:7: FAIL overfull by 12.5pt at lines 7-9"),
+    ("an overfull box silenced where it is", "overfull", both(append("final.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"),
         tag_line(BG, 7, "lint-ignore: overfull the long identifier stays")), "!overfull by"),
-    ("an overfull box under a point is invisible", "overfull", append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (0.4pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "!overfull by"),
+    ("an overfull box under a point is invisible", "overfull", append("final.log", "(./content/02-background.tex\nOverfull \\hbox (0.4pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "!overfull by"),
     # the phase declaration is trimmed wherever it is read
-    ("a phase with spaces around it is the phase", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ submit }")), "is still here", {"args": "--doc reviewer"}),
-    ("a phase with spaces around it keeps the frame", "frame", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ draft }"), "!no \\lintphase", {"args": "--doc reviewer"}),
+    ("a phase with spaces around it is the phase", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ submit }")), "is still here", {"args": "--doc final"}),
+    ("a phase with spaces around it keeps the frame", "frame", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ draft }"), "!no \\lintphase", {"args": "--doc final"}),
 ]
 
 
-ARGS = "--doc reviewer --phase submit"
+ARGS = "--doc final --phase submit"
 
 
 def lint(d, rule, args=ARGS, env=None):
@@ -518,8 +518,8 @@ def main():
     ap.add_argument("built", type=Path, nargs="?", default=TEMPLATE)
     ap.add_argument("--only")
     a = ap.parse_args()
-    if not (a.built / "reviewer.aux").exists():
-        sys.exit(f"error: {a.built} has no reviewer build (run make reviewer first)")
+    if not (a.built / "final.aux").exists():
+        sys.exit(f"error: {a.built} has no final build (run make final first)")
     work = Path(tempfile.mkdtemp(prefix="lint-mut-"))
     base = work / "base"
     shutil.copytree(a.built, base, ignore=shutil.ignore_patterns(".git", "_minted-*", "svg-inkscape", "review-bundle", "skim"))

@@ -8,7 +8,7 @@
   uv run scripts/skim/skim.py build <built-dir> -o <outdir> [--lint lint.json] [--debug]
   uv run scripts/skim/skim.py compare <before-outdir> <after-outdir> -o <outdir>
 
-build reads the PDF a reviewer gets (reviewer.pdf, else thesis.pdf) of a built paper together with
+build reads the PDF a reviewer gets (final.pdf, else draft.pdf) of a built paper together with
 its .aux and .toc, and the lint's JSON export for the chapter roles and the tag lists. It writes
 skim.html, skim.md (the skim persona's only input), skim.json (for compare) and assets/. Kept
 verbatim: title, abstract, outline, tagged items, coloured boxes, captions with figure crops.
@@ -229,7 +229,7 @@ def strip_tex(s):
 
 
 def included_sources(built, stem):
-    """The content files that went into this build: the .tex of every \\@input aux, plus thesis.tex."""
+    """The content files that went into this build: the .tex of every \\@input aux, plus draft.tex."""
     files = []
     aux = built / f"{stem}.aux"
     if aux.exists():
@@ -421,11 +421,11 @@ class Paper:
 
     def __init__(self, built, name, guide, sheet, lint):
         self.built, self.name = built, name
-        stem = "reviewer" if (built / "reviewer.pdf").exists() else "thesis"
+        stem = "final" if (built / "final.pdf").exists() else "draft"
         self.stem = stem
         self.pdf_path = built / f"{stem}.pdf"
         if not self.pdf_path.exists():
-            die(f"no reviewer.pdf or thesis.pdf in {built}; build it first")
+            die(f"no final.pdf or draft.pdf in {built}; build it first")
         try:
             self.doc = pymupdf.open(self.pdf_path)
         except Exception as e:  # PyMuPDF raises its own error types for a damaged file
@@ -727,7 +727,7 @@ def find_boxes(P):
         b.id = f"box-{i}"
         title = b.lines[0].bold_prefix() if b.lines else ""
         # a draft build prints todonotes as untitled coloured boxes: report them as notes, not boxes
-        note = not title and P.stem != "reviewer"
+        note = not title and P.stem != "final"
         b.data.update(title=title, text=b.text(skip=title), note=note, rects=[(pc["page"], tuple(pc["rect"])) for pc in b.data["pieces"]])
 
 
@@ -1718,7 +1718,7 @@ def analyse(P):
     # page each; a draft build's margin notes are todo notes whatever they say
     spots += [role for pno, role in sorted({(l.page, l.role) for ls in P.lines.values() for l in ls
                                            if l.role in ("front", "back", "footnote", "margin")
-                                           and (marks(l.text) or (l.role == "margin" and P.stem != "reviewer"))})]
+                                           and (marks(l.text) or (l.role == "margin" and P.stem != "final"))})]
     P.placeholders = dict(spots=len(spots), by_kind=Counter(spots),
                           TODO=sum(1 for ws in P.words.values() for w in ws if re.search(r"\bTODO\b", w[4])))
     P.walls = walls(P)
@@ -1905,7 +1905,7 @@ def write_md(P, out):
     w = buf.append
     w(f"# Skim view: {P.title}\n")
     w(f"Paper `{P.name}`, built from `{P.stem}.tex`"
-      + (" (no reviewer.tex: this is the draft build, todos included)" if P.stem != "reviewer" else "")
+      + (" (no final.tex: this is the draft build, todos included)" if P.stem != "final" else "")
       + f"; {len(P.doc)} PDF pages; main text {P.main_pages} pages "
         f"(p. {P.doc[P.main_first].get_label()}–{P.doc[P.main_last].get_label()}).\n")
     w("This is what a reviewer sees when skimming: headings, figures, tables, tagged items and coloured boxes "
@@ -2233,7 +2233,7 @@ def write_html(P, out):
     w("</nav><main>")
     w(f"<h1 id='top'>{esc(P.title)}</h1>")
     w(f"<p class='meta'>{esc(P.name)} · built from <code>{esc(P.stem)}.tex</code>"
-      + (" <b class='warn'>(no reviewer.tex: draft build, todos included)</b>" if P.stem != "reviewer" else "")
+      + (" <b class='warn'>(no final.tex: draft build, todos included)</b>" if P.stem != "final" else "")
       + f" · {len(P.doc)} PDF pages · main text <b>{P.main_pages}</b> pages (p. {esc(P.doc[P.main_first].get_label())}–{esc(P.doc[P.main_last].get_label())})</p>")
     w("<div class='chips'>" + "".join(f"<span>{esc(k)}: <b>{esc(v)}</b></span>" for k, v in summary_lines(P)) + "</div>")
     w("<p class='meta'>Evidence is <span class='detected'>detected</span> (the structure is there; this says nothing about whether it is good), "
@@ -2468,7 +2468,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build", help="skim view of one built paper")
-    b.add_argument("built", help="build directory with reviewer.pdf (or thesis.pdf), .aux and .toc")
+    b.add_argument("built", help="build directory with final.pdf (or draft.pdf), .aux and .toc")
     b.add_argument("-o", "--out", required=True, help="output directory")
     b.add_argument("--name", help="paper name shown in the view (default: the build directory's name)")
     b.add_argument("--guide", help=f"guide chapter with the review sheet section (default: {GUIDE} of the build)")

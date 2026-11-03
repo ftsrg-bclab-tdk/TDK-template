@@ -11,7 +11,7 @@
 --   texlua scripts/lint.lua fix [<rule>...] [--dry-run] [--review]    write the fixes the rules suggest (fixes.lua)
 --
 -- Severity: check (fails once its phase is reached), advice (warns, never fails), count (numbers).
--- Phase: --phase, else LINT_PHASE, else \newcommand{\lintphase}{...} in thesis.tex, else plan: the
+-- Phase: --phase, else LINT_PHASE, else \newcommand{\lintphase}{...} in draft.tex, else plan: the
 -- lifecycle phase, one of topic, setup, research, plan, draft, polish, submit; the first four
 -- share the checks' first level, and any other value (final included) stops the lint with exit 2.
 -- A check whose phase is not reached yet only reports. The essentials (scripts/lint/essentials.lua) are one check whose
