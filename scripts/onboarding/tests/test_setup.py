@@ -48,6 +48,21 @@ class SetupTest(unittest.TestCase):
         self.assertFalse((self.root / ".onboarding").exists())
         self.assertFalse((self.root / "onboarding.json").exists())
 
+    def test_advisor_uses_current_draft_name(self):
+        self.git("mv", "thesis.tex", "draft.tex")
+        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        self.assertEqual(code, 0, output)
+        self.assertIn('"paper_main": "draft.tex"', output)
+        self.assertFalse((self.root / "onboarding.json").exists())
+
+    def test_advisor_uses_monorepo_draft_source(self):
+        (self.root / "paper").mkdir()
+        self.git("mv", "thesis.tex", "paper/draft.tex")
+        code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")
+        self.assertEqual(code, 0, output)
+        self.assertIn('"paper_main": "paper/draft.tex"', output)
+        self.assertFalse((self.root / ".onboarding").exists())
+
     def test_student_resume_without_echoing_identifier(self):
         with patch("builtins.input", side_effect=["private-person", EOFError()]):
             code, output = self.call("student")

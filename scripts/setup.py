@@ -190,7 +190,12 @@ def validate_config(config):
 
 
 def scaffold(root, repository):
-    path = "paper/thesis.tex" if (root / "paper/thesis.tex").exists() else "thesis.tex"
+    # Prefer the current draft source, including the accepted monorepo layout.
+    # Legacy names remain readable for a project that has not taken that update.
+    path = next((name for name in ("paper/draft.tex", "draft.tex", "paper/thesis.tex", "thesis.tex")
+                 if inside(root, name).is_file() and git(root, "ls-files", "--", name)), None)
+    if path is None:
+        raise ValueError("No tracked paper draft source found for metadata setup")
     content = (root / path).read_text(encoding="utf-8")
     fields = {}
     for macro in MACROS:
