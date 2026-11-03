@@ -36,5 +36,5 @@ jobs:
           git push
       # The template itself has no paper yet, so only a real student repository fails on missing rows.
       - name: Fail if a due row is missing
-        if: steps.lifecycle.outcome == 'failure' && hashFiles('paper/thesis.tex') != ''
+        if: steps.lifecycle.outcome == 'failure' && hashFiles('paper/draft.tex', 'paper/thesis.tex') != ''
         run: exit 1

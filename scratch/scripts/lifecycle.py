@@ -3,7 +3,7 @@
 
 Checks are presence and size, on purpose: a row is present when its artifact exists and is more
 than a stub (200 bytes). Judgement stays with the consultation. The phase comes from \\lintphase
-in paper/thesis.tex. Exit status 1 when a row due in the current phase is missing.
+in paper/draft.tex. Exit status 1 when a row due in the current phase is missing.
 """
 import datetime as dt, os, re, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,8 +24,11 @@ def read(p):
     try: return open(os.path.join(ROOT, p), encoding="utf-8").read()
     except OSError: return ""
 
+# paper/thesis.tex is the name in a paper that has not yet taken the template's rename to draft.tex.
+PAPER = "paper/draft.tex" if exists("paper/draft.tex") or not exists("paper/thesis.tex") else "paper/thesis.tex"
+
 def phase():
-    m = re.search(r"\\newcommand\{\\lintphase\}\{(\w+)\}", read("paper/thesis.tex"))
+    m = re.search(r"\\newcommand\{\\lintphase\}\{(\w+)\}", read(PAPER))
     return m.group(1) if m else "plan"
 
 def consultations():
@@ -42,11 +45,11 @@ def submodule_age(name):
 
 ROWS = [
     ("Topic manifest (anchor)", "plan", lambda: (size("notes/anchors/manifest.md") > STUB, "notes/anchors/manifest.md")),
-    ("Paper submodule", "plan", lambda: (exists("paper/thesis.tex"), "paper/")),
+    ("Paper submodule", "plan", lambda: (exists(PAPER), "paper/")),
     ("Code submodule", "plan", lambda: (nonempty_dir("code"), "code/")),
     ("First consultation summary", "plan", lambda: (len(consultations()) >= 1, f"{len(consultations())} files in notes/consultations/")),
     ("Spine (anchor)", "draft", lambda: (size("notes/anchors/spine.md") > STUB, "notes/anchors/spine.md")),
-    ("Running example named", "draft", lambda: (bool(read("paper/thesis.tex")) and not re.search(r"\\newcommand\{\\exname\}\{TODO", read("paper/thesis.tex")), "\\exname in paper/thesis.tex")),
+    ("Running example named", "draft", lambda: (bool(read(PAPER)) and not re.search(r"\\newcommand\{\\exname\}\{TODO", read(PAPER)), f"\\exname in {PAPER}")),
     ("Code: README, LICENSE, justfile", "draft", lambda: (all(exists("code/" + f) for f in ("README.md", "LICENSE", "justfile")), "code/README.md, LICENSE, justfile")),
     ("Code: tests", "draft", lambda: (exists("code/tests") or exists("code/test"), "code/tests/")),
     ("Paper moved in the last 14 days", "draft", lambda: ((submodule_age("paper") or 999) <= 14, f"last paper commit {submodule_age('paper')} days ago")),
@@ -59,7 +62,7 @@ ROWS = [
 
 def main():
     ph = phase(); due_rank = PHASES.get(ph, 1)
-    lines = ["# Lifecycle", "", f"Phase **{ph}** (from `\\lintphase` in `paper/thesis.tex`), checked {dt.date.today()} by CI.", "",
+    lines = ["# Lifecycle", "", f"Phase **{ph}** (from `\\lintphase` in `{PAPER}`), checked {dt.date.today()} by CI.", "",
              "A row is present when its file exists and is more than a stub. Judgement is the consultation's; this is the inventory.", "",
              "| Step | Due | State | Where |", "|---|---|---|---|"]
     failed = 0

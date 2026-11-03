@@ -1,6 +1,6 @@
 # Lifecycle
 
-Phase **plan** (from `\lintphase` in `paper/thesis.tex`), checked 2026-11-02 by CI.
+Phase **plan** (from `\lintphase` in `paper/draft.tex`), checked 2026-11-03 by CI.
 
 A row is present when its file exists and is more than a stub. Judgement is the consultation's; this is the inventory.
 
@@ -11,7 +11,7 @@ A row is present when its file exists and is more than a stub. Judgement is the 
 | Code submodule | plan | **missing** | code/ |
 | First consultation summary | plan | **missing** | 0 files in notes/consultations/ |
 | Spine (anchor) | draft | not yet | notes/anchors/spine.md |
-| Running example named | draft | not yet | \exname in paper/thesis.tex |
+| Running example named | draft | not yet | \exname in paper/draft.tex |
 | Code: README, LICENSE, justfile | draft | not yet | code/README.md, LICENSE, justfile |
 | Code: tests | draft | not yet | code/tests/ |
 | Paper moved in the last 14 days | draft | not yet | last paper commit None days ago |
