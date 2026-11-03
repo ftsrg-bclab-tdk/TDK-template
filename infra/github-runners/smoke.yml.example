@@ -1,0 +1,27 @@
+# Inactive here. Install ONLY in the dedicated pilot repository after its gates pass.
+name: BME disposable runner pilot
+on:
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: Unique bme-pilot-UUID label printed by pilot.py
+        required: true
+        type: string
+permissions: {}
+jobs:
+  smoke:
+    runs-on: [self-hosted, Linux, X64, '${{ inputs.runner_label }}']
+    timeout-minutes: 10
+    steps:
+      # No checkout, repository code, secrets, caches, or artifact upload in the first pilot.
+      - name: Exercise host and Docker without student code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(id -un)" = runner
+          test ! -e /run/tdk-runner/jit
+          test ! -e "$HOME/.config/gh/hosts.yml"
+          test ! -e "$HOME/.ssh/id_ed25519"
+          docker info >/dev/null
+          docker run --rm ubuntu:24.04 sh -c 'test "$(uname -m)" = x86_64'
+          echo 'Smoke passed; operator must still verify external destruction and network isolation.'

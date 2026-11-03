@@ -1,0 +1,9 @@
+abi <abi/4.0>,
+include <tunables/global>
+
+# Opt-in only for root-created systemd sandbox units. Keeps Ubuntu's global
+# unprivileged-userns restriction enabled. Bubblewrap supplies the confinement;
+# this profile permits its namespace setup under a systemd DynamicUser.
+profile tdk-native-sandbox flags=(unconfined) {
+  userns,
+}
