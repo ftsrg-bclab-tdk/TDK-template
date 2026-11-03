@@ -299,7 +299,8 @@ def main():
             nested = subprocess.run(["git", "cat-file", "-e", a.scripts_ref + ":paper/scripts"],
                                     cwd=TEMPLATE, capture_output=True).returncode == 0
             tree = a.scripts_ref + (":paper" if nested else "")
-            archive = subprocess.run(["git", "archive", tree, "scripts"], cwd=TEMPLATE,
+            repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=TEMPLATE, text=True).strip()
+            archive = subprocess.run(["git", "archive", tree, "scripts"], cwd=repo_root,
                                      capture_output=True, check=True).stdout
             with tarfile.open(fileobj=io.BytesIO(archive)) as tf:
                 tf.extractall(d, filter="data")

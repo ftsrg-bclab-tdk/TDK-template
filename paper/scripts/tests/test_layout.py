@@ -41,6 +41,17 @@ class LayoutTests(unittest.TestCase):
             self.assertIn('file=paper-final.pdf', annotated.stdout)
             self.assertNotIn('file=paper/../', annotated.stdout)
 
+    def test_evidence_replays_current_git_scripts_from_paper(self):
+        probe = subprocess.run(['git', 'cat-file', '-e', 'HEAD:paper/scripts'],
+                               cwd=PAPER, capture_output=True)
+        if probe.returncode:
+            self.skipTest('requires a committed monorepo checkout')
+        result = subprocess.run(['python3', 'scripts/lint/tests/evidence.py',
+                                 '--only', '^gap-filled-baseline$', '--scripts-ref', 'HEAD'],
+                                cwd=PAPER, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('1/1 passed', result.stdout)
+
     def test_personas_stay_at_monorepo_root(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location('review_layout', PAPER / 'scripts/review/review.py')
