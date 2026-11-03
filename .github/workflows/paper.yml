@@ -59,20 +59,20 @@ jobs:
         continue-on-error: true
         run: pip install --break-system-packages --root-user-action=ignore --quiet pymupdf
       - name: template / review evidence and default skim criteria
-        if: always() && github.repository == 'BlackLight54/TDK-template'
+        if: always() && github.repository == 'FTSRG-Blockchain-Lab-TDK/TDK-template'
         run: |
           python3 -m unittest scripts/review/test_review.py scripts/skim/test_skim.py
           python3 scripts/lint/tests/execution.py
           python3 scripts/lint/tests/evidence.py
           python3 scripts/lint/tests/safety_readers.py
       - name: template / the lint's skeleton copy matches content/ (the template's repository only)
-        if: github.repository == 'BlackLight54/TDK-template'
+        if: github.repository == 'FTSRG-Blockchain-Lab-TDK/TDK-template'
         run: for f in content/0[1-7]-*.tex; do cmp "$f" "scripts/lint/skeleton/${f#content/}" || exit 1; done
       - name: template / the guide's essentials page matches scripts/lint/essentials.lua (the template's repository only)
-        if: github.repository == 'BlackLight54/TDK-template'
+        if: github.repository == 'FTSRG-Blockchain-Lab-TDK/TDK-template'
         run: texlua scripts/lint.lua essentials --guide | cmp - guide/essentials.tex
       - name: template / each chapter role's criteria are the ones its guide section names (the template's repository only)
-        if: github.repository == 'BlackLight54/TDK-template'
+        if: github.repository == 'FTSRG-Blockchain-Lab-TDK/TDK-template'
         run: texlua scripts/lint.lua criteria
       # both builds run whatever the template checks above said, so a failed check still leaves
       # the build evidence; the job is red from the failed step either way
@@ -85,7 +85,7 @@ jobs:
         if: always()
         run: rc=0; make final || rc=$?; echo "rc=$rc" >> "$GITHUB_OUTPUT"; exit $rc
       - name: template / the lint catches each mutation of the skeleton (the template's repository only)
-        if: always() && github.repository == 'BlackLight54/TDK-template' && hashFiles('final.aux') != ''
+        if: always() && github.repository == 'FTSRG-Blockchain-Lab-TDK/TDK-template' && hashFiles('final.aux') != ''
         run: make test-lint
       - name: source / essentials (check)
         if: always()

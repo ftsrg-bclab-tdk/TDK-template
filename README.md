@@ -1,11 +1,11 @@
 ---
 role: paper-template
-canonical: https://github.com/BlackLight54/TDK-template
-mirror: https://github.com/BlackLight54/tdk-paper-template
+canonical: https://github.com/FTSRG-Blockchain-Lab-TDK/TDK-template
+mirror: https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-paper-template
 overleaf: https://www.overleaf.com/project/6aa7d78f4bf131387fb7c710
 related:
-  notes: https://github.com/BlackLight54/tdk-notes-template
-  code: https://github.com/BlackLight54/tdk-code-template
+  notes: https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-notes-template
+  code: https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-code-template
 ---
 
 # FTSRG TDK paper template
@@ -17,7 +17,7 @@ Students receive a copy of that Overleaf project; its GitHub integration creates
 student's paper repository, including the build and lint workflow.
 
 Use `main` here for template maintenance. The public
-[tdk-paper-template](https://github.com/BlackLight54/tdk-paper-template) is a mirror
+[tdk-paper-template](https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-paper-template) is a mirror
 of the same source. Overleaf receives updates through its GitHub sync menu.
 
 - `draft.tex` builds the draft with notes, the Checks page and the guide.
@@ -36,8 +36,8 @@ of the same source. Overleaf receives updates through its GitHub sync menu.
 - Set `\lintphase` in `draft.tex` to your current lifecycle phase. Checks become
   required as you reach each phase.
 
-The companion templates are [tdk-notes-template](https://github.com/BlackLight54/tdk-notes-template)
-for the notes repository and [tdk-code-template](https://github.com/BlackLight54/tdk-code-template)
+The companion templates are [tdk-notes-template](https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-notes-template)
+for the notes repository and [tdk-code-template](https://github.com/FTSRG-Blockchain-Lab-TDK/tdk-code-template)
 for the code repository. The guide explains all three after the draft's appendices.
 
 Build locally with `make all` for the draft and `make final` for the final PDF.
