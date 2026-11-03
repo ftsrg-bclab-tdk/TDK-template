@@ -82,8 +82,10 @@ def validate_project(config, root):
         raise ValueError("Unknown managed paper metadata")
     for change in metadata.values():
         keys(change, {"expected", "value"})
-        if any(not isinstance(v, str) or len(v) > 4096 or "\x00" in v for v in change.values()):
-            raise ValueError("Invalid managed metadata value")
+        if any(not isinstance(v, str) or len(v) > 500 or
+               any(ord(c) < 32 or ord(c) == 127 for c in v)
+               for v in change.values()):
+            raise ValueError("Managed metadata must be single-line text of at most 500 characters")
     components = config["components"]
     if (not isinstance(components, dict) or components.keys() - COMPONENTS or "paper" not in components
             or not all(isinstance(c, dict) for c in components.values())):

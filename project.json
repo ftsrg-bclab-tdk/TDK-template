@@ -148,7 +148,9 @@
             ],
             "timeout": 600,
             "outputs": [
-              "dist/index.html"
+              "dist/slides.html",
+              "dist/slides.pdf",
+              "dist/slides-notes.pdf"
             ]
           },
           {

@@ -34,6 +34,16 @@ class ConfigTests(unittest.TestCase):
         config, _ = self.load()
         self.assertEqual(config, self.config)
 
+    def test_metadata_rejects_multiline_controls_and_oversized_values(self):
+        for field in ("expected", "value"):
+            for value in ("line\nline", "line\rline", "tab\ttext", "null\x00text", "delete\x7f", "x" * 501):
+                with self.subTest(field=field, value=repr(value)), self.assertRaisesRegex(ValueError, "single-line"):
+                    self.config["metadata"] = {"vikcim": {"expected": "Old", "value": "New"}}
+                    self.config["metadata"]["vikcim"][field] = value
+                    self.load()
+        self.config["metadata"] = {"vikcim": {"expected": "Árvíztűrő", "value": "ű" * 500}}
+        self.assertEqual(self.load()[0], self.config)
+
     def test_source_cannot_be_proxy(self):
         self.config["paper_main"] = "paper-draft.tex"
         with self.assertRaisesRegex(ValueError, "distinct|proxies"):
