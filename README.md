@@ -27,7 +27,7 @@ of the same source. Overleaf receives updates through its GitHub sync menu.
   format. It hides the notes and gap markers, so how it looks says nothing about
   readiness: it is ready to upload only when `make check-submit` passes and the advisors
   have reviewed it.
-- `content/` holds the chapters, abstract, glossary and AI declaration; `guide/` holds
+- `content/` holds the chapters, abstract, glossary, contribution statement and AI declaration; `guide/` holds
   the advisors' guide; `include/` the preamble; `bib/` the bibliographies; and `docs/`
   the review sheet.
 - `scripts/lint.lua` checks the paper. `texlua scripts/lint.lua list` lists the rules,
