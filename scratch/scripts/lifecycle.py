@@ -1,88 +1,167 @@
 #!/usr/bin/env python3
-"""Regenerate lifecycle.md: the lifecycle steps that can be checked from files, by phase.
+"""Regenerate the lifecycle inventory from the paper phase and monorepo files."""
+import datetime as dt
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
 
-Checks are presence and size, on purpose: a row is present when its artifact exists and is more
-than a stub (200 bytes). Judgement stays with the consultation. The phase comes from \\lintphase
-in paper/draft.tex. Exit status 1 when a row due in the current phase is missing.
-"""
-import datetime as dt, os, re, subprocess, sys
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PHASES = {"plan": 1, "draft": 2, "polish": 3, "final": 4}
+
+ROOT = Path(__file__).resolve().parents[2]
+PHASES = {
+    "topic": 1,
+    "setup": 2,
+    "research": 3,
+    "plan": 4,
+    "draft": 5,
+    "polish": 6,
+    "submit": 7,
+}
+PAPER = "paper/draft.tex"
 STUB = 200
 
-def size(p):
-    p = os.path.join(ROOT, p)
-    return os.path.getsize(p) if os.path.isfile(p) else -1
 
-def exists(p): return os.path.exists(os.path.join(ROOT, p))
+def root_path(path):
+    return ROOT / path
 
-def nonempty_dir(p):
-    p = os.path.join(ROOT, p)
-    return os.path.isdir(p) and bool(os.listdir(p))
 
-def read(p):
-    try: return open(os.path.join(ROOT, p), encoding="utf-8").read()
-    except OSError: return ""
+def size(path):
+    path = root_path(path)
+    return path.stat().st_size if path.is_file() else -1
 
-# paper/thesis.tex is the name in a paper that has not yet taken the template's rename to draft.tex.
-PAPER = "paper/draft.tex" if exists("paper/draft.tex") or not exists("paper/thesis.tex") else "paper/thesis.tex"
+
+def exists(path):
+    return root_path(path).exists()
+
+
+def nonempty_dir(path):
+    path = root_path(path)
+    return path.is_dir() and any(path.iterdir())
+
+
+def read(path):
+    try:
+        return root_path(path).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
 
 def phase():
-    m = re.search(r"\\newcommand\{\\lintphase\}\{(\w+)\}", read(PAPER))
-    return m.group(1) if m else "plan"
+    match = re.search(r"\\newcommand\{\\lintphase\}\{(\w+)\}", read(PAPER))
+    return match.group(1) if match else "plan"
+
 
 def consultations():
-    d = os.path.join(ROOT, "notes", "consultations")
-    if not os.path.isdir(d): return []
-    return sorted(f for f in os.listdir(d) if re.match(r"\d{4}-\d{2}-\d{2}.*\.md$", f))
+    directory = root_path("scratch/notes/consultations")
+    if not directory.is_dir():
+        return []
+    return sorted(name for name in os.listdir(directory)
+                  if re.match(r"\d{4}-\d{2}-\d{2}.*\.md$", name))
 
-def submodule_age(name):
+
+def path_age(pathspec):
+    """Days since a path changed, or None when full history cannot establish it."""
     try:
-        out = subprocess.check_output(["git", "-C", os.path.join(ROOT, name), "log", "-1", "--format=%ct"], text=True, stderr=subprocess.DEVNULL).strip()
-        return (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromtimestamp(int(out), dt.timezone.utc)).days
-    except Exception:
+        shallow = subprocess.check_output(
+            ["git", "-C", str(ROOT), "rev-parse", "--is-shallow-repository"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+        if shallow != "false":
+            return None
+        value = subprocess.check_output(
+            ["git", "-C", str(ROOT), "log", "--full-history", "-1", "--format=%ct",
+             "--", pathspec],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+        if not value:
+            return None
+        timestamp = dt.datetime.fromtimestamp(int(value), dt.timezone.utc)
+        age = (dt.datetime.now(dt.timezone.utc) - timestamp).days
+        return max(0, age)
+    except (OSError, ValueError, subprocess.CalledProcessError):
         return None
 
+
+def recent_path(pathspec):
+    age = path_age(pathspec)
+    if age is None:
+        return None, f"history unavailable for `{pathspec}`"
+    return age <= 14, f"latest `{pathspec}` change {age} days ago"
+
+
 ROWS = [
-    ("Topic manifest (anchor)", "plan", lambda: (size("notes/anchors/manifest.md") > STUB, "notes/anchors/manifest.md")),
-    ("Paper submodule", "plan", lambda: (exists(PAPER), "paper/")),
-    ("Code submodule", "plan", lambda: (nonempty_dir("code"), "code/")),
-    ("First consultation summary", "plan", lambda: (len(consultations()) >= 1, f"{len(consultations())} files in notes/consultations/")),
-    ("Spine (anchor)", "draft", lambda: (size("notes/anchors/spine.md") > STUB, "notes/anchors/spine.md")),
-    ("Running example named", "draft", lambda: (bool(read(PAPER)) and not re.search(r"\\newcommand\{\\exname\}\{TODO", read(PAPER)), f"\\exname in {PAPER}")),
-    ("Code: README, LICENSE, justfile", "draft", lambda: (all(exists("code/" + f) for f in ("README.md", "LICENSE", "justfile")), "code/README.md, LICENSE, justfile")),
-    ("Code: tests", "draft", lambda: (exists("code/tests") or exists("code/test"), "code/tests/")),
-    ("Paper moved in the last 14 days", "draft", lambda: ((submodule_age("paper") or 999) <= 14, f"last paper commit {submodule_age('paper')} days ago")),
-    ("Code moved in the last 14 days", "draft", lambda: ((submodule_age("code") or 999) <= 14, f"last code commit {submodule_age('code')} days ago")),
-    ("Weekly consultations kept up", "draft", lambda: (len(consultations()) >= 3, f"{len(consultations())} summaries")),
-    ("Full draft (anchor)", "polish", lambda: (size("notes/anchors/full-draft.md") > STUB, "notes/anchors/full-draft.md")),
-    ("Code: Dockerfile and .zenodo.json", "polish", lambda: (exists("code/Dockerfile") and exists("code/.zenodo.json"), "code/Dockerfile, code/.zenodo.json")),
-    ("Slides", "final", lambda: (nonempty_dir("slides/tdk"), "slides/tdk/")),
+    ("Topic manifest (anchor)", "topic", lambda: (size("scratch/notes/anchors/manifest.md") > STUB,
+                                                       "scratch/notes/anchors/manifest.md")),
+    ("Paper project", "setup", lambda: (exists(PAPER), PAPER)),
+    ("Code project", "setup", lambda: (nonempty_dir("code"), "code/")),
+    ("First consultation summary", "setup", lambda: (len(consultations()) >= 1,
+                                                         f"{len(consultations())} files in scratch/notes/consultations/")),
+    ("Spine (anchor)", "research", lambda: (size("scratch/notes/anchors/spine.md") > STUB,
+                                               "scratch/notes/anchors/spine.md")),
+    ("Running example named", "research", lambda: (bool(read(PAPER)) and not re.search(
+        r"\\newcommand\{\\exname\}\{TODO", read(PAPER)), f"\\exname in {PAPER}")),
+    ("Code: README, LICENSE, justfile", "plan", lambda: (
+        all(exists("code/" + name) for name in ("README.md", "LICENSE", "justfile")),
+        "code/README.md, code/LICENSE, code/justfile")),
+    ("Code: tests", "plan", lambda: (exists("code/tests") or exists("code/test"), "code/tests/")),
+    ("Paper updated in the last 14 days", "draft", lambda: recent_path("paper")),
+    ("Code updated in the last 14 days", "draft", lambda: recent_path("code")),
+    ("Weekly consultations kept up", "draft", lambda: (len(consultations()) >= 3,
+                                                           f"{len(consultations())} summaries")),
+    ("Full draft (anchor)", "polish", lambda: (size("scratch/notes/anchors/full-draft.md") > STUB,
+                                                   "scratch/notes/anchors/full-draft.md")),
+    ("Code: Dockerfile and .zenodo.json", "polish", lambda: (
+        exists("code/Dockerfile") and exists("code/.zenodo.json"),
+        "code/Dockerfile, code/.zenodo.json")),
+    ("Presentation", "submit", lambda: (nonempty_dir("presentation"), "presentation/")),
 ]
 
+
 def main():
-    ph = phase(); due_rank = PHASES.get(ph, 1)
-    lines = ["# Lifecycle", "", f"Phase **{ph}** (from `\\lintphase` in `{PAPER}`), checked {dt.date.today()} by CI.", "",
-             "A row is present when its file exists and is more than a stub. Judgement is the consultation's; this is the inventory.", "",
-             "| Step | Due | State | Where |", "|---|---|---|---|"]
+    current_phase = phase()
+    due_rank = PHASES.get(current_phase, PHASES["topic"])
+    lines = [
+        "# Lifecycle",
+        "",
+        f"Phase **{current_phase}** (from `\\lintphase` in `{PAPER}`), checked {dt.date.today()}.",
+        "",
+        "A row is present when its file exists and is more than a stub. Git-age rows are unknown "
+        "when full path history is unavailable. Judgement stays with the consultation.",
+        "",
+        "| Step | Due | State | Where |",
+        "|---|---|---|---|",
+    ]
     failed = 0
-    for step, due, fn in ROWS:
+    for step, due, check in ROWS:
         try:
-            ok, detail = fn()
-        except Exception as e:
-            ok, detail = False, f"check failed: {e}"
+            ok, detail = check()
+        except Exception as exc:
+            ok, detail = False, f"check failed: {exc}"
         is_due = PHASES[due] <= due_rank
-        state = "present" if ok else ("**missing**" if is_due else "not yet")
-        if is_due and not ok:
+        if ok is None:
+            state = "unknown"
+        elif ok:
+            state = "present"
+        elif is_due:
+            state = "**missing**"
             failed += 1
-            if os.environ.get("GITHUB_ACTIONS"): print(f"::warning::{step}: missing ({detail})")
+            if os.environ.get("GITHUB_ACTIONS"):
+                print(f"::warning::{step}: missing ({detail})")
+        else:
+            state = "not yet"
         lines.append(f"| {step} | {due} | {state} | {detail} |")
-    out = "\n".join(lines) + "\n"
-    open(os.path.join(ROOT, "lifecycle.md"), "w", encoding="utf-8").write(out)
-    print(out)
-    if os.environ.get("GITHUB_STEP_SUMMARY"):
-        open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8").write(out)
+    output = "\n".join(lines) + "\n"
+    root_path("scratch/lifecycle.md").write_text(output, encoding="utf-8")
+    print(output)
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as stream:
+            stream.write(output)
     return 1 if failed else 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
