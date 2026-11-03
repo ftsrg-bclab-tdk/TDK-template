@@ -62,6 +62,7 @@ test: test-lint test-review
 test-lint:
 	python3 scripts/lint/tests/mutations.py
 	python3 scripts/lint/tests/execution.py
+	python3 scripts/lint/tests/ci.py
 	python3 scripts/lint/tests/evidence.py
 	python3 scripts/lint/tests/safety_readers.py
 
