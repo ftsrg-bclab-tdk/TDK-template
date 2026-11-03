@@ -109,6 +109,9 @@ jobs:
       - name: source / chapters (check)
         if: always()
         run: bash scripts/lint-ci.sh chapters
+      - name: source / appendix-core (check)
+        if: always()
+        run: bash scripts/lint-ci.sh appendix-core
       - name: source / orphans (advice)
         if: always()
         run: bash scripts/lint-ci.sh orphans
