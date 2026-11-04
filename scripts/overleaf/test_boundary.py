@@ -7,6 +7,9 @@ import subprocess
 import tempfile
 import unittest
 
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ci.evidence import canonical_digest
 from onboarding.checks import ingest
 from overleaf.boundary import NAMESPACE, VerifiedBoundary, verify_boundary
