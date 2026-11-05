@@ -463,6 +463,8 @@ Explain what grows, how fast and where the limit lies. Report a one-time cost ap
   \label{guide:fig:scalability-formal}
 \end{figure}
 
+An optimisation also owes the workload it cannot improve. Add one where it has nothing to gain, such as a cache under keys that never repeat, and run the baseline beside it: any difference there is the overhead, which the other workloads hide inside the gain. Beside the metric it improves, report one that can show what it pays, such as storage, message size or memory, even if the cost turns out harmless.
+
 \subsection[Robustness analysis (RQ3)]{Robustness analysis (RQ3)\skimmark}\label{guide:chapters:robustness}
 \guidebeat{how the system behaves when its assumptions are stressed: faults, attacks, load spikes, parameter changes}{the robustness table, with the setup of each perturbation}{the example under attack}{the threats to validity}
 \textbf{Robustness is required in addition to scalability} for the top of criterion E (\cref{guide:chapters:evaluation}, \cref{guide:tdk:sheet}).
