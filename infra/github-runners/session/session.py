@@ -49,7 +49,7 @@ def start(data, seconds, runtime):
     user = 'tdkj' + identifier[:16]
     proxy_unit = 'tdk-proxy-' + identifier
     proxy_socket = '/run/' + proxy_unit + '/proxy.sock'
-    metadata = {k:v for k,v in data.items() if k != 'jit'}
+    metadata = {key:data[key] for key in ('repo','runner_id','label')}
     source=hashlib.sha256()
     for file in sorted(CODE.iterdir()):
         if file.suffix in ('.py','.sh','.js'):
@@ -143,6 +143,8 @@ def reap():
             continue
         subprocess.run(['systemctl','stop',name,'tdk-proxy-'+identifier],check=False,capture_output=True)
         subprocess.run(['systemctl','reset-failed',name],check=False,capture_output=True)
+        if Path('/sys/fs/cgroup/system.slice',name+'.service').exists():
+            raise RuntimeError('job cgroup still exists; refusing storage/account reuse')
         # Only root-owned UUID-derived paths are traversed. rmtree does not follow
         # symlinks planted inside the untrusted job's private writable directory.
         directory=Path('/var/lib')/name

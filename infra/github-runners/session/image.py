@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import time
 
 BASE = Path('/var/lib/tdk-isolation-images')
@@ -20,7 +21,7 @@ def prepare():
         fcntl.flock(lock, fcntl.LOCK_EX)
         metadata = json.loads(subprocess.check_output([
             'skopeo', 'inspect', '--override-os', 'linux', '--override-arch', 'amd64',
-            'docker://' + REFERENCE], text=True))
+            'docker://' + REFERENCE], text=True, timeout=60))
         digest = metadata['Digest']
         if not re.fullmatch(r'sha256:[a-f0-9]{64}', digest):
             raise RuntimeError('invalid image digest')
@@ -31,9 +32,9 @@ def prepare():
             dest.mkdir(mode=0o755)
             subprocess.run(['skopeo', 'copy', '--override-os', 'linux', '--override-arch', 'amd64',
                             'docker://ghcr.io/actions/actions-runner@' + digest,
-                            'oci:' + str(dest / 'oci') + ':runtime'], check=True)
+                            'oci:' + str(dest / 'oci') + ':runtime'], check=True, stdout=sys.stderr, timeout=600)
             subprocess.run(['umoci', 'unpack', '--rootless', '--image', str(dest / 'oci') + ':runtime',
-                            str(dest / 'bundle')], check=True)
+                            str(dest / 'bundle')], check=True, stdout=sys.stderr, timeout=600)
             if not (dest / 'bundle/rootfs/home/runner/run.sh').is_file():
                 raise RuntimeError('official image layout changed')
             (dest / 'ready.json').write_text(json.dumps(metadata))

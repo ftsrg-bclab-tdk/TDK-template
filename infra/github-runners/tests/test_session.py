@@ -1,4 +1,6 @@
 import asyncio
+import contextlib
+import io
 import importlib.util
 import ipaddress
 import json
@@ -13,6 +15,7 @@ from unittest.mock import AsyncMock, patch
 
 SESSION=Path(__file__).resolve().parents[1]/'session'
 sys.path.insert(0,str(SESSION))
+import image
 import proxy
 import hook
 
@@ -34,6 +37,26 @@ class PolicyTests(unittest.TestCase):
         for key,value in [('createOptions','--privileged'),('userMountVolumes',[{}]),('registry',{'password':'x'}),
                           ('portMappings',{'22':'22'}),('dockerfile','Dockerfile')]:
             with self.subTest(key=key),self.assertRaises(ValueError):hook.restrictions({key:value})
+
+
+class BootstrapTests(unittest.TestCase):
+    def test_cold_image_progress_does_not_corrupt_lifecycle_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base=Path(tmp);digest='sha256:'+('a'*64)
+            def operation(argv, **kwargs):
+                print('image preparation progress',file=kwargs.get('stdout',sys.stdout))
+                if argv[0]=='umoci':
+                    runner=base/('a'*64)/'bundle/rootfs/home/runner'
+                    runner.mkdir(parents=True)
+                    (runner/'run.sh').write_text('fixture')
+            output=io.StringIO();errors=io.StringIO()
+            with patch.object(image,'BASE',base),patch.object(image.os,'geteuid',return_value=0), \
+                 patch.object(image.subprocess,'check_output',return_value=json.dumps({'Digest':digest})), \
+                 patch.object(image.subprocess,'run',side_effect=operation), \
+                 contextlib.redirect_stdout(output),contextlib.redirect_stderr(errors):
+                print(json.dumps(image.prepare()))
+            self.assertEqual(json.loads(output.getvalue())['digest'],digest)
+            self.assertIn('image preparation progress',errors.getvalue())
 
 
 class RelayTests(unittest.IsolatedAsyncioTestCase):
