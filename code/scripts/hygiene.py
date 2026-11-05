@@ -6,14 +6,13 @@ workflow runs on every push. In the monorepo, root CI selects this component exp
 Checks of the current tree fail the run. Checks of the history only warn, because history is not
 rewritten; `--strict` makes them fail too, as an optional local check.
 
-`--publish` is the publication gate: it adds the checks a repository must pass before it
-goes public and gets its Zenodo release (guide: "Archiving the code on Zenodo"), such as
-complete Zenodo metadata, a finished README, lockfiles and the release workflow. CI runs
-it once PUBLISHING.md exists; copy scripts/publishing-checklist.md there to start.
+The legacy `--publish` gate is retired. Use the root selective-release preparation and manual
+publication workflows; the research repository remains private. See scripts/release/README.md
+at the repository root and this component's scripts/publishing-checklist.md.
 
 Secrets are gitleaks' job (see .github/workflows/hygiene.yml); this script covers the rest.
 """
-import argparse, datetime, json, os, re, shutil, subprocess, sys, unicodedata
+import argparse, datetime, functools, json, os, re, shutil, subprocess, sys, unicodedata
 from pathlib import Path
 
 SELF = "scripts/hygiene.py"
@@ -98,7 +97,7 @@ def history_grep(rule, rx, msg, level, exclude=None):
     # original repository root. The latter keeps subtree imports covered without scanning paper/.
     outputs = [git("log", "--all", "-i", "-E", f"-G{rx}", "--format=@%h", "--name-only",
                    "--", ".", f":!{SELF}")]
-    for head in source_history_heads():
+    for head in source_history_heads(level):
         result = subprocess.run(
             ["git", "log", head, "-i", "-E", f"-G{rx}", "--format=@%h", "--name-only", "--", "."],
             cwd=REPOSITORY_ROOT,
@@ -120,9 +119,27 @@ def history_grep(rule, rx, msg, level, exclude=None):
                 report(level, rule, f"{msg} (history, commit {commit})", line)
 
 
-def source_history_heads():
-    return [line.strip() for line in read("scripts/source-history.txt").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")]
+@functools.lru_cache(maxsize=None)
+def source_history_heads(level="warning"):
+    """Generated repositories lack the template's ancestry; disclose that coverage gap."""
+    available = []
+    for line in read("scripts/source-history.txt").splitlines():
+        head = line.strip()
+        if not head or head.startswith("#"):
+            continue
+        if not re.fullmatch(r"[0-9a-f]{40}", head):
+            report("error", "source-history", "invalid source history revision", "scripts/source-history.txt")
+            continue
+        result = subprocess.run(["git", "cat-file", "-e", head + "^{commit}"],
+                                cwd=REPOSITORY_ROOT, capture_output=True, text=True)
+        if result.returncode:
+            report(level, "source-history-unavailable",
+                   f"imported template history {head} is unavailable in this clone; "
+                   "only available project history is checked, not a complete template history audit",
+                   "scripts/source-history.txt")
+            continue
+        available.append(head)
+    return available
 
 
 def read(path):
@@ -253,11 +270,9 @@ def check_docker_release(tracked):
         if not any((d + "/" if d else "") + lock in have for d in dirs for lock in LOCKFILES[name]):
             report("error", "lockfile", f"commit the lockfile ({' or '.join(LOCKFILES[name])}) so the archive "
                    "records the versions you measured with", f)
-    released = [f for f in tracked if f.startswith(".github/workflows/")
-                and re.search(r"\brelease\b", read(f)) and "ghcr.io" in read(f)]
-    if not released:
-        report("error", "release", "no workflow publishes the runtime image to ghcr.io on a release; "
-               "copy .github/workflows/release.yml from the code template")
+    report("error", "retired-release-gate",
+           "component workflows are inactive in the monorepo; this legacy check cannot validate "
+           "publication wiring. Use root release-prepare.yml and publication.yml with verified artifacts")
 
 
 def check_secrets_and_ignores(tracked):
@@ -299,9 +314,12 @@ def publish_checks(hist):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--strict", action="store_true", help="fail on history findings too (optional local check)")
-    ap.add_argument("--publish", action="store_true", help="the publication gate: also check what the Zenodo "
-                    "release needs; CI runs it once PUBLISHING.md exists")
+    ap.add_argument("--publish", action="store_true", help="retired legacy gate; prints the supported publication route")
     a = ap.parse_args()
+    if a.publish:
+        ap.error("--publish is retired: use root .github/workflows/release-prepare.yml and publication.yml; "
+                 "see scripts/release/README.md and code/scripts/publishing-checklist.md. "
+                 "No repository visibility change or automatic Zenodo integration is required.")
     hist = "error" if a.strict else "warning"
 
     tree_grep("private-link", PRIVATE_LINKS,
@@ -311,7 +329,7 @@ def main():
     history_grep("private-link", PRIVATE_LINKS, "link to a private or unpublished place", hist)
 
     identities = git("log", "--all", "--format=%an <%ae>%n%cn <%ce>", "--", ".").splitlines()
-    for head in source_history_heads():
+    for head in source_history_heads(hist):
         result = subprocess.run(["git", "log", head, "--format=%an <%ae>%n%cn <%ce>"],
                                 cwd=REPOSITORY_ROOT, capture_output=True, text=True)
         if result.returncode != 0:
@@ -322,7 +340,7 @@ def main():
         if ident not in seen and re.search(AGENT_IDENTITY, ident, re.I):
             seen.add(ident)
             report(hist, "agent-author", f"commits authored or committed as {ident}; commit as yourself "
-                   "(a Co-Authored-By trailer is fine), then rewrite these commits before going public")
+                   "(a Co-Authored-By trailer is fine); review this provenance without rewriting history")
 
     archived = git("ls-files").splitlines()
     ignored = git("check-attr", "export-ignore", "--", *archived) if archived else ""

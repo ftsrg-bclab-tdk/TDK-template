@@ -49,8 +49,8 @@ class HygieneScopeTests(unittest.TestCase):
         return subprocess.run(["git", *args], cwd=self.root, check=True,
                               capture_output=True, text=True)
 
-    def run_hygiene(self):
-        return subprocess.run([sys.executable, "code/scripts/hygiene.py"], cwd=self.root,
+    def run_hygiene(self, *args):
+        return subprocess.run([sys.executable, "code/scripts/hygiene.py", *args], cwd=self.root,
                               capture_output=True, text=True)
 
     def add_original_source_history(self):
@@ -90,6 +90,27 @@ class HygieneScopeTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertRegex(result.stdout, r"warning\[private-link\]|::warning file=README.md,title=hygiene/private-link::")
         self.assertIn("README.md", result.stdout)
+
+    def test_generated_snapshot_discloses_missing_template_history(self):
+        (self.root / "code/scripts/source-history.txt").write_text("f" * 40 + "\n")
+        self.git("add", "code/scripts/source-history.txt")
+        self.git("commit", "-m", "Record unavailable template ancestry")
+        result = self.run_hygiene()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("source-history-unavailable", result.stdout)
+        self.assertIn("not a complete template history audit", result.stdout)
+        self.assertEqual(result.stdout.count("imported template history"), 1)
+        strict = self.run_hygiene("--strict")
+        self.assertEqual(strict.returncode, 1, strict.stdout + strict.stderr)
+
+    def test_retired_publication_gate_cannot_pass_on_nested_workflow(self):
+        workflow = self.root / "code/.github/workflows/release.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("on: release\njobs: {publish: {uses: ghcr.io/example}}\n")
+        result = self.run_hygiene("--publish")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("--publish is retired", result.stderr)
+        self.assertIn("release-prepare.yml", result.stderr)
 
 
 if __name__ == "__main__":

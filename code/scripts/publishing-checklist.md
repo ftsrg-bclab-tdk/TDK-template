@@ -1,48 +1,33 @@
-# Publishing checklist
+# Publication review checklist
 
-Copy this file to `PUBLISHING.md` at the repository root when you start preparing the Zenodo
-release. From then on, the `hygiene` workflow runs the publication gate (`just hygiene --publish`),
-which checks everything a script can check. The items below are the rest. Tick each one and
-write the evidence after it: a commit, a file and line, a command and its output, or a link. An
-advisor signs the list off by approving the pull request that completes it. `.gitattributes`
-keeps this file out of the Zenodo archive.
+Keep the project repository private. Publication selects reviewed artifacts through the root
+[release preparation and publication tools](../../scripts/release/README.md).
+The nested workflows in `code/.github/workflows/` are retained history, not active monorepo
+automation. Creating `PUBLISHING.md` does not enable a workflow, and `hygiene.py --publish`
+is retired.
 
-## Results
+Save project-specific review notes in `code/PUBLISHING.md` if useful, and exclude them from
+the selected archive. This checklist records human review; it is not a publication credential
+or an enforced approval boundary.
 
-- [ ] `just reproduce` regenerates every figure and table in the paper, and `just reproduce --smoke`
-      finishes in minutes. Evidence:
-- [ ] Recipes are named after their outputs, such as `fig-scalability` or `tab-robustness`. Evidence:
-- [ ] The results map has one row per figure and table of the paper, each with its command,
-      output path and time on the stated hardware. Evidence:
-- [ ] Every dependency is pinned in the `Dockerfile` and the lockfiles. Evidence:
+- [ ] The selected code, proofs and benchmark results reproduce the paper's claims. Each
+      result has its source revision, command, parameters, tool versions and output hashes.
+- [ ] Latest dependencies were resolved once for the measured run. The receipt retains the
+      actual lockfiles and image/platform digests; a mutable tag is not an immutable image.
+- [ ] The release manifest selects only intended files. Scratch notes, private integration
+      links, credentials and internal review records are excluded.
+- [ ] Creators, title, version, related papers, access and licenses have been reviewed.
+      Existing third-party notices and redistribution conditions remain intact.
+- [ ] The prepared package bytes and provenance match the exact successful checks and
+      reviewed manifest. The candidate is stored durably before transient CI artifacts expire.
+- [ ] The advisor reviewed this candidate. The lead student uses their own Zenodo account
+      and project secret for the manual publication workflow, selecting sandbox or production
+      explicitly. Student-writable workflows do not enforce advisor approval on the Free plan.
+- [ ] The published record's files and metadata were verified. Only a production receipt
+      with actual published record and DOI evidence supplies README badges and citations.
+- [ ] Any separately published research container has an explicit image publication plan,
+      the recorded digest/platform and a working reproduction command. The starter image
+      alone does not reproduce research results.
 
-## Metadata
-
-- [ ] The license was agreed with the advisors: Apache 2.0 for a tool, MIT otherwise. Evidence:
-- [ ] `related_identifiers` in `.zenodo.json` lists `isDerivedFrom` for a fork's upstream and
-      `isSupplementTo` for each paper with a DOI, and nothing else. Evidence:
-- [ ] A fork keeps the upstream license, names the upstream authors in `.zenodo.json` and says
-      in the README what it changed. Write "not a fork" otherwise. Evidence:
-- [ ] A tool has the tool README sections, `MAINTAINERS.md` and `SECURITY.md`. Write "results
-      only" otherwise. Evidence:
-
-## Before going public
-
-- [ ] Every history warning of `just hygiene --publish` has been read. The history is not rewritten:
-      each warning is either harmless once public or listed here with why it is acceptable. Evidence:
-- [ ] Every secret gitleaks ever found has been rotated: the key, token or wallet no longer
-      works or holds anything. Evidence:
-- [ ] No link points to a same-year TDK paper. Evidence:
-- [ ] No AI app or bot is a collaborator or installed app with write access (Settings,
-      Collaborators and GitHub Apps). Evidence:
-- [ ] A `CLAUDE.md` or `AGENTS.md` that documents the code was renamed, so the archive keeps it.
-      Evidence:
-
-## Release (the student's steps, after the pull request merges)
-
-- [ ] The repository and its ghcr.io package are public, and an anonymous
-      `docker manifest inspect ghcr.io/<owner>/<repo>:v1.0.0` succeeds. Evidence:
-- [ ] Zenodo is enabled for the repository, and release `v1.0.0` is tagged on the commit whose
-      results match the paper. Evidence:
-- [ ] The Zenodo record's files and metadata are checked, including both supervisors. The
-      concept DOI badge in the README resolves. Evidence:
+Record evidence beside each checked item. Do not make the repository public, enable Zenodo's
+release-triggered GitHub integration, or rewrite Git history as a side effect of this process.

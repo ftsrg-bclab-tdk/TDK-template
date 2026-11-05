@@ -1,1 +1,18 @@
 .DS_Store
+# Keep research notes tracked; these are local credentials, dependencies and generated output.
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+id_rsa
+id_ed25519
+.venv/
+venv/
+node_modules/
+__pycache__/
+out/
+results/
+dist/
+build/
+tmp/
