@@ -478,6 +478,7 @@ Report whether the guarantees and acceptance thresholds from the evaluation targ
 \textbf{Track S:} deliberately perturb the system. Report each perturbation and outcome in \cref{guide:tab:robustness}. Use \cref{guide:fig:robustness} to show degradation and recovery during faults, and sensitivity to the main parameter.
 \textbf{Track F:} use \cref{guide:tab:robustness-formal} to report each property under a stronger adversary and with each assumption dropped. Show which properties hold, which fail and the attacks that break them. Removal testing also counts: take each design element out of the model in turn and show which proofs then fail, so each element is shown to be needed.
 \textbf{Track T:} adapt \cref{guide:tab:robustness} to the tool. Vary thresholds and parameters around their defaults. Test mutated or adversarial inputs, including deliberately injected bugs, and use benchmark instances from a source other than the development data.
+\textbf{When your contribution is a defence,} such as a classifier retrained on attack samples, three rules apply on any track. Build its training or tuning inputs only from data the defender would hold in deployment. Measure it on an attack it was not built from, and say how far that attack is from the ones it was: a variant of the training attack shows less than a different one. Report ordinary inputs beside the attacked ones, before and after the defence and for each platform or dataset, because robustness is often paid for in ordinary accuracy.
 
 \begin{table}[!ht]
   \centering
