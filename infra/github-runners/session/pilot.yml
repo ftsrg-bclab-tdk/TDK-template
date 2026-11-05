@@ -1,0 +1,108 @@
+name: Isolation acceptance
+run-name: ${{ inputs.label }}
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        required: true
+        type: string
+      mode:
+        required: true
+        default: probe
+        type: choice
+        options: [probe, container, cancel, timeout]
+permissions:
+  contents: read
+jobs:
+  native:
+    if: inputs.mode != 'container'
+    runs-on: ${{ inputs.label }}
+    timeout-minutes: 10
+    steps:
+      - name: Probe the outer boundary
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          export PYTHONHOME=/infra/usr
+          /infra/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 --library-path /infra/usr/lib/x86_64-linux-gnu /infra/usr/bin/python3 - <<'PY'
+          import json,os,pathlib,socket,subprocess,time,signal
+          assert os.getuid()==1001
+          status=pathlib.Path('/proc/self/status').read_text()
+          assert 'CapEff:\t0000000000000000' in status
+          assert 'NoNewPrivs:\t1' in status
+          for p in ['/home/cloud','.host-secret','/var/lib/tdk-ci','/var/lib/tdk-isolation','/run/docker.sock','/sys/fs/cgroup']:
+              assert not pathlib.Path(p).exists(),p
+          assert not any(k in os.environ for k in ['GH_TOKEN','GH_HOST','APP_PRIVATE_KEY','SSH_AUTH_SOCK'])
+          assert not pathlib.Path('/job/previous-job-marker').exists()
+          assert not pathlib.Path('/tmp/previous-job-marker').exists()
+          pathlib.Path('/job/previous-job-marker').write_text('THIS JOB ONLY')
+          pathlib.Path('/tmp/previous-job-marker').write_text('THIS JOB ONLY')
+          # Bypass proxy settings deliberately: there is no external route.
+          for addr in [('10.9.0.25',22),('169.254.169.254',80),('1.1.1.1',443)]:
+              s=socket.socket();s.settimeout(.5)
+              try:s.connect(addr);raise AssertionError('direct route '+str(addr))
+              except OSError:pass
+              finally:s.close()
+          for target in ['169.254.169.254:443','127.0.0.1:443','example.org:443','github.com:22','github.com.evil.invalid:443']:
+              s=socket.create_connection(('127.0.0.1',3128))
+              s.sendall(('CONNECT '+target+' HTTP/1.1\r\n\r\n').encode())
+              assert s.recv(512).startswith(b'HTTP/1.1 403'),target
+              s.close()
+          s=socket.create_connection(('127.0.0.1',3128))
+          s.sendall(b'CONNECT github.com:443 HTTP/1.1\r\n\r\n')
+          assert s.recv(512).startswith(b'HTTP/1.1 200');s.close()
+          # Detached child has to die when the enclosing unit ends.
+          subprocess.Popen(['/bin/bash','-c','exec -a tdk-isolation-orphan-canary sleep 600'],start_new_session=True)
+          pathlib.Path('/job/probe-ready').write_text('ready')
+          print('PAYLOAD_READY; filesystem, privileges, credentials, network probes PASS',flush=True)
+          if os.environ['MODE']=='cancel':
+              # Freeze the listener after logs can flush: host cancellation must still win.
+              time.sleep(10)
+              for proc in pathlib.Path('/proc').glob('[0-9]*/comm'):
+                  try:
+                      if proc.read_text().strip()=='Runner.Listener':os.kill(int(proc.parent.name),signal.SIGSTOP)
+                  except (OSError,ValueError):pass
+              signal.signal(signal.SIGTERM,signal.SIG_IGN)
+          if os.environ['MODE'] in ['cancel','timeout']:
+              time.sleep(600)
+          print(json.dumps({'uid':os.getuid(),'process_count':len(list(pathlib.Path('/proc').glob('[0-9]*')))}))
+          PY
+      - name: Public input and output within this job
+        run: |
+          curl --fail --silent --show-error https://api.github.com/repos/actions/runner/releases/latest -o release.json
+          test -s release.json
+          printf 'job-local output\n' > evidence.txt
+          sha256sum evidence.txt
+      - name: Registry image action
+        if: inputs.mode == 'probe'
+        uses: docker://ubuntu:latest
+        with:
+          entrypoint: /bin/echo
+          args: CONTAINER_ACTION_READY
+      - name: Upload job output
+        uses: actions/upload-artifact@main
+        with:
+          name: native-evidence
+          path: evidence.txt
+          retention-days: 1
+  container:
+    if: inputs.mode == 'container'
+    runs-on: ${{ inputs.label }}
+    timeout-minutes: 10
+    container: ubuntu:latest
+    steps:
+      - name: Execute in current OCI image
+        run: |
+          test -f /etc/os-release
+          test ! -e /home/cloud
+          test ! -e /run/docker.sock
+          echo "OCI_JOB_READY"
+          cat /etc/os-release
+          printf 'container job output\n' > result.txt
+          sha256sum result.txt
+      - name: Upload container output
+        uses: actions/upload-artifact@main
+        with:
+          name: container-evidence
+          path: result.txt
+          retention-days: 1

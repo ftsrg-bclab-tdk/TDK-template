@@ -2,13 +2,15 @@
 """Root-operated, offline native job sandbox. Not a GitHub runner integration."""
 import argparse
 import os
+import json
+from pathlib import Path
 import re
 import subprocess
 import sys
 import uuid
 
 
-def command(payload, unit, seconds=60, memory='1G'):
+def command(payload, unit, seconds=60, memory='1G', owner='preview'):
     if not re.fullmatch(r'tdk-sandbox-[a-f0-9]{32}', unit):
         raise ValueError('invalid transient unit name')
     if not 1 <= seconds <= 3600 or not re.fullmatch(r'[1-9][0-9]*[MG]', memory):
@@ -18,13 +20,15 @@ def command(payload, unit, seconds=60, memory='1G'):
     # systemd allocates a distinct unprivileged host UID to each live unit.
     # Bubblewrap maps it to nobody inside new user/PID/mount/network namespaces.
     uid = 65534
-    props = ['Type=exec', 'DynamicUser=yes', 'AppArmorProfile=tdk-native-sandbox', f'RuntimeMaxSec={seconds}s', 'TimeoutStopSec=2s',
+    props = [f'Description=tdk-native-owner:{owner}',
+             'ReadWritePaths=/run/tdk-native-results',
+             f'ExecStopPost=+/usr/local/lib/tdk-native/result.py {unit}', 'Type=exec', 'DynamicUser=yes', 'AppArmorProfile=tdk-native-sandbox', f'RuntimeMaxSec={seconds}s', 'TimeoutStopSec=2s',
              'KillMode=control-group', f'MemoryMax={memory}', 'MemorySwapMax=0',
              'TasksMax=128', 'LimitCORE=0', 'NoNewPrivileges=yes', 'UMask=0077',
              'PrivateTmp=yes', 'PrivateDevices=yes', 'ProtectHome=yes',
              'ProtectSystem=strict', 'ProtectKernelModules=yes', 'ProtectControlGroups=yes']
     args = ['/usr/bin/systemd-run', '--quiet', '--wait', '--pipe', '--collect',
-            '--unit', unit]
+            '--expand-environment=no', '--unit', unit]
     for prop in props:
         args.extend(['--property', prop])
     args += ['/usr/bin/bwrap', '--unshare-all', '--unshare-user', '--disable-userns',
@@ -51,20 +55,27 @@ def main():
     parser.add_argument('payload', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     payload = args.payload[1:] if args.payload[:1] == ['--'] else args.payload
-    cmd = command(payload, args.unit, args.seconds, args.memory)
+    owner = uuid.uuid4().hex
+    cmd = command(payload, args.unit, args.seconds, args.memory, owner)
     if args.dry_run:
-        import json
         print(json.dumps(cmd))
         return 0
     if os.geteuid() != 0:
         raise RuntimeError('root controller required; never grant workflows sudo access to this helper')
+    Path('/run/tdk-native-results').mkdir(mode=0o700, exist_ok=True)
+    existing = subprocess.run(['/usr/bin/systemctl','show',args.unit,'-p','LoadState','--value'], capture_output=True, text=True)
+    if existing.stdout.strip() != 'not-found':
+        raise RuntimeError('unit already exists; refusing to adopt or stop it')
     try:
         return subprocess.run(cmd, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'},
                               stdin=subprocess.DEVNULL).returncode
     finally:
         # A killed controller cannot execute this; systemd still enforces RuntimeMaxSec.
-        subprocess.run(['/usr/bin/systemctl', 'stop', args.unit],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        identity = subprocess.run(['/usr/bin/systemctl','show',args.unit,'-p','Description','--value'],
+                                  capture_output=True,text=True)
+        if identity.stdout.strip() == 'tdk-native-owner:' + owner:
+            subprocess.run(['/usr/bin/systemctl', 'stop', args.unit],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,173 @@
+{
+  "configuration_sha256": "170a9ee1e166144d447ce544d76c8b8af264addb967502c192f5ba8e600b2eb9",
+  "records": {
+    "native": {
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "mode": "probe",
+      "url": "https://github.com/ftsrg-bclab-tdk/tdk-runner-isolation-pilot/actions/runs/42113430256",
+      "run_id": 42113430256,
+      "observed_ready_at": 1793914343.7640865,
+      "fixture": {
+        "ready": true,
+        "listener_stopped": false,
+        "host_uids": []
+      },
+      "conclusion": "success",
+      "cleanup": {
+        "id": "db4f4c753ca04319aacf64cb3205f57b",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "acceptance_fixture": {
+          "ready": false,
+          "listener_stopped": false,
+          "host_uids": []
+        },
+        "receipt": {
+          "id": "db4f4c753ca04319aacf64cb3205f57b",
+          "finished_at": 1793914339.4791334,
+          "result": "success",
+          "exit_code": "exited",
+          "exit_status": "0",
+          "cleaned_at": 1793914345.0649428,
+          "disk_removed": true,
+          "cgroup_removed": true,
+          "runtime": {
+            "reference": "ghcr.io/actions/actions-runner:latest",
+            "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+            "resolved_at": 1793914293.081715,
+            "rootfs": "/var/lib/tdk-isolation-images/759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232/bundle/rootfs"
+          },
+          "configuration_sha256": "170a9ee1e166144d447ce544d76c8b8af264addb967502c192f5ba8e600b2eb9",
+          "account_removed": true
+        }
+      }
+    },
+    "container": {
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "mode": "container",
+      "url": "https://github.com/ftsrg-bclab-tdk/tdk-runner-isolation-pilot/actions/runs/42113422367",
+      "run_id": 42113422367,
+      "conclusion": "success",
+      "cleanup": {
+        "id": "8ead186965aa4131b21326dd7febfc56",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "acceptance_fixture": {
+          "ready": false,
+          "listener_stopped": false,
+          "host_uids": []
+        },
+        "receipt": {
+          "id": "8ead186965aa4131b21326dd7febfc56",
+          "finished_at": 1793914331.9491012,
+          "result": "success",
+          "exit_code": "exited",
+          "exit_status": "0",
+          "cleaned_at": 1793914336.5190449,
+          "disk_removed": true,
+          "cgroup_removed": true,
+          "runtime": {
+            "reference": "ghcr.io/actions/actions-runner:latest",
+            "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+            "resolved_at": 1793914290.2224998,
+            "rootfs": "/var/lib/tdk-isolation-images/759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232/bundle/rootfs"
+          },
+          "configuration_sha256": "170a9ee1e166144d447ce544d76c8b8af264addb967502c192f5ba8e600b2eb9",
+          "account_removed": true
+        }
+      }
+    },
+    "cancel": {
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "mode": "cancel",
+      "url": "https://github.com/ftsrg-bclab-tdk/tdk-runner-isolation-pilot/actions/runs/42112877183",
+      "run_id": 42112877183,
+      "observed_ready_at": 1793914105.5974238,
+      "fixture": {
+        "ready": true,
+        "listener_stopped": true,
+        "host_uids": [
+          994
+        ]
+      },
+      "cancel_requested_at": 1793914106.1613407,
+      "cancel_cleaned_at": 1793914107.6570737,
+      "conclusion": "cancelled",
+      "cleanup": {
+        "id": "d771d46568f14afa846627e67ed109e5",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "acceptance_fixture": {
+          "ready": false,
+          "listener_stopped": false,
+          "host_uids": []
+        },
+        "receipt": {
+          "id": "d771d46568f14afa846627e67ed109e5",
+          "finished_at": 1793914106.8210855,
+          "result": "success",
+          "exit_code": "killed",
+          "exit_status": "TERM",
+          "cleaned_at": 1793914107.503006,
+          "disk_removed": true,
+          "cgroup_removed": true,
+          "runtime": {
+            "reference": "ghcr.io/actions/actions-runner:latest",
+            "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+            "resolved_at": 1793914075.1746135,
+            "rootfs": "/var/lib/tdk-isolation-images/759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232/bundle/rootfs"
+          },
+          "configuration_sha256": "170a9ee1e166144d447ce544d76c8b8af264addb967502c192f5ba8e600b2eb9",
+          "account_removed": true
+        }
+      }
+    },
+    "controller_loss": {
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "mode": "timeout",
+      "url": "https://github.com/ftsrg-bclab-tdk/tdk-runner-isolation-pilot/actions/runs/42113092672",
+      "run_id": 42113092672,
+      "observed_ready_at": 1793914179.3049853,
+      "fixture": {
+        "ready": true,
+        "listener_stopped": false,
+        "host_uids": [
+          994
+        ]
+      },
+      "controller_killed_at": 1793914180.2466233,
+      "cleanup": {
+        "id": "6b1a29bec4d54efb90b763a2114df0a9",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive",
+        "acceptance_fixture": {
+          "ready": false,
+          "listener_stopped": false,
+          "host_uids": []
+        },
+        "receipt": {
+          "id": "6b1a29bec4d54efb90b763a2114df0a9",
+          "finished_at": 1793914223.1246264,
+          "result": "timeout",
+          "exit_code": "killed",
+          "exit_status": "TERM",
+          "cleaned_at": 1793914225.9972818,
+          "disk_removed": true,
+          "cgroup_removed": true,
+          "runtime": {
+            "reference": "ghcr.io/actions/actions-runner:latest",
+            "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+            "resolved_at": 1793914162.6035593,
+            "rootfs": "/var/lib/tdk-isolation-images/759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232/bundle/rootfs"
+          },
+          "configuration_sha256": "170a9ee1e166144d447ce544d76c8b8af264addb967502c192f5ba8e600b2eb9",
+          "account_removed": true
+        }
+      }
+    }
+  }
+}

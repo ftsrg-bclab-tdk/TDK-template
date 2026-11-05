@@ -129,13 +129,25 @@ print(json.dumps({'uid':os.getuid(),'pid':os.getpid(),'network':'denied'}))
             proc.wait(timeout=10)
             host.close()
         check('cancelled job cgroup removed', gone(first))
+        name, result = invoke("import os; assert '$HOME' == '$'+'HOME'; print('literal dollar preserved')")
+        check('systemd preserves literal dollar argv', result.returncode == 0 and 'literal dollar preserved' in result.stdout)
+        # An explicit name must never let this launcher stop somebody else's unit.
+        collision=unit()
+        subprocess.run(['systemd-run','--quiet','--unit',collision,'/bin/sleep','60'],check=True)
+        try:
+            result=subprocess.run(args('print(1)',collision),capture_output=True,text=True)
+            check('preexisting explicit unit retained', result.returncode != 0 and subprocess.run(['systemctl','is-active','--quiet',collision]).returncode==0)
+        finally:
+            subprocess.run(['systemctl','stop',collision],check=True)
         # Background children cannot persist after the main command exits.
         name, result = invoke("import subprocess; subprocess.Popen(['/bin/sleep','600'],start_new_session=True); print('spawned')")
         check('background child cleanup after normal exit', result.returncode == 0 and gone(name))
-        name, result = invoke('import time; time.sleep(30)', seconds=2)
-        check('host-enforced timeout and cleanup', result.returncode != 0 and gone(name))
-        name, result = invoke("a=bytearray(256*1024*1024); print('unexpected')", memory='64M')
-        check('host-enforced memory limit and cleanup', result.returncode != 0 and gone(name))
+        name, result = invoke('import time; print("PAYLOAD_READY",flush=True); time.sleep(30)', seconds=2)
+        cause=json.loads(Path('/run/tdk-native-results',name+'.json').read_text())
+        check('host-enforced timeout and cleanup', 'PAYLOAD_READY' in result.stdout and cause['SERVICE_RESULT']=='timeout' and result.returncode != 0 and gone(name))
+        name, result = invoke("print('PAYLOAD_READY',flush=True); a=bytearray(256*1024*1024); print('unexpected')", memory='64M')
+        cause=json.loads(Path('/run/tdk-native-results',name+'.json').read_text())
+        check('host-enforced memory limit and cleanup', 'PAYLOAD_READY' in result.stdout and cause['SERVICE_RESULT']=='oom-kill' and result.returncode != 0 and gone(name))
         # SIGKILL bypasses helper finally; the systemd deadline must still work.
         name = unit()
         with (tmp / 'killed-controller.log').open('w') as output:

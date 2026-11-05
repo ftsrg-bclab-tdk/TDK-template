@@ -1,0 +1,7 @@
+[Unit]
+Description=Remove terminated isolated runner job storage and proxy
+After=local-fs.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/tdk-isolation/session.py reap
+TimeoutStartSec=120

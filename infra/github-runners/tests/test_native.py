@@ -22,6 +22,7 @@ class NativeTests(unittest.TestCase):
         cmd = sandbox.command(payload, 'tdk-sandbox-' + 'a' * 32)
         self.assertEqual(cmd[-3:], payload)
         self.assertEqual(cmd[-4], '--')
+        self.assertIn('--expand-environment=no', cmd)
         self.assertIn('DynamicUser=yes', cmd)
         self.assertIn('--clearenv', cmd)
         self.assertIn('--unshare-all', cmd)
