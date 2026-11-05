@@ -12,6 +12,17 @@ PAPER = Path(__file__).resolve().parents[2]
 
 @unittest.skipUnless(shutil.which('texlua'), 'requires TeX Live')
 class LayoutTests(unittest.TestCase):
+    def test_proxy_draft_keeps_draft_lint_semantics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            probe = Path(tmp) / 'probe.lua'
+            probe.write_text('package.path = "scripts/lint/?.lua;" .. package.path\n'
+                             'local C = require("lintcore")\n'
+                             'for _, doc in ipairs({"draft", "paper-draft"}) do '
+                             'C.opts.doc = doc; assert(C.draft_build(), doc) end\n'
+                             'for _, doc in ipairs({"final", "paper-final"}) do '
+                             'C.opts.doc = doc; assert(not C.draft_build(), doc) end\n')
+            subprocess.run(['texlua', str(probe)], cwd=PAPER, check=True)
+
     def test_parent_git_hygiene_and_annotation_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

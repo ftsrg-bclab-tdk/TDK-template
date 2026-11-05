@@ -138,7 +138,7 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
   local p = profile(); local bf = body_font(d); if not bf then return end
   local worst = { left = 1e9, right = 1e9, top = 1e9, bottom = 1e9 }; local worstpage = {}
   local typical = { left = {}, right = {}, top = {}, bottom = {} }
-  local final = C.opts.doc == "reviewer" or C.phase() == "submit"
+  local final = C.opts.doc == "final" or C.opts.doc == "paper-final" or C.phase() == "submit"
   for _, page in ipairs(d.pages) do
     local body = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then body = body + 1 end end
     if body >= 10 then
