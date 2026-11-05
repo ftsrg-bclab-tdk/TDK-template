@@ -21,6 +21,7 @@ an editable PowerPoint version.
   BPM 2026 talk at `6f1b07b`, including its inline closing styles, font weights,
   tracking, compact header, cover author block and closing panels. Cover variants
   accommodate a two-line research title or the original portrait/QR arrangement.
+  All three covers add a separate editable Advisor(s) line for student talks.
   They include native table/chart examples and a connected native workflow diagram.
   They are a PowerPoint adaptation, not a synchronized export
   of `slides.md`. The examples are instructional; the chart data are synthetic.

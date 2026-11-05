@@ -345,7 +345,8 @@ def layouts():
             placeholder("Presentation title", "ctrTitle", 0, (90, 184.4, 1100, 49), "Research title", size=38, leading=49.4, color="FFFFFF", align="ctr", font="Montserrat SemiBold", tracking=4.56),
             placeholder("Subtitle", "subTitle", 1, (90, 233.8, 1100, 104), "The problem and\nyour contribution", size=32, leading=49, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.8),
             body("Authors", 2, (160, 396, 960, 24), "STUDENT NAME · COAUTHOR NAME", size=16, leading=22.4, color="E8E6E1", align="ctr", tracking=3.2),
-            body("Event and date", 3, (160, 418.4, 960, 24), "TDK CONFERENCE · PRESENTATION DATE", size=13, leading=18.2, color="E3C6CB", align="ctr", tracking=3.64),
+            body("Advisor(s)", 7, (160, 423, 960, 24), "Advisor(s): Advisor Name · Advisor Name", size=14, leading=19.6, color="D8D6D1", align="ctr", tracking=1.4, caps=True),
+            body("Event and date", 3, (160, 450, 960, 24), "TDK CONFERENCE · PRESENTATION DATE", size=13, leading=18.2, color="E3C6CB", align="ctr", tracking=3.64),
             body("Presenter name", 4, (630, 613.6, 380, 23), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
             body("Presenter affiliation", 5, (630, 637.6, 380, 33), "Critical Systems Research Group\nBudapest University of Technology and Economics", size=11.5, leading=15.525, color="D8D6D1", align="r"),
             body("Presenter link", 6, (630, 673.6, 380, 20), PROJECT_LABEL, size=12, leading=16.8, font="JetBrains Mono", tracking=.24, color="FFFFFF", align="r"),
@@ -451,6 +452,8 @@ def layouts():
     long_title["notes"] = "Use this cover when the main research title needs two lines. Insert a deliberate line break at a phrase boundary. The title keeps BPM's 38 px SemiBold type and the subtitle keeps its 32 px Light type. Their separate boxes do not overlap. Keep the main title within two lines and the subtitle within two lines. The fictional job-execution title is an editing example, not a reported finding."
     specs.extend([long_title, portrait])
     for spec in specs:
+        if any(item["name"] == "Advisor(s)" for item in spec["items"]):
+            spec["notes"] += "\n\nEdit the separate Advisor(s) placeholder below the student authors in Normal view. Replace the example names and use Advisor or Advisors as appropriate. Keep coauthors on the author line and acknowledge supervision on the advisor line. Home > Reset restores the layout's spacing and typography."
         if any(item["name"] == "Project QR" for item in spec["items"]):
             spec["notes"] += "\n\nExample project QR destination: " + PROJECT_URL + ". Replace the QR with Change Picture and update the visible URL and Alt Text together. Use a square code with a four-module quiet zone, avoid cropping it, and test it from the exported slide. New slides have an empty picture placeholder; duplicate the example to retain the image."
     return specs

@@ -25,7 +25,7 @@ Students can use PowerPoint without building the Markdown presentation.
    to edit it. The chart data are synthetic; the table is an evaluation plan.
 4. Choose **View > Slide Master** to change the shared project label, centered
    event/author line, branding
-   or typography. Edit your title, author and contact in Normal view. Use
+   or typography. Edit your title, author, advisor names and contact in Normal view. Use
    **Home > Layout** to switch layouts and **Home > Reset** to restore a moved
    placeholder. Avoid pasting text with formatting from another presentation.
 5. Before presenting, use **Review > Check Accessibility** and inspect reading
@@ -52,7 +52,10 @@ Text geometry and styles live on layouts, so new slides inherit them and Reset
 can restore them. Body lists have three useful levels; keep deeper detail in
 backup slides. Content titles use one short line with a separate topic label
 above it. Titles and subtitles use native All Caps formatting: you can type
-normal-case text without losing the BPM appearance. The default cover has a
+normal-case text without losing the BPM appearance. Every cover has a separate
+**Advisor(s)** placeholder between the student authors and event/date. Edit it
+in Normal view, replace the example names and use **Advisor** or **Advisors** as
+appropriate. Keep coauthors on the author line. The default cover has a
 one-line title and a two-line subtitle. Choose **13 Cover with two-line title**
 for a longer research title; it keeps the BPM font sizes and reserves room
 for both lines. Cover subtitles and divider titles have two lines. Shorten crowded
@@ -112,8 +115,9 @@ backup pages. The artwork and logos are the same source files.
 | Closing statement | 30 px | 22.5 pt |
 
 The layouts retain BPM's font weights, tracking, header rule at 27 px, 64 px
-side margins, column gaps and compact labels. The cover has separate author
-and event lines plus a presenter block at the bottom right. The closing has
+side margins, column gaps and compact labels. The cover has separate author,
+advisor and event lines plus a presenter block at the bottom right. The advisor
+line extends the BPM cover for student presentations. The closing has
 four translucent panels and a contact block in the same position as the talk.
 Text positions were checked against the rendered BPM slides.
 
