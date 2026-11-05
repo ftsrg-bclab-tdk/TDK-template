@@ -390,7 +390,7 @@ end
 
 -- a heading of the paper that names the row, outside the tagged list's own place: a student who
 -- wrote the items as prose under their own heading left the skeleton's list behind
-local function heading_naming(row, skip_file, skip_line)
+local function heading_naming(row, skip_file, skip_line, prose)
   local word = row.title:lower():match("%a+")
   for _, f in ipairs(C.MAIN) do
     for n, raw in ipairs(C.lines(f)) do
@@ -398,14 +398,33 @@ local function heading_naming(row, skip_file, skip_line)
       local t = l:match("\\%a*section%*?%s*{([^}]*)}") or l:match("\\paragraph%*?%s*{([^}]*)}")
       -- the skeleton's own headings are where the list belongs, not a sign of another one
       local own_heading = not C.skeleton_lines()[C.prose_key(raw)]
-      if t and own_heading and t:lower():find(word, 1, true) and not (f == skip_file and math.abs(n - skip_line) <= 3) then return f, n, t end
+      if t and t:lower():find(word, 1, true) and not (f == skip_file and math.abs(n - skip_line) <= 3) then
+        if prose then
+          -- any heading, the skeleton's too, with the student's own words under it before the next one
+          local ls = C.lines(f)
+          for m = n + 1, #ls do
+            local x = C.strip_comment(ls[m])
+            if x:match("\\%a*section") or x:match("\\chapter") then break end
+            if x:match("%a%a%a") and not x:match("^%s*\\") and not x:match("TODO") and not C.skeleton_lines()[C.prose_key(ls[m])] then return f, n, t end
+          end
+        elseif own_heading then return f, n, t end
+      end
     end
   end
 end
 
 local function eval_tags(row, r)
   local items = tag_items(row.prefix)
-  if #items == 0 then return 0, row.add end
+  if #items == 0 then
+    -- written as prose under its own heading: started, not missing; the tagged list is what the
+    -- rest of the paper can reference
+    local hf, hn, ht = heading_naming(row, nil, 0, true)
+    if hf then
+      r.where = place(hf, hn, hn)
+      return 2, string.format("written as prose under \"%s\": put the items in the tagged list, so the paper can reference them", C.trim(ht))
+    end
+    return 0, row.add
+  end
   r.where = place(items[1].file, items[1].line, items[1].stop)
   local own = 0
   for _, it in ipairs(items) do if own_item(it) then own = own + 1 end end

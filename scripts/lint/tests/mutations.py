@@ -262,6 +262,7 @@ MUTATIONS = [
     ("text below the threshold is started", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(15)), "◑ Context\n    help: 14 own words"),
     ("text above the threshold is written and enough", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(50)), "intro ●◔◔◔◔◔◔◔"),
     ("a skeleton list beside the student's own heading", "essentials", append("content/03-approach.tex", "\\section{Soundness assumptions}\nThe prover is honest."), 'has a heading "Soundness assumptions"'),
+    ("limitations written as prose under their heading", "essentials", lambda d: (lambda p: p.write_text(re.sub(r"\\begin\{limitations\}.*?\\end\{limitations\}", lambda m: "The model omits network delays and assumes honest clocks.", p.read_text(), flags=re.S)))(d / "content/07-conclusion.tex"), 'written as prose under'),
     ("some items own is started", "essentials", both(three_reqs, own_items("content/01-introduction.tex", "req", only="req:first")), "◑ Requirements\n    help: 1 of 3 items written"),
     ("an own figure with a TODO caption is started", "essentials", replace_line("content/03-approach.tex", "\\missingfigure[figheight=2cm]{Architecture:",
         "  \\begin{tikzpicture}\\node[draw] (h) {Holder}; \\node[draw, right=of h] {Registry};\\end{tikzpicture}"), "◑ Architecture figure\n    help: the caption is still a TODO"),
