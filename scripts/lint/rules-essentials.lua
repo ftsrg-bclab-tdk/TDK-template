@@ -392,7 +392,9 @@ end
 -- wrote the items as prose under their own heading left the skeleton's list behind
 local function heading_naming(row, skip_file, skip_line, prose)
   local word = row.title:lower():match("%a+")
-  for _, f in ipairs(C.MAIN) do
+  -- prose that stands in for the list counts only in the row's own chapter: a background section
+  -- on a tool's limitations is not the paper's limitations
+  for _, f in ipairs(prose and C.role_files(row.role) or C.MAIN) do
     for n, raw in ipairs(C.lines(f)) do
       local l = C.strip_comment(raw):gsub("(\\%a+%*?)%s*%b[]", "%1")
       local t = l:match("\\%a*section%*?%s*{([^}]*)}") or l:match("\\paragraph%*?%s*{([^}]*)}")
