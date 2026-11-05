@@ -49,7 +49,7 @@ Adding a ledger does not answer that question: an authentic ledger value can sti
 
 \subsection[Requirements]{Requirements\skimmark}\label{guide:chapters:requirements}
 \guidebeat{what a solution must do}{one requirement per failure of the example; they are the rows of the gap matrix and the yardstick of the evaluation}{the part of the scenario each requirement comes from}{the gap}
-State each requirement as a checkable property needed by the example. Justify its threshold from the intended use in the evaluation target (\cref{guide:chapters:eval-target}); record the source or stakeholder constraint behind it. Agree these targets before the main evaluation runs. Usually, existing approaches trade one requirement against the others.
+State each requirement as a checkable property needed by the example. Justify its threshold from the intended use in the evaluation target (\cref{guide:chapters:eval-target}); record the source or stakeholder constraint behind it. Agree these targets before the main evaluation runs. Usually, existing approaches trade one requirement against the others. If the literature already lists the properties a system of your kind must have, take that list as requirements and cite it, so nobody can say you picked the rows you win; check that it assumes your adversary, and put the closest approach and your own work against the same list.
 \begin{requirements}
   \item\label{guide:req:timely} \textbf{Timely revocation.} A verifier rejects a credential whenever its revocation was recorded by the registry more than $\delta$ before the check.
   \item\label{guide:req:offline} \textbf{Offline checks.} A verifier checks a credential without contacting its issuer.
