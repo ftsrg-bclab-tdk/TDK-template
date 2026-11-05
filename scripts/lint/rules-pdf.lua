@@ -273,7 +273,10 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   for _, alt in ipairs(p.needs) do
     local found = false
     for a in alt:gmatch("[^|]+") do if text:find(a, 1, true) then found = true end end
-    if not found then fail(nil, nil, "missing from the PDF: " .. alt:gsub("|", " or ")) end
+    -- the AI declaration: the faculty requires it for theses, and the TDK call does not ask for
+    -- it; we print it as a hedge, so its absence is a warning
+    local hedge = alt:find("generat", 1, true) and C.opts.profile ~= "thesis"
+    if not found then (hedge and warn or fail)(nil, nil, "missing from the PDF: " .. alt:gsub("|", " or ") .. (hedge and " (the call does not require the AI declaration; we print it as a hedge)" or "")) end
   end
   for _, f in ipairs(p.forbids) do if text:find(f, 1, true) then warn(nil, nil, f .. " is in the PDF; the TDK call says to leave the student declaration out") end end
   if not (text:find("Contents", 1, true) or text:find("Tartalomjegyzék", 1, true)) then fail(nil, nil, "no table of contents") end
