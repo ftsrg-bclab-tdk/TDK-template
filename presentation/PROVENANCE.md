@@ -1,5 +1,38 @@
 # Source provenance and rights
 
+## PowerPoint alternatives
+
+On 5 November 2026, Martin requested that his confirmed older customized template
+be added unchanged as a student alternative and that the current design receive
+an editable PowerPoint version.
+
+- `powerpoint/legacy/ftsrg-montserrat-2025.pptx` is the unchanged university
+  OneDrive `_Templates/FTSRG Monteserrat template.pptx` file. SHA-256:
+  `4b162aaa6eb526f9617181ab1800499c6acf8cabe907a47c1a876218e3750cd9`.
+  Its embedded last editor is Farkas Martin and modification date is
+  2025-12-09T19:48:32Z. It contains 31 slides, including BPM 2025 talk content.
+  The September 2025 Teams copies have byte-identical theme/master/layout parts.
+  Martin confirmed that this is the Montserrat customization he meant. It keeps
+  its original contents, credits and inherited rights; this repository does not
+  relicense the entire legacy presentation as new material.
+- `powerpoint/templates/ftsrg-current.pptx` and `.potx` are newly authored native
+  Office Open XML versions of the current `theme/bme.css` design. They reuse the
+  existing graph artwork and logos unchanged. The twelve layouts use larger
+  editable text areas, native table/chart examples, and a connected native
+  workflow diagram. They are a PowerPoint adaptation, not a synchronized export
+  of `slides.md`. The examples are instructional; the chart data are synthetic.
+- `powerpoint/assets/workflow.png` is a raster copy of `figures/workflow.svg` for
+  the picture-placeholder example. The separate native diagram stays editable.
+- `powerpoint/fonts/` contains static instances of the already supplied Montserrat
+  and JetBrains Mono variable fonts, produced with FontTools 4.67.0. Their OFL
+  notices are retained. The new PowerPoint files do not embed these fonts.
+
+The scoped license policy below applies to original reusable tooling and prose.
+Existing artwork and fonts keep the permissions and licenses recorded here.
+`powerpoint/SHA256SUMS` identifies the distributed files and derived assets.
+
+## Markdown starter
+
 This starter was extracted on 3 November 2026 for Martin Farkas's TDK template.
 It follows his existing BPM/FTSRG presentation rather than introducing a new style.
 

@@ -1,0 +1,28 @@
+name: PowerPoint templates
+on:
+  pull_request:
+    paths:
+      - 'presentation/powerpoint/**'
+      - 'presentation/assets/**'
+      - '.github/workflows/powerpoint.yml'
+  push:
+    paths:
+      - 'presentation/powerpoint/**'
+      - 'presentation/assets/**'
+      - '.github/workflows/powerpoint.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+      - run: python presentation/powerpoint/tools/check.py
+      - run: python -m unittest discover -s presentation/powerpoint/tools -p 'test_*.py'

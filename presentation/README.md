@@ -4,6 +4,13 @@ An independently buildable Marp deck based on Martin Farkas's BPM 2026 presentat
 It retains the graph artwork, BME/FTSRG logos, Montserrat headings, grey content
 slides, and dark title and closing slides. See [provenance and licenses](PROVENANCE.md).
 
+Prefer PowerPoint? Open the [editable current-design PPTX](powerpoint/templates/ftsrg-current.pptx)
+or [reusable POTX](powerpoint/templates/ftsrg-current.potx). The
+[legacy Montserrat deck](powerpoint/legacy/ftsrg-montserrat-2025.pptx) is also
+available for students who prefer Martin's older template. See the
+[PowerPoint guide](powerpoint/README.md) for fonts, layouts and editing steps.
+These files can be used directly; the build below is only for the Markdown deck.
+
 ## Build
 
 Use Node.js 22 or later, npm, and a local Chrome or Chromium installation.
