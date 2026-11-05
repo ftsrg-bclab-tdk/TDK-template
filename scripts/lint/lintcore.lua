@@ -107,7 +107,7 @@ M.ROLE_LABEL = { intro = "ch:intro", background = "ch:background", approach = "c
 M.ROLE_NAME = { intro = "introduction", background = "background chapter", approach = "approach chapter", implementation = "implementation chapter", evaluation = "evaluation chapter", related = "related-work chapter", conclusion = "conclusion" }
 M.MANDATORY = { "intro", "approach", "evaluation", "related", "conclusion" }
 -- the roles in reading order, and the review-sheet criteria each role's chapters carry, as the
--- head of the role's section in guide/05-chapter-by-chapter.tex (app:chapters:<role>) names them;
+-- head of the role's section in guide/05-chapter-by-chapter.tex (guide:chapters:<role>) names them;
 -- criterion A is scored on the whole paper and belongs to no role. The skim reads them from
 -- --json; `lint.lua criteria` fails when the guide names other criteria
 M.ROLE_SEQ = { "intro", "background", "approach", "implementation", "evaluation", "related", "conclusion" }
@@ -217,8 +217,8 @@ function M.guide_criteria(file)
   local s = M.readfile(file or "guide/05-chapter-by-chapter.tex")
   if not s then return nil end
   local out, cuts = {}, {}
-  -- a role's section runs to the next \section; its subsections carry app:chapters:<name> labels too
-  for pos, role in s:gmatch("()\\section%b{}%s*\\label{app:chapters:(%a+)}") do cuts[#cuts + 1] = { pos = pos, role = role } end
+  -- a role's section runs to the next \section; its subsections carry guide:chapters:<name> labels too
+  for pos, role in s:gmatch("()\\section%b{}%s*\\label{guide:chapters:(%a+)}") do cuts[#cuts + 1] = { pos = pos, role = role } end
   for i, c in ipairs(cuts) do
     local body = s:sub(c.pos, cuts[i + 1] and cuts[i + 1].pos - 1 or #s)
     for arg in body:gmatch("\\textbf(%b{})") do

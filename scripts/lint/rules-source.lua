@@ -638,7 +638,7 @@ end)
 rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:, and app: for the headings after \\appendix), so references read right and the lint can trace them", function()
   local envpref = { figure = "fig", table = "tab", sidewaystable = "tab", listing = "lst", lstlisting = "lst", algorithm = "alg", equation = "eq", align = "eq", definition = "def", theorem = "thm", lemma = "lem", proposition = "prop", corollary = "cor", invariant = "inv", property = "prty", claim = "claim", remark = "rem", notation = "not", example = "ex", subfigure = "fig", subtable = "tab" }
   local listpref = { contributions = "c", requirements = "req", derivedrequirements = "dr", assumptions = "asm", guarantees = "g", threats = "thr", limitations = "lim", rqlist = "rq" }
-  local appendix = false -- after \appendix, a heading's label may say app:, as the guide's do
+  local appendix = false -- after \appendix, a heading's label may say app:, the paper's appendix prefix (the guide's own labels say guide:)
   for _, f in ipairs(MAIN) do
     local stack = {}
     local lastheading
@@ -1059,7 +1059,7 @@ end)
 -- are each other's companion paper. Each is reviewed on its own while the other is unpublished,
 -- so neither cites or links the other: the text says "a companion paper", and what this paper
 -- needs from it is restated in the background, or as a last resort in an appendix (the guide's
--- app:tdk:companion). A TDK paper of an earlier year is on the portal and is cited like any
+-- guide:tdk:companion). A TDK paper of an earlier year is on the portal and is cited like any
 -- other source; so is this year's once a thesis builds on it (LINT_PROFILE=thesis).
 local TDK_NAMES = { "%f[%a]o?tdk%f[%A]", "tudom%S*nyos%s+di%S*kk%S*ri", "scientific%s+students?%f[%A]",
   "students?%S*%s+scientific%s+conference", "students?%S*%s+scientific%s+association" }
@@ -1579,9 +1579,19 @@ end)
 
 rule("burndown", "source", "count", "always", "one line of JSON with the counts a draft drives to zero, for CI to collect over time", function()
   local function count(files, pat) local c = 0; C.each_line(files, function(_, _, l) c = c + C.count(l, pat) end); return c end
+  -- placeholder figures and tables say so inside their float, as the placeholders rule counts them
+  local function placeholder_floats()
+    local c, infloat = 0, false
+    C.each_line(CONTENT, function(_, _, l)
+      if l:match("\\begin{figure") or l:match("\\begin{table") then infloat = true end
+      if infloat and l:match("[Pp]laceholder") then c = c + 1 end
+      if l:match("\\end{figure") or l:match("\\end{table") then infloat = false end
+    end)
+    return c
+  end
   local j = string.format('{"date":"%s","pages":%d,"todo":%d,"beats":%d,"notes":%d,"placeholders":%d,"citations":%d,"figures":%d}',
     os.date("!%Y-%m-%d"), main_pages() or 0, count(CONTENT, "TODO"), count(MAIN, "\\beat{"), count(MAIN, "\\a?d?v?i?s?o?r?todo%["),
-    count(CONTENT, "[Pp]laceholder"), count(MAIN, "\\cite[tp]?{"), count(MAIN, "\\label{fig:"))
+    placeholder_floats(), count(MAIN, "\\cite[tp]?{"), count(MAIN, "\\label{fig:"))
   if not C.quiet() then io.write(j, "\n") end -- --json carries it as the counts
   return j
 end)

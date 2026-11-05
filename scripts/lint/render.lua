@@ -416,7 +416,7 @@ function M.json(ok)
   out.chapter_roles = {}
   for _, role in ipairs(C.ROLE_SEQ) do
     out.chapter_roles[role] = { label = C.ROLE_LABEL[role], name = C.ROLE_NAME[role], criteria = C.ROLE_CRITERIA[role],
-      guide = "app:chapters:" .. role, files = C.role_files(role) }
+      guide = "guide:chapters:" .. role, files = C.role_files(role) }
   end
   out.tag_lists = C.tag_lists()
   for _, res in ipairs(C.results) do

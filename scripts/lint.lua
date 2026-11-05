@@ -101,7 +101,7 @@ if cmd == "criteria" then
     table.sort(missing); table.sort(extra)
     if #missing + #extra > 0 then
       bad = bad + 1
-      io.write(string.format("%s: lintcore.lua says %s; app:chapters:%s names %s\n", role, table.concat(C.ROLE_CRITERIA[role], ", "), role,
+      io.write(string.format("%s: lintcore.lua says %s; guide:chapters:%s names %s\n", role, table.concat(C.ROLE_CRITERIA[role], ", "), role,
         next(have) and table.concat((function() local t = {}; for c in pairs(have) do t[#t + 1] = c end; table.sort(t); return t end)(), ", ") or "none"))
     end
   end
