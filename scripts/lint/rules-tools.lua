@@ -7,12 +7,13 @@ rule("chktex", "tools", "advice", "always", "chktex: typographic slips in the so
   if not C.have("chktex") then C.skip("chktex not installed"); return end
   local n = 0
   -- off: 1 command terminated with space, 3 \( \) advice, 8 dash length, 13 \@ after a capital, 24 space before \label (the template puts it on its own line), 36 brace spacing, 44 user regex, 46 \( \).
+  -- 29 \\times: it fires on model names such as Ryzen 9 7950X3D, and a real product is written in maths anyway.
   -- 6 italic correction: \\textit and \\emph add it themselves, and \\itshape in a table head needs none.
   -- Also off, because the typography rule reports the same slip once, with a fix: 2 a tie before
   -- \cite (\cref needs none), 11 three dots, 12 the space after e.g. and et al., 18 straight quotes,
   -- 26 a space before punctuation. 38 punctuation before a quote is right in Hungarian (,,...''),
   -- and 39 a double space prints as one
-  local out = C.run("chktex -q -I0 -n1 -n2 -n3 -n6 -n8 -n11 -n12 -n13 -n18 -n24 -n26 -n36 -n38 -n39 -n44 -n46 -f '%f:%l:%n:%m\n' " .. table.concat(C.MAIN, " ") .. " " .. (C.FILES.abstract or "")) or ""
+  local out = C.run("chktex -q -I0 -n1 -n2 -n3 -n6 -n8 -n29 -n11 -n12 -n13 -n18 -n24 -n26 -n36 -n38 -n39 -n44 -n46 -f '%f:%l:%n:%m\n' " .. table.concat(C.MAIN, " ") .. " " .. (C.FILES.abstract or "")) or ""
   for l in out:gmatch("[^\n]+") do
     local f, ln, code, msg = l:match("^([^:]+):(%d+):(%d+):(.*)$")
     if f then n = n + 1; if n <= 60 then warn(f, tonumber(ln), string.format("chktex %s: %s", code, msg)) end end

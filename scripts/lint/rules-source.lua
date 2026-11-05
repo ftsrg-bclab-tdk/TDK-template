@@ -440,7 +440,14 @@ rule("overfull", "source", "check", "always", "overfull boxes of a point or more
       local file, line = files[i], tonumber(from)
       if file and not C.exists(file) then file, line = nil, nil end
       local where = from and (to ~= "" and ("at lines " .. from .. "-" .. to) or ("at line " .. from)) or ("near log line " .. i)
-      fail(file, line, string.format("overfull by %spt %s: %s", pt, where, sample:sub(1, 60)), "shorten the line, let the table or listing break, or lint-ignore it with a reason")
+      -- a table wider than the text: an alignment in the log, or a tabular in the lines it names
+      local is_table = l:match("in alignment") ~= nil
+      if file and line then
+        local src = C.lines(file)
+        for k = line, math.max(line, tonumber(to) or line) do if (src[k] or ""):match("\\begin{tabular") or (src[k] or ""):match("&") then is_table = true end end
+      end
+      local help = is_table and "set the table as tabularx{\\linewidth} with X columns, so its cells wrap inside the margins" or "shorten the line, let the table or listing break, or lint-ignore it with a reason"
+      fail(file, line, string.format("overfull by %spt %s: %s", pt, where, sample:sub(1, 60)), help)
     elseif l:match("^Overfull \\hbox") and not pt then fail(nil, nil, l) end
   end
 end)
@@ -615,7 +622,7 @@ rule("axes", "source", "advice", "polish", "every pgfplots axis label carries a 
   end)
 end)
 
-rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vertical lines, no \\hline, and fit the text width", function()
+rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vertical lines and no \\hline (a table wider than the text fails overfull and pdf-margins)", function()
   for _, f in ipairs(MAIN) do
     local ls = C.lines(f); local intab, start, hasrule = false, 0, false
     for n, raw in ipairs(ls) do
@@ -633,11 +640,8 @@ rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vert
           intab = false
         end
       end
-      if l:match("\\begin{tabular}") and not l:match("\\begin{tabularx}") and (raw:match("X") == nil) then
-        -- the column letters only: widths such as p{0.2\linewidth} and @{} or >{} groups are not columns
-        local cols = (l:match("\\begin{tabular}(%b{})") or "{}"):sub(2, -2):gsub("%b{}", "")
-        local nc = C.count(cols, "[lcrp]"); if nc >= 6 then warn(f, n, "a wide tabular", "use tabularx with \\linewidth so it cannot overflow") end
-      end
+      -- a table wider than the text is an overfull alignment, which the overfull rule fails at its
+      -- line and pdf-margins on its page; a count of its columns only guessed at that
     end
   end
 end)
