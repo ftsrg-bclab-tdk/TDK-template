@@ -58,10 +58,10 @@ and their steps are in `guide/02-lifecycle.tex` (`guide:tab:lifecycle`).
 - The person running you decides what you may change in their own text.
 - In a template update, apply only named mechanical changes, such as a renamed macro. Show every
   other deletion or rewrite for review instead of applying it.
-- When a paper repository still has `draft.tex` and `final.tex`, the update renames them:
-  run `git mv draft.tex draft.tex` and take `final.tex` from the template in place of
-  `final.tex`. In `include/macros.tex` and `content/`, replace `\finalmode` with `\finalmode`
-  and `draft.tex` with `draft.tex`. The student then sets root `paper-draft.tex` as the main document in
+- When a paper repository still has `thesis.tex` and `reviewer.tex`, the update renames them:
+  run `git mv thesis.tex draft.tex` and take `final.tex` from the template in place of
+  `reviewer.tex`. In `include/macros.tex` and `content/`, replace `\reviewermode` with `\finalmode`
+  and `thesis.tex` with `draft.tex`. The student then sets root `paper-draft.tex` as the main document in
   Overleaf's menu.
 - Keep the notes. `\todo` (orange) is for the student, `\advisortodo` (blue) for the advisors, and
   `\atodo` (green) is an advisor's review comment that the student resolves and then deletes.
