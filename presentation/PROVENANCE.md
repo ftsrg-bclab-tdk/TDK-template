@@ -22,8 +22,8 @@ an editable PowerPoint version.
   tracking, compact header, cover author block and closing panels. Cover variants
   accommodate a two-line research title or the original portrait/QR arrangement.
   All three covers add a separate editable Advisor(s) line for student talks.
-  At Martin's request, both formats use a lighter warm ivory content background
-  and warmer, lighter master overlays on the unchanged graph artwork.
+  At Martin's request, both formats use a lighter warm ivory content background.
+  Cover, closing and section backgrounds retain the original artwork and overlays.
   They include native table/chart examples and a connected native workflow diagram.
   They are a PowerPoint adaptation, not a synchronized export
   of `slides.md`. The examples are instructional; the chart data are synthetic.

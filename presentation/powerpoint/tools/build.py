@@ -304,8 +304,7 @@ def make_master(pkg, number, name, layouts):
     else:
         art = "divider-graph.jpg" if number == 3 else "cover-graph.jpg"
         picture(pkg, t, rels, ASSETS / art, (0, 0, 1280, 720), "Shared graph background", deco=True)
-        shape(t, "Warm artwork tint (edit on master)", (0, 0, 1280, 720),
-              fill=("8B6A59", .48) if number == 3 else ("806459", .55), deco=True)
+        shape(t, "Artwork contrast overlay", (0, 0, 1280, 720), fill=("24122A", .50) if number == 3 else ("101010", .42), deco=True)
         if number == 2:
             p = ASSETS / "logos/bme-vik-mit-ftsrg-white.png"
             picture(pkg, t, rels, p, png_box(p, 64, 648, 44), "BME VIK MIT FTSRG", deco=True)
@@ -360,7 +359,7 @@ def layouts():
             body("Section label", 1, (120, 264, 1040, 24), "01 / METHOD", size=14, leading=19.6, font="Montserrat Medium", color="E3C6CB", align="ctr", tracking=4.9),
             body("Section summary", 2, (260, 466, 760, 64), "Describe the system, propose a rule,\nthen try to break it.", size=20, leading=29, color="F0E4EE", align="ctr")],
              panels=[(618, 433, 44, 1, "D9B9BE")],
-             notes="This optional divider comes from the BPM/AVM shared CSS; the final BPM 2026 talk itself does not use a divider. Edit the section label and transition sentence. The graph artwork and warm tint are shared on the Section master. Keep the title to two lines and the summary short."),
+             notes="This optional divider comes from the BPM/AVM shared CSS; the final BPM 2026 talk itself does not use a divider. Edit the section label and transition sentence. The purple graph artwork and overlay are shared on the Section master. Keep the title to two lines and the summary short."),
         dict(name="03 Title and text", master=1, kind="tx", items=[title("ASSUMPTIONS AND LIMITATIONS"), eyebrow("Research scope"),
             body("Main points", 1, (64, 165, 1152, 150), "A stable identifier must refer to the same logical job.\nA database transaction does not automatically cover an external service.\nA successful test covers the tested execution; a proof depends on its model.", size=23, leading=32.2, after=430, bullets=True),
             label("Note label", 2, (86, 348, 1108, 20), "NEXT EXPERIMENT"),
@@ -422,7 +421,7 @@ def layouts():
             body("Contact name", 3, (730, 610.4, 360, 24), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
             body("Contact details", 4, (730, 634.4, 360, 50), "Your email address\n" + PROJECT_LABEL, size=14, leading=19.6, color="D8D6D1", align="r"),
             placeholder("Project QR", "pic", 30, (1108, 588, 108, 108), "", size=12)],
-             panels=[(64+i*291.5, 304.7, 277.5, 146.7, ("352A27", .65), ("FFFFFF", .16)) for i in range(4)] + [(64+i*291.5, 304.7, 277.5, 3, "D9B9BE") for i in range(4)],
+             panels=[(64+i*291.5, 304.7, 277.5, 146.7, ("0C0C0E", .55), ("FFFFFF", .16)) for i in range(4)] + [(64+i*291.5, 304.7, 277.5, 3, "D9B9BE") for i in range(4)],
              notes="This layout follows the actual BPM 2026 closing slide's three-line statement, four compact panels, invitation and bottom-right contact block. Replace the prompts with your supported conclusion and useful next questions. Delete unused panels and their text in Slide Master. The project QR uses the template repository as an editing example. Leave the slide visible during questions."),
         dict(name="12 References / backup", master=1, kind="tx", items=[title("SOURCES AND REPRODUCIBILITY", 72),
             body("Backup tag", 11, (64, 72, 130, 20), "BACKUP", size=12, leading=16.8, bold=True, tracking=2.4, color="555555"),
