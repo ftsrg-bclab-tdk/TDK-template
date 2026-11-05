@@ -41,8 +41,8 @@ saved copy to check the result; some viewers ignore embedded fonts.
 
 ## Layouts and editable objects
 
-The 16:9 template uses three masters: light-grey content, dark graph cover and
-closing, and purple graph section divider. They share one color/font theme.
+The 16:9 template uses three masters: warm ivory content, brown-tinted graph
+cover and closing, and mauve graph section divider. They share one color/font theme.
 The fourteen named layouts are cover, divider, title and text, two columns, three
 columns, figure and caption, code and explanation, table, chart, title only,
 closing, references/backup, a two-line cover title, and a cover with portrait/QR
@@ -120,6 +120,13 @@ advisor and event lines plus a presenter block at the bottom right. The advisor
 line extends the BPM cover for student presentations. The closing has
 four translucent panels and a contact block in the same position as the talk.
 Text positions were checked against the rendered BPM slides.
+
+The backgrounds are a lighter, warmer variation requested for these PowerPoint
+templates. Content slides use ivory (`#F4EFE7`) in the theme's Light 2 color.
+Cover and closing masters tint the graph with `#806459` at 55% opacity; the
+divider uses `#8B6A59` at 48%. The graph image files remain unchanged. To adjust
+the tint, open **View > Slide Master** and select **Warm artwork tint (edit on
+master)**. White text and dark translucent closing panels retain contrast.
 
 The examples use student prompts instead of the talk's research claims and
 personal details. The optional purple divider comes from the shared BPM/AVM
