@@ -1389,8 +1389,9 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
       end))
     end
     if l:match("\\\\%s*$") and not l:match("&") and not l:match("\\\\%[") and not l:match("^%s*\\\\") then
-      if not (l:match("\\end{") or l:match("\\hline") or l:match("rule")) then
-        note(f, n, "manual line break at the end of a prose line", not in_grid(f, n) and typo_fix(f, n, seen, "break", "delete the \\\\", 1, "%s*\\\\(%s*)$", function(_, _, _, trail) return trail end, "review") or nil)
+      -- a table row's last cell, on a line of its own, ends with \\ too: that is the row's end
+      if not (l:match("\\end{") or l:match("\\hline") or l:match("rule") or in_grid(f, n)) then
+        note(f, n, "manual line break at the end of a prose line", typo_fix(f, n, seen, "break", "delete the \\\\", 1, "%s*\\\\(%s*)$", function(_, _, _, trail) return trail end, "review"))
       end
     end
     if p:match("%.%.%.") then

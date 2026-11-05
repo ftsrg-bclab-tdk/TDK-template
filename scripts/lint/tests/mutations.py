@@ -499,6 +499,7 @@ MUTATIONS = [
     ("a misspelt title", "spelling", sub("thesis.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation", {"may_skip": "aspell or detex not installed"}),
     # code is the program's text: no typography slip in \texttt, \lstinline or a verbatim block, and no
     # marker or abbreviation in a verbatim block, an \iffalse region or \verb
+    ("a table row's last cell on its own line is not a line break", "typography", append(BG, "\\begin{tabular}{ll}\n  a &\n  the last cell of the row \\\\\n\\end{tabular}"), "!manual line break"),
     ("a space before a colon in \\texttt is code", "typography", append(BG, "The kernel \\texttt{x : Nat} is typed."), "!space before punctuation"),
     ("a space before a colon in \\lstinline is code", "typography", append(BG, "The signature \\lstinline{f : A -> B} is typed."), "!space before punctuation"),
     ("a range in a verbatim block is the program's text", "typography", append(BG, "\\begin{verbatim}\npages 3-4\n\\end{verbatim}"), "!with a hyphen"),
