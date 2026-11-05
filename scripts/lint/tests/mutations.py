@@ -212,8 +212,8 @@ OWN_BOX = replace_line("content/01-introduction.tex", "TODO Two or three sentenc
 
 BG = "content/02-background.tex"
 EVAL = "content/05-evaluation.tex"
-CONTEXT = "\\guidetodo{Context}{app:chapters:context}"
-SETUP = "\\guidetodo{Setup}{app:chapters:setup}"
+CONTEXT = "\\guidetodo{Context}{guide:chapters:context}"
+SETUP = "\\guidetodo{Setup}{guide:chapters:setup}"
 YEAR = datetime.date.today().year  # the template's \tdkev is \the\year
 ZENODO = sub("bib/references.bib", "10.5281/zenodo.TODO", "10.5281/zenodo.1234567", 2)
 
@@ -466,8 +466,8 @@ MUTATIONS = [
     ("an evaluation pointer alone does not justify N/A", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapna\\,(\\cref{rq:correct})")), "N/A cell needs a reason"),
     # The guide's matrix points directly at a theorem in the approach, outside evaluation.
     ("the guide's direct theorem evidence outside evaluation", "essentials", both(filled_gap,
-        append("content/03-approach.tex", "\\begin{theorem}[Bounded staleness]\\label{thm:guide:stale}\nAn accepted credential was not revoked more than the allowed delay before its check.\n\\end{theorem}"),
-        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:guide:stale})")), "related ◔●◔"),
+        append("content/03-approach.tex", "\\begin{theorem}[Bounded staleness]\\label{guide:thm:stale}\nAn accepted credential was not revoked more than the allowed delay before its check.\n\\end{theorem}"),
+        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{guide:thm:stale})")), "related ◔●◔"),
     ("a lemma outside evaluation is evidence", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{lem:helper})")), "related ◔●◔"),
     ("a theorem's environment determines evidence, not its prefix", "essentials", both(filled_gap,
         append("content/03-approach.tex", "\\begin{corollary}\n\\label{sec:bounded-result} Every accepted witness satisfies the bound.\n\\end{corollary}"),

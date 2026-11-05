@@ -2386,7 +2386,7 @@ The chapter files contain headings, orange notes linking here, running-example b
 list, and the figure and table stubs needed by the lint. This chapter explains each heading: what review-
 ers score, the paragraph’s beat (Section F.1) and worked examples using the credential revocation registry.
 Read the matching section before drafting. Copy examples from guide/05-chapter-by-chapter.tex,
-removing guide: from copied labels: req:guide:offline becomes req:offline.
+removing guide: from copied labels: guide:req:offline becomes req:offline.
 This is the fictional paper from the mind map in Figure F.1.1. Approaches A to D, measurements and results
 illustrate completed items; they do not describe a real system.
 
@@ -3824,7 +3824,7 @@ Proposition 11, Claim 12, Remark 13.
 Use tagged lists for stable names: C for contributions, REQ for requirements, DR for derived requirements,
 AS for assumptions, SG for guarantees, ADV for adversaries, LIM for limitations and RQ for research ques-
 tions. Each item starts with a short name in bold, and a gap-matrix row reuses its requirement’s name. A ref-
-erence prints only the tag: \cref{asm:latex:clock} prints AS1. Three or more consecutive tags become
+erence prints only the tag: \cref{guide:asm:latex:clock} prints AS1. Three or more consecutive tags become
 a range. Add a new kind with one \NewTagList line in include/preamble.tex. Chapter G demonstrates
 all lists in their chapters: contributions and requirements in the introduction; adversaries, assumptions, guar-
 antees and derived requirements in the approach; research questions in the evaluation; limitations in the

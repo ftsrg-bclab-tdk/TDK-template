@@ -9,7 +9,7 @@
         "files": [
           "content/03-approach.tex"
         ],
-        "guide": "app:chapters:approach",
+        "guide": "guide:chapters:approach",
         "label": "ch:approach",
         "name": "approach chapter"
       },
@@ -20,7 +20,7 @@
         "files": [
           "content/02-background.tex"
         ],
-        "guide": "app:chapters:background",
+        "guide": "guide:chapters:background",
         "label": "ch:background",
         "name": "background chapter"
       },
@@ -31,7 +31,7 @@
         "files": [
           "content/07-conclusion.tex"
         ],
-        "guide": "app:chapters:conclusion",
+        "guide": "guide:chapters:conclusion",
         "label": "ch:conclusion",
         "name": "conclusion"
       },
@@ -43,7 +43,7 @@
         "files": [
           "content/05-evaluation.tex"
         ],
-        "guide": "app:chapters:evaluation",
+        "guide": "guide:chapters:evaluation",
         "label": "ch:evaluation",
         "name": "evaluation chapter"
       },
@@ -55,7 +55,7 @@
         "files": [
           "content/04-implementation.tex"
         ],
-        "guide": "app:chapters:implementation",
+        "guide": "guide:chapters:implementation",
         "label": "ch:implementation",
         "name": "implementation chapter"
       },
@@ -68,7 +68,7 @@
         "files": [
           "content/01-introduction.tex"
         ],
-        "guide": "app:chapters:intro",
+        "guide": "guide:chapters:intro",
         "label": "ch:intro",
         "name": "introduction"
       },
@@ -80,7 +80,7 @@
         "files": [
           "content/06-related-work.tex"
         ],
-        "guide": "app:chapters:related",
+        "guide": "guide:chapters:related",
         "label": "ch:related",
         "name": "related-work chapter"
       }
@@ -894,7 +894,7 @@
         "files": [
           "content/03-approach.tex"
         ],
-        "guide": "app:chapters:approach",
+        "guide": "guide:chapters:approach",
         "label": "ch:approach",
         "name": "approach chapter"
       },
@@ -905,7 +905,7 @@
         "files": [
           "content/02-background.tex"
         ],
-        "guide": "app:chapters:background",
+        "guide": "guide:chapters:background",
         "label": "ch:background",
         "name": "background chapter"
       },
@@ -916,7 +916,7 @@
         "files": [
           "content/07-conclusion.tex"
         ],
-        "guide": "app:chapters:conclusion",
+        "guide": "guide:chapters:conclusion",
         "label": "ch:conclusion",
         "name": "conclusion"
       },
@@ -928,7 +928,7 @@
         "files": [
           "content/05-evaluation.tex"
         ],
-        "guide": "app:chapters:evaluation",
+        "guide": "guide:chapters:evaluation",
         "label": "ch:evaluation",
         "name": "evaluation chapter"
       },
@@ -940,7 +940,7 @@
         "files": [
           "content/04-implementation.tex"
         ],
-        "guide": "app:chapters:implementation",
+        "guide": "guide:chapters:implementation",
         "label": "ch:implementation",
         "name": "implementation chapter"
       },
@@ -953,7 +953,7 @@
         "files": [
           "content/01-introduction.tex"
         ],
-        "guide": "app:chapters:intro",
+        "guide": "guide:chapters:intro",
         "label": "ch:intro",
         "name": "introduction"
       },
@@ -965,7 +965,7 @@
         "files": [
           "content/06-related-work.tex"
         ],
-        "guide": "app:chapters:related",
+        "guide": "guide:chapters:related",
         "label": "ch:related",
         "name": "related-work chapter"
       }

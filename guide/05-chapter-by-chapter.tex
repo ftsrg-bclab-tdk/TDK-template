@@ -1,11 +1,11 @@
 %----------------------------------------------------------------------------
-\chapter{The paper, chapter by chapter}\label{app:chapters}
+\chapter{The paper, chapter by chapter}\label{guide:chapters}
 %----------------------------------------------------------------------------
-The chapter files contain headings, orange notes linking here, running-example boxes, one item per tagged list, and the figure and table stubs needed by the lint. This chapter explains each heading: what reviewers score, the paragraph's beat (\cref{app:writing:spine}) and worked examples using \exname. Read the matching section before drafting. Add headings of your own at the section and subsection levels only: a third level is one too many in 35 pages, so name a smaller block with \texttt{\textbackslash paragraph} instead of \texttt{\textbackslash subsubsection}. A level either divides or is absent: a chapter with sections has at least two, a section with subsections has at least two, and a heading with \texttt{\textbackslash paragraph} blocks has at least two. Copy examples from \texttt{guide/05-chapter-by-chapter.tex}, removing \texttt{guide:} from copied labels: \texttt{req:guide:offline} becomes \texttt{req:offline}.
+The chapter files contain headings, orange notes linking here, running-example boxes, one item per tagged list, and the figure and table stubs needed by the lint. This chapter explains each heading: what reviewers score, the paragraph's beat (\cref{guide:writing:spine}) and worked examples using \exname. Read the matching section before drafting. Add headings of your own at the section and subsection levels only: a third level is one too many in 35 pages, so name a smaller block with \texttt{\textbackslash paragraph} instead of \texttt{\textbackslash subsubsection}. A level either divides or is absent: a chapter with sections has at least two, a section with subsections has at least two, and a heading with \texttt{\textbackslash paragraph} blocks has at least two. Copy examples from \texttt{guide/05-chapter-by-chapter.tex}, removing \texttt{guide:} from copied labels: \texttt{guide:req:offline} becomes \texttt{req:offline}.
 
-This is the fictional paper from the mind map in \cref{fig:mindmap}. Approaches A to D, measurements and results illustrate completed items; they do not describe a real system.
+This is the fictional paper from the mind map in \cref{guide:fig:mindmap}. Approaches A to D, measurements and results illustrate completed items; they do not describe a real system.
 
-\paragraph{What the reviewer scores.} The review sheet scores five criteria, A to E; \cref{app:tdk:sheet} names them and quotes their top steps. For A, the sheet sets a 30--35 page limit and recommends that reviewers deduct 1 point per 3 pages outside it. Argue four things throughout the paper, as explained below. Each section also quotes the sheet's lower steps, the ones a weak chapter lands on, so you can read your draft in the reviewer's words.
+\paragraph{What the reviewer scores.} The review sheet scores five criteria, A to E; \cref{guide:tdk:sheet} names them and quotes their top steps. For A, the sheet sets a 30--35 page limit and recommends that reviewers deduct 1 point per 3 pages outside it. Argue four things throughout the paper, as explained below. Each section also quotes the sheet's lower steps, the ones a weak chapter lands on, so you can read your draft in the reviewer's words.
 \begin{description}[noitemsep]
   \item[Relevance (C)] The topic matters now.
   \item[Non-triviality (C and D/1)] Solving the problem requires deep or scientific knowledge beyond a textbook recipe or reuse of known solutions.
@@ -14,56 +14,56 @@ This is the fictional paper from the mind map in \cref{fig:mindmap}. Approaches 
 \end{description}
 Criterion A is scored on the whole paper.
 
-\paragraph{What a skimming reviewer reads.} A busy reviewer may read only what the skim view keeps (\cref{app:lifecycle:reviewers}), such as tagged items (C1, REQ1, AS1, SG1, \dots), and register prose only by its length. Headings marked \skimmark{} contain items visible in this reading. If a section is unmarked, also express its claim in a marked item, a caption or the heading.
+\paragraph{What a skimming reviewer reads.} A busy reviewer may read only what the skim view keeps (\cref{guide:lifecycle:reviewers}), such as tagged items (C1, REQ1, AS1, SG1, \dots), and register prose only by its length. Headings marked \skimmark{} contain items visible in this reading. If a section is unmarked, also express its claim in a marked item, a caption or the heading.
 
 %----------------------------------------------------------------------------
-\section{Introduction}\label{app:chapters:intro}
+\section{Introduction}\label{guide:chapters:intro}
 %----------------------------------------------------------------------------
 \textbf{Criteria C and E.} A reviewer who reads only the introduction and its leading figure should be able to say what you did and why it matters.
 \textbf{Relevance:} open with why the problem matters now and to whom.
 \textbf{Non-triviality:} show why the obvious solutions fail.
 \textbf{Novelty:} state the contributions as checkable claims.
 
-\textbf{In the sheet's words.} The bottom of E (\cref{app:tdk:sheet}) names what this chapter must contain, together with the evaluation: \enquote{0: teljesen hiányzik -- ha a dolgozat bevezetése hiányos (tématerület áttekintése, problémafelvetés, fő kontribúció kimondása) ÉS az eredmények gyakorlati validálása, értékelése is hiányzik ill. hibás}.
+\textbf{In the sheet's words.} The bottom of E (\cref{guide:tdk:sheet}) names what this chapter must contain, together with the evaluation: \enquote{0: teljesen hiányzik -- ha a dolgozat bevezetése hiányos (tématerület áttekintése, problémafelvetés, fő kontribúció kimondása) ÉS az eredmények gyakorlati validálása, értékelése is hiányzik ill. hibás}.
 
-\subsection{Context}\label{app:chapters:context}
+\subsection{Context}\label{guide:chapters:context}
 \guidebeat{why the field matters now}{a trend, a regulation or an incident, cited}{not yet introduced}{the problem}
-Every abbreviation goes through \texttt{\textbackslash gls}, as in \gls{vc}, which spells it out on first use; declare it in \texttt{content/glossary.tex}, together with the paper's notation and terms, unless the common glossary (\cref{tab:glossary-common}) already has it.
+Every abbreviation goes through \texttt{\textbackslash gls}, as in \gls{vc}, which spells it out on first use; declare it in \texttt{content/glossary.tex}, together with the paper's notation and terms, unless the common glossary (\cref{guide:tab:glossary-common}) already has it.
 
-\subsection[Problem]{Problem\skimmark}\label{app:chapters:problem}
+\subsection[Problem]{Problem\skimmark}\label{guide:chapters:problem}
 \guidebeat{the concrete problem, ending in a one-sentence problem statement}{the running example}{introduced here: who the actors are, what they want to do, and what goes wrong}{the research rationale}
 Introduce the example in two or three sentences: the actors, their goal and what goes wrong. Choose a scenario simple enough to follow across chapters but rich enough to show every requirement.
 \begin{runningexample}
 A university issues a diploma to a graduate as a verifiable credential, and later revokes it because the degree was withdrawn. An employer checks the diploma during hiring and accepts it: its copy of the revocation status is a day old.
 \end{runningexample}
 
-\subsection{Research rationale}\label{app:chapters:rationale}
+\subsection{Research rationale}\label{guide:chapters:rationale}
 \guidebeat{why the practical problem requires scientific investigation}{the unresolved question and evidence that established methods do not settle it}{the conflict or uncertainty exposed by the example}{the requirements}
 Give this a visibly titled \emph{Research rationale} section in the Introduction. Explain what prompted the investigation: an observed failure, a conflicting pair of needs, or a limitation of current knowledge. Cite the evidence behind that starting point. Then state the unresolved scientific question precisely enough that a proof, model or experiment could answer it. Criterion C rewards a current, unresolved topic requiring deep scientific investigation; a useful application alone does not establish this.
 
-Explain why applying an established technique or assembling existing components cannot settle the question. Identify the uncertainty, difficult interaction or missing argument that your work must resolve. Connect it to the introduction's requirements and the evaluation target (\cref{app:chapters:eval-target}). The requirements state what a solution must achieve; the rationale explains why finding out whether and how it can do so requires research. Carry the central claim into the leading figure's caption or a contribution item so a skimming reader sees it too.
+Explain why applying an established technique or assembling existing components cannot settle the question. Identify the uncertainty, difficult interaction or missing argument that your work must resolve. Connect it to the introduction's requirements and the evaluation target (\cref{guide:chapters:eval-target}). The requirements state what a solution must achieve; the rationale explains why finding out whether and how it can do so requires research. Carry the central claim into the leading figure's caption or a contribution item so a skimming reader sees it too.
 
 \paragraph{Worked rationale.} In the diploma scenario, consulting the issuer gives current status but reveals the check, while a cached list keeps the issuer uninvolved but may conceal a recent revocation. The practical need is a hiring decision that respects both revocation and holder privacy. The scientific question is whether a verifier can enforce a stated upper bound on revocation staleness using locally available evidence, despite message delays and uncertainty in the clocks. The comparison with the closest approaches must establish which part of this question remains unresolved.
 
 Adding a ledger does not answer that question: an authentic ledger value can still be old. The investigation must therefore relate the age of signed evidence, clock error and the verifier's acceptance rule, and prove the resulting guarantee under an explicit adversary model. Experiments must then establish whether the required refresh rate and checks remain feasible at the intended issuer population and under faults. This connects the practical scenario to a precise proof obligation and to an evaluation target, rather than treating implementation itself as the research result.
 
-\subsection[Requirements]{Requirements\skimmark}\label{app:chapters:requirements}
+\subsection[Requirements]{Requirements\skimmark}\label{guide:chapters:requirements}
 \guidebeat{what a solution must do}{one requirement per failure of the example; they are the rows of the gap matrix and the yardstick of the evaluation}{the part of the scenario each requirement comes from}{the gap}
-State each requirement as a checkable property needed by the example. Justify its threshold from the intended use in the evaluation target (\cref{app:chapters:eval-target}); record the source or stakeholder constraint behind it. Agree these targets before the main evaluation runs. Usually, existing approaches trade one requirement against the others.
+State each requirement as a checkable property needed by the example. Justify its threshold from the intended use in the evaluation target (\cref{guide:chapters:eval-target}); record the source or stakeholder constraint behind it. Agree these targets before the main evaluation runs. Usually, existing approaches trade one requirement against the others.
 \begin{requirements}
-  \item\label{req:guide:timely} \textbf{Timely revocation.} A verifier rejects a credential whenever its revocation was recorded by the registry more than $\delta$ before the check.
-  \item\label{req:guide:offline} \textbf{Offline checks.} A verifier checks a credential without contacting its issuer.
-  \item\label{req:guide:private} \textbf{Holder privacy.} A check tells nobody, the issuer included, which credential was checked.
+  \item\label{guide:req:timely} \textbf{Timely revocation.} A verifier rejects a credential whenever its revocation was recorded by the registry more than $\delta$ before the check.
+  \item\label{guide:req:offline} \textbf{Offline checks.} A verifier checks a credential without contacting its issuer.
+  \item\label{guide:req:private} \textbf{Holder privacy.} A check tells nobody, the issuer included, which credential was checked.
 \end{requirements}
 
-\subsection{Gap, in brief}\label{app:chapters:introgap}
+\subsection{Gap, in brief}\label{guide:chapters:introgap}
 \guidebeat{what remains unresolved by the closest approaches and what this work adds; the full comparison comes after the evaluation (\cref{ch:related}), so this paragraph carries the novelty claim on its own}{the closest approaches, cited}{what the closest approach does with the example, and where it falls short}{the contributions}
 Name the closest approaches and the difference your work establishes, including any trade-offs. Here, asking the issuer at every check is timely but neither offline nor private; offline lists are private but a day stale.
 
-\subsection[Leading figure]{Leading figure\skimmark}\label{app:chapters:leading-figure}
-\textbf{Criterion B/1} assesses figures like this. \Cref{app:writing:figure} says what it shows; \cref{app:writing:captions,app:writing:figures} cover its caption and drawing.
+\subsection[Leading figure]{Leading figure\skimmark}\label{guide:chapters:leading-figure}
+\textbf{Criterion B/1} assesses figures like this. \Cref{guide:writing:figure} says what it shows; \cref{guide:writing:captions,guide:writing:figures} cover its caption and drawing.
 
-\textbf{In the sheet's words.} The step below the top of B/1 (\cref{app:tdk:sheet}) is \enquote{2: átlagos (a dolgozat megfelelő számú ábrát és táblázatot tartalmaz, ám azok több esetben nem jól átgondoltak vagy rossz minőségűek)}.
+\textbf{In the sheet's words.} The step below the top of B/1 (\cref{guide:tdk:sheet}) is \enquote{2: átlagos (a dolgozat megfelelő számú ábrát és táblázatot tartalmaz, ám azok több esetben nem jól átgondoltak vagy rossz minőségűek)}.
 
 \begin{figure}[!ht]
   \centering
@@ -85,47 +85,47 @@ Name the closest approaches and the difference your work establishes, including 
     \draw[-Stealth, thick] (approach) -- (result);
   \end{tikzpicture}
   \caption{The leading figure combines the problem, contributions and headline result. The problem is red, all components of this work are blue, and the result is green.}
-  \label{fig:guide:overview}
+  \label{guide:fig:overview}
 \end{figure}
 
-\subsection[Contributions]{Contributions\skimmark}\label{app:chapters:contributions}
+\subsection[Contributions]{Contributions\skimmark}\label{guide:chapters:contributions}
 \guidebeat{what this work claims, as checkable items with pointers to their support}{the chapters behind each contribution}{the leading figure shows the example solved}{the structure of the paper}
 Give each contribution its own item and a reference to the chapter or section that supports it: the theoretical result (model, formalisation, algorithm or protocol and its guarantees), the technical result (tool, system or artifact), and the evaluation.
 \begin{contributions}
-  \item\label{c:guide:model} \textbf{Registry model.} A formal model of revocation registries, and a proof that verifiers never accept a credential revoked more than $\delta$ ago (\cref{ch:approach}).
-  \item\label{c:guide:registry} \textbf{Ledger registry.} A registry on a permissioned ledger where a check reads one accumulator witness, without asking the issuer, archived with its tests (\cref{ch:implementation}).
-  \item\label{c:guide:eval} \textbf{Evaluation.} Correctness on the model and the scenario, scalability up to 10\,000 issuers, and robustness under node failures and load spikes (\cref{ch:evaluation}).
+  \item\label{guide:c:model} \textbf{Registry model.} A formal model of revocation registries, and a proof that verifiers never accept a credential revoked more than $\delta$ ago (\cref{ch:approach}).
+  \item\label{guide:c:registry} \textbf{Ledger registry.} A registry on a permissioned ledger where a check reads one accumulator witness, without asking the issuer, archived with its tests (\cref{ch:implementation}).
+  \item\label{guide:c:eval} \textbf{Evaluation.} Correctness on the model and the scenario, scalability up to 10\,000 issuers, and robustness under node failures and load spikes (\cref{ch:evaluation}).
 \end{contributions}
 
-\subsection{Structure}\label{app:chapters:structure}
-Describe each chapter in one sentence, in reading order. The introduction already contains this paragraph; update its chapter names when you rename the files' headings. A dependency graph of the paper can stand in for the list (\cref{app:writing:depgraph}).
+\subsection{Structure}\label{guide:chapters:structure}
+Describe each chapter in one sentence, in reading order. The introduction already contains this paragraph; update its chapter names when you rename the files' headings. A dependency graph of the paper can stand in for the list (\cref{guide:writing:depgraph}).
 
 %----------------------------------------------------------------------------
-\section{Background}\label{app:chapters:background}
+\section{Background}\label{guide:chapters:background}
 %----------------------------------------------------------------------------
 \textbf{Criterion B/2.} Cite current research and industrial solutions, not only course material.
 \textbf{Non-triviality:} explain the concepts needed for the difficult parts of \cref{ch:approach}. Cite textbook material without deriving it again.
 \textbf{Nothing of yours here.} Limit the background to prior knowledge and cite every statement. The chapter boundary should clearly separate prior work from your contribution.
-\textbf{A companion paper.} When a TDK paper of the same year supplies what your approach builds on, restate the part this paper needs here, condensed, and introduce it as the companion paper's work without a citation (\cref{app:tdk:companion}). It is the only part of this chapter without a reference.
+\textbf{A companion paper.} When a TDK paper of the same year supplies what your approach builds on, restate the part this paper needs here, condensed, and introduce it as the companion paper's work without a citation (\cref{guide:tdk:companion}). It is the only part of this chapter without a reference.
 
-\textbf{In the sheet's words.} The scale for B/2 starts at \enquote{0: egyetemi tananyag (a dolgozat kizárólag egyetemi tankönyveket idéz kapcsolódó szakirodalomként)}, and its step 1 is well-known industrial practice from web pages (\cref{app:writing:refs}); this chapter must already cite above that.
+\textbf{In the sheet's words.} The scale for B/2 starts at \enquote{0: egyetemi tananyag (a dolgozat kizárólag egyetemi tankönyveket idéz kapcsolódó szakirodalomként)}, and its step 1 is well-known industrial practice from web pages (\cref{guide:writing:refs}); this chapter must already cite above that.
 
-\subsection[First concept]{First concept\skimmark}\label{app:chapters:first-concept}
+\subsection[First concept]{First concept\skimmark}\label{guide:chapters:first-concept}
 \guidebeat{the first concept the approach relies on; notation is defined once, here}{a definition and a citation}{the example expressed with this concept}{the second concept}
 Name the section after its concept. Define it precisely enough for later chapters, then use its vocabulary to restate the introductory scenario in the box.
 \begin{runningexample}[in terms of verifiable credentials]
 The diploma is a verifiable credential: the university is its \gls{issuer}, the graduate its \gls{holder}, and the employer a \gls{verifier}. The revocation is a second statement by the issuer, and the verifier must see it too.
 \end{runningexample}
-\begin{definition}[Verifiable credential]\label{def:guide:vc}
+\begin{definition}[Verifiable credential]\label{guide:def:vc}
 A \emph{verifiable credential} is a set of claims about a subject, signed by its issuer, that its holder can present to any verifier without the issuer taking part.
 \end{definition}
 
-\subsection{Second concept}\label{app:chapters:second-concept}
+\subsection{Second concept}\label{guide:chapters:second-concept}
 \guidebeat{the second concept}{a definition and a citation}{the example expressed with this concept}{the approach}
 For the registry, explain the permissioned ledger used to store revocations: its guarantees about history and the cost of appending.
 
 %----------------------------------------------------------------------------
-\section{Approach}\label{app:chapters:approach}
+\section{Approach}\label{guide:chapters:approach}
 %----------------------------------------------------------------------------
 \textbf{Criteria D/1 and D/2 (0--10 together).} Present your theoretical contribution, such as a model, formalisation, algorithm or protocol, and its guarantees. Put technical contributions in \cref{ch:implementation}. Name this chapter after your method.
 \textbf{Correctness:} every claim needs a proof, a mechanised proof, or a measurement; state assumptions explicitly.
@@ -133,7 +133,7 @@ For the registry, explain the permissioned ledger used to store revocations: its
 \textbf{Non-triviality:} name the hard part and explain why the simple design does not work.
 \textbf{Describe here, evaluate later.} Explain the approach and its guarantees objectively. Assess how well it works in the evaluation, where you can support that assessment with evidence.
 
-\subsection[Overview]{Overview\skimmark}\label{app:chapters:overview}
+\subsection[Overview]{Overview\skimmark}\label{guide:chapters:overview}
 \guidebeat{how the approach works end to end}{the architecture figure}{the example walked through the figure, component by component}{the model}
 Walk through the figure in the example box, showing which component handles each step and what it produces.
 \begin{runningexample}[through the approach]
@@ -158,111 +158,111 @@ The university revokes the diploma at the registry service, which removes it fro
     \end{scope}
   \end{tikzpicture}
   \caption{Registry architecture. Blue marks this work; grey marks reused or external parts. The issuer is outside the system, and the ledger is an existing product.}
-  \label{fig:guide:architecture}
+  \label{guide:fig:architecture}
 \end{figure}
-Replace the approach chapter's figure stub with your architecture (\cref{fig:guide:architecture}). Keep your components blue.
+Replace the approach chapter's figure stub with your architecture (\cref{guide:fig:architecture}). Keep your components blue.
 
-\subsection{Model or design}\label{app:chapters:model}
+\subsection{Model or design}\label{guide:chapters:model}
 \guidebeat{the formal model or the design decisions}{each decision with the alternative rejected and why}{the example as an instance of the model}{the threat model}
 Name this section after the model. For the registry, describe the valid credentials as an accumulator, its signed and timed ledger values, the holder's witness that a credential is still in it, and the diploma removed by revocation.
 
-\subsection{Threat model and guarantees}\label{app:chapters:threat-model}
+\subsection{Threat model and guarantees}\label{guide:chapters:threat-model}
 \guidebeat{who the adversary is and what it can do, who is trusted, which cryptographic assumptions hold, what is out of scope, and what the approach guarantees under all that}{a proof, a mechanised proof, or a measurement in the evaluation for every guarantee}{the attack on the example that the threat describes}{the implementation}
 \textbf{Give the threat model all four parts below.} Reviewers of security work look for each.
 \textbf{Adversary:} state what it controls (network, participants, keys), its capabilities (reading, replaying, reordering, dropping, forging with its keys) and its limits. Use a standard model where appropriate: Dolev--Yao for a protocol, honest-but-curious or malicious participants, or a computational adversary with a security parameter for a cryptographic construction.
 \textbf{Trust:} which parties are assumed honest, and what happens if one is not.
 \textbf{Cryptographic assumptions:} list the primitives and required properties as assumptions that proofs can reference.
 \textbf{Out of scope:} state here which attacks you do not address, and why, so reviewers can distinguish exclusions from omissions.
-State guarantees as \enquote{under these assumptions, against this adversary, the following holds}. The evaluation's correctness table (\cref{tab:guide:correctness}) records how each was checked.
+State guarantees as \enquote{under these assumptions, against this adversary, the following holds}. The evaluation's correctness table (\cref{guide:tab:correctness}) records how each was checked.
 \textbf{When your contribution is an analysis or a tool,} the same four parts apply to what it analyses. The adversary is whoever sees what the analysed system makes public; the assumptions are your analysis model and what the analysis trusts, such as the extraction of the model and the solver; and the guarantees say what a reported result means, typically that it is sound. What the analysis does not find is no guarantee: completeness belongs to the limitations.
 
-\subsection[Adversary]{Adversary\skimmark}\label{app:chapters:adversary}
+\subsection[Adversary]{Adversary\skimmark}\label{guide:chapters:adversary}
 In the example box, show each adversary and the guarantee that stops it.
 \begin{threats}
-  \item\label{thr:guide:holder} \textbf{Malicious holder.} A holder who keeps a witness from before the revocation and presents it again.
-  \item\label{thr:guide:network} \textbf{Network adversary.} Controls the network between the registry and the verifiers, in the Dolev--Yao model: reads, replays, delays and drops messages.
+  \item\label{guide:thr:holder} \textbf{Malicious holder.} A holder who keeps a witness from before the revocation and presents it again.
+  \item\label{guide:thr:network} \textbf{Network adversary.} Controls the network between the registry and the verifiers, in the Dolev--Yao model: reads, replays, delays and drops messages.
 \end{threats}
 \begin{runningexample}[under attack]
-The graduate presents the diploma with last week's witness (\cref{thr:guide:holder}); a network adversary holds back the newest accumulator value from the employer (\cref{thr:guide:network}). Once the revocation is more than $\delta$ old, both fail on \cref{g:guide:stale}: any value still containing the diploma is too old, and the witness cannot verify against a value excluding it. A delayed update can prevent a valid check from completing; the guarantee concerns rejection of stale credentials, not availability.
+The graduate presents the diploma with last week's witness (\cref{guide:thr:holder}); a network adversary holds back the newest accumulator value from the employer (\cref{guide:thr:network}). Once the revocation is more than $\delta$ old, both fail on \cref{guide:g:stale}: any value still containing the diploma is too old, and the witness cannot verify against a value excluding it. A delayed update can prevent a valid check from completing; the guarantee concerns rejection of stale credentials, not availability.
 \end{runningexample}
 
-\subsection[Attacks]{Attacks\skimmark}\label{app:chapters:attacks}
-If you name concrete attacks, give each a row in \cref{tab:guide:attacks}: the adversary, defence and residual risk. Otherwise omit this paragraph and table.
+\subsection[Attacks]{Attacks\skimmark}\label{guide:chapters:attacks}
+If you name concrete attacks, give each a row in \cref{guide:tab:attacks}: the adversary, defence and residual risk. Otherwise omit this paragraph and table.
 \begin{table}[!ht]
   \centering
   \caption{Registry attacks, adversaries, defences and residual risks.}
-  \label{tab:guide:attacks}
+  \label{guide:tab:attacks}
   {\small
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
     \toprule
     \textbf{Attack} & \textbf{By} & \textbf{Stopped by} & \textbf{Residual risk} \\
     \midrule
-    A revoked diploma is presented with an old witness & \cref{thr:guide:holder} & \cref{g:guide:stale} & revocations at most $\delta$ old \\
-    A held-back value hides a fresh revocation & \cref{thr:guide:network} & \cref{asm:guide:clock}, \cref{g:guide:stale} & revocations at most $\delta$ old; unavailable fresh evidence \\
-    An accumulator value or a witness is forged & \cref{thr:guide:holder} & \cref{asm:guide:sig} & none \\
+    A revoked diploma is presented with an old witness & \cref{guide:thr:holder} & \cref{guide:g:stale} & revocations at most $\delta$ old \\
+    A held-back value hides a fresh revocation & \cref{guide:thr:network} & \cref{guide:asm:clock}, \cref{guide:g:stale} & revocations at most $\delta$ old; unavailable fresh evidence \\
+    An accumulator value or a witness is forged & \cref{guide:thr:holder} & \cref{guide:asm:sig} & none \\
     \bottomrule
   \end{tabularx}
   }
 \end{table}
 
-\subsection[Trust and cryptographic assumptions]{Trust and cryptographic assumptions\skimmark}\label{app:chapters:assumptions}
+\subsection[Trust and cryptographic assumptions]{Trust and cryptographic assumptions\skimmark}\label{guide:chapters:assumptions}
 Say for each assumption which way it errs if it is false: \emph{optimistic} when a guarantee could then look stronger than the real system warrants, \emph{pessimistic} when it can only withhold a guarantee, and \emph{neutral} when it does neither. Reviewers check the optimistic ones first. If an assumption errs both ways, for example a stateless model of a component that hides one failure and invents another, say that too. All three assumptions below are optimistic.
 \begin{assumptions}
-  \item\label{asm:guide:sig} \textbf{Sound signatures and accumulator.} The registry's signature authenticates the accumulator value and its timestamp; an adversary cannot forge it or produce a valid membership witness for a credential absent from that value.
-  \item\label{asm:guide:clock} \textbf{Bounded clock error.} Relative to reference time, every registry and verifier clock has absolute error at most $\epsilon/2$ at every instant, where $0\leq\epsilon<\delta$. Thus a verifier's measured age of a registry value differs from its actual age by at most $\epsilon$.
-  \item\label{asm:guide:operator} \textbf{Honest-but-curious operator.} The registry operator follows the protocol but reads everything it sees. Every signed value excludes all credentials whose revocations were recorded by its signing time; revocation is permanent for a credential identifier.
+  \item\label{guide:asm:sig} \textbf{Sound signatures and accumulator.} The registry's signature authenticates the accumulator value and its timestamp; an adversary cannot forge it or produce a valid membership witness for a credential absent from that value.
+  \item\label{guide:asm:clock} \textbf{Bounded clock error.} Relative to reference time, every registry and verifier clock has absolute error at most $\epsilon/2$ at every instant, where $0\leq\epsilon<\delta$. Thus a verifier's measured age of a registry value differs from its actual age by at most $\epsilon$.
+  \item\label{guide:asm:operator} \textbf{Honest-but-curious operator.} The registry operator follows the protocol but reads everything it sees. Every signed value excludes all credentials whose revocations were recorded by its signing time; revocation is permanent for a credential identifier.
 \end{assumptions}
 
-\subsection{Out of scope}\label{app:chapters:out-of-scope}
+\subsection{Out of scope}\label{guide:chapters:out-of-scope}
 For the registry, the excluded attacks are denial of service and compromised holder devices.
 
-\subsection[Guarantees]{Guarantees\skimmark}\label{app:chapters:guarantees}
+\subsection[Guarantees]{Guarantees\skimmark}\label{guide:chapters:guarantees}
 Prove each guarantee here or check it in the evaluation.
 \begin{guarantees}
-  \item\label{g:guide:stale} \textbf{Bounded staleness.} Under \cref{asm:guide:sig,asm:guide:clock,asm:guide:operator}, against \cref{thr:guide:holder,thr:guide:network}, a verifier rejects every credential whose revocation was recorded more than $\delta$ before the check.
+  \item\label{guide:g:stale} \textbf{Bounded staleness.} Under \cref{guide:asm:sig,guide:asm:clock,guide:asm:operator}, against \cref{guide:thr:holder,guide:thr:network}, a verifier rejects every credential whose revocation was recorded more than $\delta$ before the check.
 \end{guarantees}
 
 You may also list derived requirements: properties the design needs to satisfy its guarantees, such as owner-only writes or replay protection. Check each by test or proof in the evaluation. These do not belong in the gap matrix and may be listed in the implementation chapter instead.
 \begin{derivedrequirements}
-  \item\label{dr:guide:owner} \textbf{Owner-only revocation.} Only a credential's issuer can append its revocation.
+  \item\label{guide:dr:owner} \textbf{Owner-only revocation.} Only a credential's issuer can append its revocation.
 \end{derivedrequirements}
 
-\begin{lemma}[Fresh values]\label{lem:guide:fresh}
-Under \cref{asm:guide:sig,asm:guide:clock}, a verifier that accepts only authentic accumulator values with measured age at most $\delta-\epsilon$ accepts no value signed more than $\delta$ before the check.
+\begin{lemma}[Fresh values]\label{guide:lem:fresh}
+Under \cref{guide:asm:sig,guide:asm:clock}, a verifier that accepts only authentic accumulator values with measured age at most $\delta-\epsilon$ accepts no value signed more than $\delta$ before the check.
 \end{lemma}
 \begin{proof}
-Let $s$ be the signing time and $t$ the check time. With registry clock $C_r$ and verifier clock $C_v$, the measured age is $d=C_v(t)-C_r(s)$. By \cref{asm:guide:clock}, $|(t-s)-d|\leq\epsilon$. Acceptance requires $d\leq\delta-\epsilon$, hence the actual age satisfies $t-s\leq d+\epsilon\leq\delta$.
+Let $s$ be the signing time and $t$ the check time. With registry clock $C_r$ and verifier clock $C_v$, the measured age is $d=C_v(t)-C_r(s)$. By \cref{guide:asm:clock}, $|(t-s)-d|\leq\epsilon$. Acceptance requires $d\leq\delta-\epsilon$, hence the actual age satisfies $t-s\leq d+\epsilon\leq\delta$.
 \end{proof}
-\begin{theorem}[Bounded staleness]\label{thm:guide:stale}
-\Cref{g:guide:stale} holds against \cref{thr:guide:holder,thr:guide:network}.
+\begin{theorem}[Bounded staleness]\label{guide:thm:stale}
+\Cref{guide:g:stale} holds against \cref{guide:thr:holder,guide:thr:network}.
 \end{theorem}
 \begin{proof}
-Suppose a credential revoked at time $r<t-\delta$ is accepted at time $t$. By \cref{lem:guide:fresh}, its accumulator value was signed at $s\geq t-\delta>r$. By \cref{asm:guide:operator}, that value excludes the credential. By \cref{asm:guide:sig}, the adversary cannot produce the membership witness required for acceptance, a contradiction.
+Suppose a credential revoked at time $r<t-\delta$ is accepted at time $t$. By \cref{guide:lem:fresh}, its accumulator value was signed at $s\geq t-\delta>r$. By \cref{guide:asm:operator}, that value excludes the credential. By \cref{guide:asm:sig}, the adversary cannot produce the membership witness required for acceptance, a contradiction.
 \end{proof}
 Here revocation time means the time the registry records it. A guarantee from the issuer's submission time would additionally need a bound on submission-to-recording delay. The verifier rejects a check when sufficiently fresh evidence is unavailable.
 
 %----------------------------------------------------------------------------
-\section{Implementation}\label{app:chapters:implementation}
+\section{Implementation}\label{guide:chapters:implementation}
 %----------------------------------------------------------------------------
 \textbf{Criteria D/1 and D/2.} Explain your technical contributions. Avoid a class-by-class description. Rename this chapter after what you built if helpful. If the implementation is not a contribution itself, make it a section of \cref{ch:approach} and use the saved pages for evaluation.
 \textbf{Novelty:} identify what you built, whether a tool, system, prototype, integration or dataset. Distinguish it from reused libraries, frameworks and tools.
 \textbf{Non-triviality:} explain design decisions and obstacles to a straightforward implementation.
-\textbf{Correctness:} give readers enough detail to assess and reproduce the evaluation. Include architecture, reasons for technology choices and the Zenodo code archive. Cite its concept DOI and name the results tag beside it (\cref{app:zenodo}).
+\textbf{Correctness:} give readers enough detail to assess and reproduce the evaluation. Include architecture, reasons for technology choices and the Zenodo code archive. Cite its concept DOI and name the results tag beside it (\cref{guide:zenodo}).
 
 \textbf{In the sheet's words.} D/2 drops to \enquote{2: kérdéses (színvonalas kidolgozás, de egyes részletekben kisebb szakmai hibák vannak, vagy egyes eredmények helyessége kérdéses / egyáltalán nem ellenőrizhető)} when a result cannot be checked: the archived code and the reproduction command are what make it checkable.
 
-\subsection[Overview]{Overview\skimmark}\label{app:chapters:impl-overview}
+\subsection[Overview]{Overview\skimmark}\label{guide:chapters:impl-overview}
 \guidebeat{what was built and how it realises the approach}{the components of the architecture figure mapped to code; the archived artifact}{the example as the system's input or configuration}{the design decisions}
 Map architecture components to code and cite the archive. Fill in the citation and repository link already in your file. The example box should show the implementation's input: a configuration, model or test case.
 \begin{runningexample}[as input]
 The scenario is a test case: one issuer, one diploma, a recorded revocation at $t = 0$, and checks at $t = 1$, $2$ and $3$\,s. Set $\delta = 2$\,s and $\epsilon = 0.1$\,s, so the measured-age limit is $1.9$\,s. Test the extreme permitted clock offsets as well as aligned clocks; every check after $2$\,s must reject the diploma.
 \end{runningexample}
 
-\subsection{Design decisions}\label{app:chapters:design-decisions}
+\subsection{Design decisions}\label{guide:chapters:design-decisions}
 \guidebeat{the engineering choices, and the problems a straightforward build runs into}{each decision with the alternative rejected and why}{where the example exposed the problem}{the key technical contribution}
 For the registry, explain why verifiers keep signed accumulator values: reading the ledger directly would require a node at every verifier. Also explain why $\delta$ is a parameter rather than a constant.
 
-\subsection[The key technical contribution]{The key technical contribution\skimmark}\label{app:chapters:key-contribution}
+\subsection[The key technical contribution]{The key technical contribution\skimmark}\label{guide:chapters:key-contribution}
 \guidebeat{the part of the implementation that did not exist before}{the one listing that shows it, and the tests that cover it}{the example processed by it, step by step}{the evaluation}
 Name the section after your contribution and show the snippet that explains its key idea.
 \begin{lstlisting}[float=htbp, caption={The verifier authenticates the value and timestamp, reserves $\epsilon$ of the staleness budget for clock error, and checks the membership witness. Here $0\leq\epsilon<\delta$.}, label={lst:guide:key}]
@@ -273,86 +273,86 @@ fun accept(cred, witness, acc, now):
 \end{lstlisting}
 
 %----------------------------------------------------------------------------
-\section{Evaluation}\label{app:chapters:evaluation}
+\section{Evaluation}\label{guide:chapters:evaluation}
 %----------------------------------------------------------------------------
 \textbf{Criteria E (0--8) and D/2.}
 \textbf{Correctness:} give the setup, versions and repetitions needed to check every number. D/2 penalises unverifiable results.
 \textbf{Novelty:} compare against the closest existing approach named in the introduction; the related-work chapter then places the results in the wider literature. Compute the baseline with that approach's own method or tool. A baseline your tool derives from its own results is a projection of them: name it as one, or a reviewer will read the comparison as circular.
-\textbf{Beyond small examples:} E awards 7--8 points only for scalability and robustness measurements beyond small examples that support use in an industrial setting. \Cref{tab:guide:eval-tracks} applies this to formal and analysis topics.
+\textbf{Beyond small examples:} E awards 7--8 points only for scalability and robustness measurements beyond small examples that support use in an industrial setting. \Cref{guide:tab:eval-tracks} applies this to formal and analysis topics.
 
 \textbf{In the sheet's words.} D/2 gives \enquote{3--4: jó (színvonalas kidolgozás, de esetleg egyes eredmények helyessége nincs kellőképpen alátámasztva)} when a result is reported without the setup that supports it, and E gives \enquote{1--2: nagyon hiányos -- ha a dolgozat bevezetése hiányos (tématerület áttekintése, bemutatása, problémafelvetés, fő kontribúció kimondása) VAGY az eredmények értékelése hiányzik ill. aránytalanul kis méretű vagy hibás} when the evaluation stops at small examples. An evaluation that goes beyond them but is incomplete or imprecise earns \enquote{3--4: pontatlan -- ha a dolgozat bevezetése megfelelő és a dolgozatban szerepel az eredmények kis mintapéldákon túlmenő értékelése is, de az utóbbi hiányos, pontatlan} or \enquote{5--6: pontos, de hiányos}.
 
-\textbf{Three kinds of work, one chapter.} The examples below primarily describe a measured system (track S). Formal work (track F: Tamarin or ProVerif models, Lean or Coq proofs, model checking) and benchmarked analysis tools (track T: detectors, static analysers, generators) answer the same three questions with different evidence. Use \cref{tab:guide:eval-tracks}, which also words the research questions for tracks F and T, and the alternative figures and tables to adapt the chapter.
+\textbf{Three kinds of work, one chapter.} The examples below primarily describe a measured system (track S). Formal work (track F: Tamarin or ProVerif models, Lean or Coq proofs, model checking) and benchmarked analysis tools (track T: detectors, static analysers, generators) answer the same three questions with different evidence. Use \cref{guide:tab:eval-tracks}, which also words the research questions for tracks F and T, and the alternative figures and tables to adapt the chapter.
 
 \begin{table}[!ht]
   \centering
   \caption{Evaluation evidence and presentation by track: S for measured systems; F for protocol models, mechanised proofs and model checking; T for analysis tools evaluated on benchmarks.}
-  \label{tab:guide:eval-tracks}
+  \label{guide:tab:eval-tracks}
   {\small
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.13\linewidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
     \toprule
     & \textbf{S: system} & \textbf{F: formal} & \textbf{T: analysis tool} \\
     \midrule
-    Research questions & \Cref{rq:guide:correct,rq:guide:scale,rq:guide:robust} below & RQ1: does the model satisfy every property of the threat model, and does it find the known attacks? RQ2: how do verification time and memory grow with the size of the model, and where does the prover stop? RQ3: which properties survive a stronger adversary and each dropped assumption, and how do the others break? & RQ1: does the tool find the real instances in the benchmark, and only those? RQ2: how does analysis time grow with input size, and what is the largest real instance it handles? RQ3: how do the results change under parameter changes, mutated inputs, and a benchmark from another source? \\
+    Research questions & \Cref{guide:rq:correct,guide:rq:scale,guide:rq:robust} below & RQ1: does the model satisfy every property of the threat model, and does it find the known attacks? RQ2: how do verification time and memory grow with the size of the model, and where does the prover stop? RQ3: which properties survive a stronger adversary and each dropped assumption, and how do the others break? & RQ1: does the tool find the real instances in the benchmark, and only those? RQ2: how does analysis time grow with input size, and what is the largest real instance it handles? RQ3: how do the results change under parameter changes, mutated inputs, and a benchmark from another source? \\
     \addlinespace
     Setup & Hardware, software versions, workloads, repetitions, the rerun command & Prover and version, heuristics and oracles, time limit, machine; which parts of the model are hand-written and which generated; for a mechanised proof, the trusted base: what is machine-checked, what stays assumed (the extraction, the solver, the kernel), and the axioms the proofs use & Benchmark origin and size, how the ground truth was built, tool versions, the rerun command \\
     \addlinespace
-    Correctness (\cref{rq:guide:correct}) & Test suite and model-checked properties per requirement; the running example before and after (\cref{tab:guide:correctness}, \cref{fig:guide:example-trace}) & Every property of the threat model proved, or an attack found: per lemma, proved, falsified with the trace, or timed out; an executability lemma showing the honest run exists, so nothing holds vacuously; the attack on the running example reconstructed (\cref{tab:guide:correctness}, one row per lemma); name the theorem behind each mechanised claim, so a reader can find it in the artifact & Precision and recall against the ground truth, every false positive and false negative explained (\cref{tab:guide:precision}); the running example's verdict (\cref{fig:guide:example-trace}) \\
+    Correctness (\cref{guide:rq:correct}) & Test suite and model-checked properties per requirement; the running example before and after (\cref{guide:tab:correctness}, \cref{guide:fig:example-trace}) & Every property of the threat model proved, or an attack found: per lemma, proved, falsified with the trace, or timed out; an executability lemma showing the honest run exists, so nothing holds vacuously; the attack on the running example reconstructed (\cref{guide:tab:correctness}, one row per lemma); name the theorem behind each mechanised claim, so a reader can find it in the artifact & Precision and recall against the ground truth, every false positive and false negative explained (\cref{guide:tab:precision}); the running example's verdict (\cref{guide:fig:example-trace}) \\
     \addlinespace
-    Scalability (\cref{rq:guide:scale}) & Throughput and latency as the input grows (\cref{fig:guide:scalability}) & Verification time and memory as the model grows: sessions, agents, bound, lemma count; where the prover times out, and what helper lemmas buy (\cref{fig:guide:scalability-formal}) & Analysis time as the input grows: circuit size, lines, model elements; the largest real instance it handles (\cref{fig:guide:scalability}) \\
+    Scalability (\cref{guide:rq:scale}) & Throughput and latency as the input grows (\cref{guide:fig:scalability}) & Verification time and memory as the model grows: sessions, agents, bound, lemma count; where the prover times out, and what helper lemmas buy (\cref{guide:fig:scalability-formal}) & Analysis time as the input grows: circuit size, lines, model elements; the largest real instance it handles (\cref{guide:fig:scalability}) \\
     \addlinespace
-    Robustness (\cref{rq:guide:robust}) & Faults, load spikes and parameter sensitivity, with degradation and recovery (\cref{tab:guide:robustness}, \cref{fig:guide:robustness}) & The properties re-verified under a stronger adversary and with each assumption dropped: which hold, which break and how (\cref{tab:guide:robustness-formal}) & Thresholds and parameters varied, mutated or adversarial inputs, benchmark instances from another source (\cref{tab:guide:robustness}) \\
+    Robustness (\cref{guide:rq:robust}) & Faults, load spikes and parameter sensitivity, with degradation and recovery (\cref{guide:tab:robustness}, \cref{guide:fig:robustness}) & The properties re-verified under a stronger adversary and with each assumption dropped: which hold, which break and how (\cref{guide:tab:robustness-formal}) & Thresholds and parameters varied, mutated or adversarial inputs, benchmark instances from another source (\cref{guide:tab:robustness}) \\
     \bottomrule
   \end{tabularx}
   }
 \end{table}
 
 \clearpage
-\subsection{Evaluation target}\label{app:chapters:eval-target}
+\subsection{Evaluation target}\label{guide:chapters:eval-target}
 \guidebeat{what successful use would require in the intended setting}{a justified scale, representative workload or model, and measurable acceptance thresholds}{the example at the scale and under the constraints of that setting}{the research questions}
 State who would use the result, for what task, and under which operating conditions. Set the target population or input size, workload, fault or adversary conditions, and acceptance thresholds before the main evaluation runs. Justify them with a deployment constraint, stakeholder need, published workload or documented industrial practice. A large round number is not a justification. Refer back to the introduction's requirements and research rationale: each target should explain why a requirement matters or what evidence would resolve the scientific question. Record and justify any later change to the target.
 
 For a system, specify the latency, throughput, resource or recovery budget that would make the intended use feasible. For formal work, explain how the analysed model, bounds and assumptions represent the intended system, and which guarantee that system needs; fast prover runtime alone does not establish that the system meets industrial needs. For an analysis tool, justify the benchmark's relation to real inputs and the required accuracy and analysis cost. These are ways to plan evidence for criterion E, not automatic qualification for its top band. In each results section, compare the observation with the target, then state the supported conclusion and the remaining limits on practical use. Put the target and outcome in a caption or table where they can be found during a skim.
 
-\paragraph{Worked target.} For the fictional registry, suppose a university consortium's planning brief specifies 10\,000 issuers, each with 100 active credentials, and a sustained demand of 3\,000 checks/s. The agreed acceptance thresholds are mean check latency at most 5\,ms at that load, rejection once a recorded revocation is more than 2\,s old (\cref{req:guide:timely}), and checks without issuer contact or disclosure (\cref{req:guide:offline,req:guide:private}). The time service must support a total age-estimation error $\epsilon\leq0.1$\,s. During one ledger-node outage, stale credentials must still be rejected; recovery of normal throughput must take at most 15\,s. A real paper must cite the brief or other evidence for these numbers.
+\paragraph{Worked target.} For the fictional registry, suppose a university consortium's planning brief specifies 10\,000 issuers, each with 100 active credentials, and a sustained demand of 3\,000 checks/s. The agreed acceptance thresholds are mean check latency at most 5\,ms at that load, rejection once a recorded revocation is more than 2\,s old (\cref{guide:req:timely}), and checks without issuer contact or disclosure (\cref{guide:req:offline,guide:req:private}). The time service must support a total age-estimation error $\epsilon\leq0.1$\,s. During one ledger-node outage, stale credentials must still be rejected; recovery of normal throughput must take at most 15\,s. A real paper must cite the brief or other evidence for these numbers.
 
-The proof establishes the revocation bound only under its assumptions. The synthetic measurements in \cref{fig:guide:scalability} suggest adequate capacity and mean latency, but a conclusion about the combined target also needs latency measured at the specified offered load. The fault experiment must test the agreed outage and recovery condition. Even if both targets are met on the single-machine setup, geographically distributed deployment remains unvalidated. State that limit explicitly and identify the further deployment evidence needed; meeting a local target is a bounded conclusion about suitability.
+The proof establishes the revocation bound only under its assumptions. The synthetic measurements in \cref{guide:fig:scalability} suggest adequate capacity and mean latency, but a conclusion about the combined target also needs latency measured at the specified offered load. The fault experiment must test the agreed outage and recovery condition. Even if both targets are met on the single-machine setup, geographically distributed deployment remains unvalidated. State that limit explicitly and identify the further deployment evidence needed; meeting a local target is a bounded conclusion about suitability.
 
-\subsection[Research questions]{Research questions\skimmark}\label{app:chapters:research-questions}
-Use three research questions, one for each evaluation section below. These are track S's; the first row of \cref{tab:guide:eval-tracks} words the same three for tracks F and T. End each section with a short paragraph opening \textbf{Answer to RQ1.}, whose first sentence answers the question and whose next ones name the evidence, so a reader skimming the evaluation finds the result.
+\subsection[Research questions]{Research questions\skimmark}\label{guide:chapters:research-questions}
+Use three research questions, one for each evaluation section below. These are track S's; the first row of \cref{guide:tab:eval-tracks} words the same three for tracks F and T. End each section with a short paragraph opening \textbf{Answer to RQ1.}, whose first sentence answers the question and whose next ones name the evidence, so a reader skimming the evaluation finds the result.
 \begin{rqlist}
-  \item\label{rq:guide:correct} \textbf{Correctness.} Does the registry reject every credential whose revocation was recorded more than $\delta$ ago, in the scenario and in the model, against both adversaries?
-  \item\label{rq:guide:scale} \textbf{Scale.} How do the latency of a check and the registry's throughput grow with the number of issuers?
-  \item\label{rq:guide:robust} \textbf{Robustness.} How does the registry behave when a ledger node fails, under a burst of checks, and as $\delta$ varies?
+  \item\label{guide:rq:correct} \textbf{Correctness.} Does the registry reject every credential whose revocation was recorded more than $\delta$ ago, in the scenario and in the model, against both adversaries?
+  \item\label{guide:rq:scale} \textbf{Scale.} How do the latency of a check and the registry's throughput grow with the number of issuers?
+  \item\label{guide:rq:robust} \textbf{Robustness.} How does the registry behave when a ledger node fails, under a burst of checks, and as $\delta$ varies?
 \end{rqlist}
 
-\subsection{Setup}\label{app:chapters:setup}
+\subsection{Setup}\label{guide:chapters:setup}
 \guidebeat{how the measurements were made, so that each can be checked}{hardware, software versions, workloads, repetitions, the rerun command}{the example as the base workload, scaled up for the scalability question}{the results}
 For the registry: one 8-core virtual machine, four ledger nodes, synthetic issuer sets of 10 to 10\,000 issuers with 100 credentials each, 10 runs per point with fresh sets, and the command that reruns them.
 
-\subsection{Artifact availability}\label{app:chapters:artifact-availability}
-Archive code, models and measurement scripts on Zenodo (\cref{app:zenodo}). Name the results tag, such as \texttt{v1.0.0}, and the reproduction command required by \cref{app:code:readme}.
+\subsection{Artifact availability}\label{guide:chapters:artifact-availability}
+Archive code, models and measurement scripts on Zenodo (\cref{guide:zenodo}). Name the results tag, such as \texttt{v1.0.0}, and the reproduction command required by \cref{guide:code:readme}.
 
-\subsection[Correctness (RQ1)]{Correctness (RQ1)\skimmark}\label{app:chapters:correctness}
+\subsection[Correctness (RQ1)]{Correctness (RQ1)\skimmark}\label{guide:chapters:correctness}
 \guidebeat{that the approach is correct on the example and on every requirement case}{test, proof or model-checking results}{the scenario's outcome, before and after}{scalability}
-\textbf{Show correctness in two ways.} In \cref{tab:guide:correctness}, list how each guarantee and requirement was checked for your work and the baseline: a proof (Tamarin, Lean, \dots), model checking or tests. Adapt the rows to your work. When a row rests on many theorems or tests, keep the verdict here and add an appendix table that names the theorems and tests behind each row, so a reader can find them in the artifact. Formal topics use proofs and counterexamples; empirical topics use test and benchmark results; analysis tools add \cref{tab:guide:precision}. Then show the example's outcome in \cref{fig:guide:example-trace}, comparing the baseline's failure with your result. Use a sequence chart for protocols or another suitable before-and-after diagram.
+\textbf{Show correctness in two ways.} In \cref{guide:tab:correctness}, list how each guarantee and requirement was checked for your work and the baseline: a proof (Tamarin, Lean, \dots), model checking or tests. Adapt the rows to your work. When a row rests on many theorems or tests, keep the verdict here and add an appendix table that names the theorems and tests behind each row, so a reader can find them in the artifact. Formal topics use proofs and counterexamples; empirical topics use test and benchmark results; analysis tools add \cref{guide:tab:precision}. Then show the example's outcome in \cref{guide:fig:example-trace}, comparing the baseline's failure with your result. Use a sequence chart for protocols or another suitable before-and-after diagram.
 \begin{runningexample}[solved]
-The employer's check now rejects the diploma 2\,s after the university revokes it, without asking the university, where the baseline accepted it for a day (\cref{fig:guide:example-trace}).
+The employer's check now rejects the diploma 2\,s after the university revokes it, without asking the university, where the baseline accepted it for a day (\cref{guide:fig:example-trace}).
 \end{runningexample}
 
 \begin{table}[!ht]
   \centering
   \caption{Checks of each guarantee and requirement against the introduction's list-based baseline. \gapyes{} means proved or passed, \gappartial{} partial, and \gapno{} a counterexample or failure.}
-  \label{tab:guide:correctness}
+  \label{guide:tab:correctness}
   {\small
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.2em} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{6em} c c r}
     \toprule
     & \textbf{Property} & \textbf{Checked by} & \textbf{This work} & \textbf{Baseline} & \textbf{Time} \\
     \midrule
-    \ref{g:guide:stale} & Bounded staleness, as a lemma (\cref{thm:guide:stale}) & Tamarin & \gapyes & \gapno & 41\,s \\
-    \ref{req:guide:timely} & Revocation test cases & test suite & \gapyes\,42/42 & \gappartial\,30/42 & 3\,s \\
-    \ref{req:guide:offline} & Checks with the issuer unreachable & test suite & \gapyes\,20/20 & \gapyes\,20/20 & 1\,s \\
-    \ref{req:guide:private} & The issuer cannot link two checks & Tamarin & \gapyes & \gapno & 380\,s \\
+    \ref{guide:g:stale} & Bounded staleness, as a lemma (\cref{guide:thm:stale}) & Tamarin & \gapyes & \gapno & 41\,s \\
+    \ref{guide:req:timely} & Revocation test cases & test suite & \gapyes\,42/42 & \gappartial\,30/42 & 3\,s \\
+    \ref{guide:req:offline} & Checks with the issuer unreachable & test suite & \gapyes\,20/20 & \gapyes\,20/20 & 1\,s \\
+    \ref{guide:req:private} & The issuer cannot link two checks & Tamarin & \gapyes & \gapno & 380\,s \\
     \bottomrule
   \end{tabularx}
   }
@@ -360,8 +360,8 @@ The employer's check now rejects the diploma 2\,s after the university revokes i
 
 \begin{table}[!ht]
   \centering
-  \caption{Track T supplement to \cref{tab:guide:correctness}: precision and recall by benchmark family against ground truth. Explain every false positive and false negative in the text.}
-  \label{tab:guide:precision}
+  \caption{Track T supplement to \cref{guide:tab:correctness}: precision and recall by benchmark family against ground truth. Explain every false positive and false negative in the text.}
+  \label{guide:tab:precision}
   {\small
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X r r r r r r r}
     \toprule
@@ -391,7 +391,7 @@ The employer's check now rejects the diploma 2\,s after the university revokes i
       \draw[msg] (4.6, -2.6) -- node[above] {check (stale)} (6.9, -2.6);
       \node[font=\footnotesize\bfseries, text=red!70!black] at (4.6, -3.7) {accepts $c$};
     \end{tikzpicture}
-    \caption{Baseline: the revoked credential is accepted.}\label{fig:guide:example-trace-baseline}
+    \caption{Baseline: the revoked credential is accepted.}\label{guide:fig:example-trace-baseline}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.49\linewidth}
     \centering
@@ -400,16 +400,16 @@ The employer's check now rejects the diploma 2\,s after the university revokes i
       \draw[msg] (4.6, -2.6) -- node[above] {check (current)} (6.9, -2.6);
       \node[font=\footnotesize\bfseries, text=green!45!black] at (4.6, -3.7) {rejects $c$};
     \end{tikzpicture}
-    \caption{This work: the verifier sees the revocation and rejects the credential.}\label{fig:guide:example-trace-ours}
+    \caption{This work: the verifier sees the revocation and rejects the credential.}\label{guide:fig:example-trace-ours}
   \end{subfigure}
   \caption{The employer's check of revoked diploma $c$, before and after, as a sequence chart.}
-  \label{fig:guide:example-trace}
+  \label{guide:fig:example-trace}
 \end{figure}
 
 \FloatBarrier
-\subsection[Scalability (RQ2)]{Scalability (RQ2)\skimmark}\label{app:chapters:scalability}
+\subsection[Scalability (RQ2)]{Scalability (RQ2)\skimmark}\label{guide:chapters:scalability}
 \guidebeat{how the cost grows with the input}{the scalability figure}{the example multiplied to $n$ participants or items}{robustness}
-Explain what grows, how fast and where the limit lies. Compare the result at the intended scale and workload with the evaluation target (\cref{app:chapters:eval-target}). Put the better result higher on the plot: use a metric where higher is better (\cref{fig:guide:scalability-throughput}), or reverse the axis when lower is better (\cref{fig:guide:scalability-time}).
+Explain what grows, how fast and where the limit lies. Compare the result at the intended scale and workload with the evaluation target (\cref{guide:chapters:eval-target}). Put the better result higher on the plot: use a metric where higher is better (\cref{guide:fig:scalability-throughput}), or reverse the axis when lower is better (\cref{guide:fig:scalability-time}).
 
 \begin{figure}[!ht]
   \centering
@@ -425,7 +425,7 @@ Explain what grows, how fast and where the limit lies. Compare the result at the
         \addlegendentry{Baseline}
       \end{axis}
     \end{tikzpicture}
-    \caption{Throughput; higher is better.}\label{fig:guide:scalability-throughput}
+    \caption{Throughput; higher is better.}\label{guide:fig:scalability-throughput}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
@@ -439,10 +439,10 @@ Explain what grows, how fast and where the limit lies. Compare the result at the
         \addlegendentry{Baseline}
       \end{axis}
     \end{tikzpicture}
-    \caption{Latency with a reversed axis: lower values appear higher.}\label{fig:guide:scalability-time}
+    \caption{Latency with a reversed axis: lower values appear higher.}\label{guide:fig:scalability-time}
   \end{subfigure}
   \caption{Performance as issuer count grows, with better results higher in both panels. Means of 10 runs with fresh issuer sets; error bars show one standard deviation.}
-  \label{fig:guide:scalability}
+  \label{guide:fig:scalability}
 \end{figure}
 
 \begin{figure}[!ht]
@@ -457,31 +457,31 @@ Explain what grows, how fast and where the limit lies. Compare the result at the
       \node[font=\footnotesize, text=red!70!black, anchor=west] at (axis cs:4.12,1100) {timeout at 5};
     \end{axis}
   \end{tikzpicture}
-  \caption{Track F alternative to \cref{fig:guide:scalability}: verification time as the model grows, including the time limit and where the prover stops. Use your model's size parameter: sessions, agents, a bounded-check limit or lemma count.}
-  \label{fig:guide:scalability-formal}
+  \caption{Track F alternative to \cref{guide:fig:scalability}: verification time as the model grows, including the time limit and where the prover stops. Use your model's size parameter: sessions, agents, a bounded-check limit or lemma count.}
+  \label{guide:fig:scalability-formal}
 \end{figure}
 
-\subsection[Robustness analysis (RQ3)]{Robustness analysis (RQ3)\skimmark}\label{app:chapters:robustness}
+\subsection[Robustness analysis (RQ3)]{Robustness analysis (RQ3)\skimmark}\label{guide:chapters:robustness}
 \guidebeat{how the system behaves when its assumptions are stressed: faults, attacks, load spikes, parameter changes}{the robustness table, with the setup of each perturbation}{the example under attack}{the threats to validity}
-\textbf{Robustness is required in addition to scalability} for the top of criterion E (\cref{app:chapters:evaluation}, \cref{app:tdk:sheet}).
+\textbf{Robustness is required in addition to scalability} for the top of criterion E (\cref{guide:chapters:evaluation}, \cref{guide:tdk:sheet}).
 Report whether the guarantees and acceptance thresholds from the evaluation target still hold under each agreed perturbation, and where they stop holding.
-\textbf{Track S:} deliberately perturb the system. Report each perturbation and outcome in \cref{tab:guide:robustness}. Use \cref{fig:guide:robustness} to show degradation and recovery during faults, and sensitivity to the main parameter.
-\textbf{Track F:} use \cref{tab:guide:robustness-formal} to report each property under a stronger adversary and with each assumption dropped. Show which properties hold, which fail and the attacks that break them.
-\textbf{Track T:} adapt \cref{tab:guide:robustness} to the tool. Vary thresholds and parameters around their defaults. Test mutated or adversarial inputs, including deliberately injected bugs, and use benchmark instances from a source other than the development data.
+\textbf{Track S:} deliberately perturb the system. Report each perturbation and outcome in \cref{guide:tab:robustness}. Use \cref{guide:fig:robustness} to show degradation and recovery during faults, and sensitivity to the main parameter.
+\textbf{Track F:} use \cref{guide:tab:robustness-formal} to report each property under a stronger adversary and with each assumption dropped. Show which properties hold, which fail and the attacks that break them.
+\textbf{Track T:} adapt \cref{guide:tab:robustness} to the tool. Vary thresholds and parameters around their defaults. Test mutated or adversarial inputs, including deliberately injected bugs, and use benchmark instances from a source other than the development data.
 
 \begin{table}[!ht]
   \centering
   \caption{Registry behaviour under each perturbation, with its purpose, expected and observed results, and recovery.}
-  \label{tab:guide:robustness}
+  \label{guide:tab:robustness}
   {\small
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{0.16\linewidth} >{\raggedright\arraybackslash}p{0.16\linewidth} >{\raggedright\arraybackslash}p{0.12\linewidth}}
     \toprule
     \textbf{Perturbation} & \textbf{What it tests} & \textbf{Expected} & \textbf{Observed} & \textbf{Recovery} \\
     \midrule
     Fault injection & One of four ledger nodes crashes during a burst of checks & checks go on, revocations wait & as expected, revocations 3.1\,s late & 12\,s \\
-    Adversarial input & \Cref{thr:guide:holder} replays a week-old witness, 500 times & all rejected & all rejected & none needed \\
+    Adversarial input & \Cref{guide:thr:holder} replays a week-old witness, 500 times & all rejected & all rejected & none needed \\
     Load spike & 10$\times$ the nominal check rate for 60\,s & latency within one round trip & p99 at 1.8$\times$ nominal & immediate \\
-    Parameter sensitivity & The ledger timeout varied around its default & graceful & see \cref{fig:guide:robustness-sensitivity} & none needed \\
+    Parameter sensitivity & The ledger timeout varied around its default & graceful & see \cref{guide:fig:robustness-sensitivity} & none needed \\
     \bottomrule
   \end{tabularx}
   }
@@ -489,15 +489,15 @@ Report whether the guarantees and acceptance thresholds from the evaluation targ
 
 \begin{table}[!ht]
   \centering
-  \caption{Track F alternative to \cref{tab:guide:robustness}: recheck each property under a stronger adversary and after dropping each assumption. \gapyes{} means proved, \gapno{} an attack with its trace in the appendix, and \gappartial{} a timeout.}
-  \label{tab:guide:robustness-formal}
+  \caption{Track F alternative to \cref{guide:tab:robustness}: recheck each property under a stronger adversary and after dropping each assumption. \gapyes{} means proved, \gapno{} an attack with its trace in the appendix, and \gappartial{} a timeout.}
+  \label{guide:tab:robustness-formal}
   {\small
   \begin{tabularx}{\linewidth}{l >{\raggedright\arraybackslash}X *{4}{>{\centering\arraybackslash}p{0.13\linewidth}}}
     \toprule
-    & \textbf{Property} & \textbf{Base threat model} & \textbf{Registry key leaked} & \textbf{\ref{asm:guide:clock} dropped} & \textbf{Weaker signatures} \\
+    & \textbf{Property} & \textbf{Base threat model} & \textbf{Registry key leaked} & \textbf{\ref{guide:asm:clock} dropped} & \textbf{Weaker signatures} \\
     \midrule
-    \ref{g:guide:stale} & Bounded staleness (\cref{thm:guide:stale}) & \gapyes & \gapno & \gapno & \gappartial \\
-    \ref{req:guide:private} & Holder privacy & \gapyes & \gapyes & \gapyes & \gapyes \\
+    \ref{guide:g:stale} & Bounded staleness (\cref{guide:thm:stale}) & \gapyes & \gapno & \gapno & \gappartial \\
+    \ref{guide:req:private} & Holder privacy & \gapyes & \gapyes & \gapyes & \gapyes \\
     \bottomrule
   \end{tabularx}
   }
@@ -514,7 +514,7 @@ Report whether the guarantees and acceptance thresholds from the evaluation targ
         \addplot[mark=none, thick, blue] coordinates {(0,5000) (10,5050) (20,4980) (30,5000) (31,1600) (35,1500) (40,1550) (45,3900) (50,4900) (60,5000) (80,4980) (100,5020)};
       \end{axis}
     \end{tikzpicture}
-    \caption{Degradation and recovery when a ledger node fails between 30 and 40\,s.}\label{fig:guide:robustness-fault}
+    \caption{Degradation and recovery when a ledger node fails between 30 and 40\,s.}\label{guide:fig:robustness-fault}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
@@ -524,37 +524,37 @@ Report whether the guarantees and acceptance thresholds from the evaluation targ
         \addplot[mark=*, blue] coordinates {(50,62) (100,91) (200,99) (400,99.5) (800,99.6)};
       \end{axis}
     \end{tikzpicture}
-    \caption{Sensitivity to the ledger timeout, around its default.}\label{fig:guide:robustness-sensitivity}
+    \caption{Sensitivity to the ledger timeout, around its default.}\label{guide:fig:robustness-sensitivity}
   \end{subfigure}
   \caption{Robustness: the registry during a node failure and under changes to its main parameter.}
-  \label{fig:guide:robustness}
+  \label{guide:fig:robustness}
 \end{figure}
 
-\subsection{Threats to validity}\label{app:chapters:validity}
+\subsection{Threats to validity}\label{guide:chapters:validity}
 \guidebeat{what could make the results wrong or not generalise, and what was done about each}{the mitigations}{whether the example is representative of real use}{related work}
 For the registry, the issuer sets are synthetic and all measurements used one machine. For each threat, describe what you did to address it and what remains unresolved.
 
 %----------------------------------------------------------------------------
-\section{Related work and gap analysis}\label{app:chapters:related}
+\section{Related work and gap analysis}\label{guide:chapters:related}
 %----------------------------------------------------------------------------
 \textbf{Criteria B/2 (0--4) and D/1 (0--5).} Place related work after the evaluation so comparisons can refer to results the reader has already seen.
 \textbf{Novelty:} plot related work in a positioning figure, compare the closest approaches against requirements in a gap matrix, and state the gap only your work fills.
 \textbf{Relevance:} include current industrial solutions and recent research to show that the gap remains open.
 
-\textbf{In the sheet's words.} One step below the top of B/2 (\cref{app:tdk:sheet}), \enquote{2: újszerű ipari megoldások vagy közismert kutatási eredmények} is where a chapter without recent research lands. D/1 falls to \enquote{1--2: ismert (a kutatási terület szakirodalomban számos megoldás ismert a tárgyalt problémára, és ezek „másolás jellegű” alkalmazására került sor a dolgozatban)}, or to the incremental step quoted in \cref{app:tdk:sheet}, when the gap matrix shows a close neighbour; argue the difference here.
+\textbf{In the sheet's words.} One step below the top of B/2 (\cref{guide:tdk:sheet}), \enquote{2: újszerű ipari megoldások vagy közismert kutatási eredmények} is where a chapter without recent research lands. D/1 falls to \enquote{1--2: ismert (a kutatási terület szakirodalomban számos megoldás ismert a tárgyalt problémára, és ezek „másolás jellegű” alkalmazására került sor a dolgozatban)}, or to the incremental step quoted in \cref{guide:tdk:sheet}, when the gap matrix shows a close neighbour; argue the difference here.
 
-\subsection{Comparison criteria}\label{app:chapters:comparison-criteria}
-Compare approaches against the introduction's requirements, here \cref{req:guide:timely,req:guide:offline,req:guide:private}. Add other criteria, such as maturity or license, only when readers need them.
+\subsection{Comparison criteria}\label{guide:chapters:comparison-criteria}
+Compare approaches against the introduction's requirements, here \cref{guide:req:timely,guide:req:offline,guide:req:private}. Add other criteria, such as maturity or license, only when readers need them.
 
-\subsection[Existing approaches]{Existing approaches\skimmark}\label{app:chapters:existing-approaches}
+\subsection[Existing approaches]{Existing approaches\skimmark}\label{guide:chapters:existing-approaches}
 \guidebeat{how each family of approaches works and where it falls short}{citations, the positioning figure and the gap matrix}{what each approach does with the example}{the gap}
-Group related work into families and compare each against the requirements. Use \cref{fig:guide:positioning} to separate approaches by two main properties, leaving the gap as an empty cell. Then compare the closest approaches requirement by requirement in \cref{tab:guide:related}. Report each cell honestly: this work may meet a requirement fully, partially or not at all, and an existing approach may meet every row. Explain the contribution's difference and any trade-offs in the surrounding argument; the matrix need not establish universal superiority.
+Group related work into families and compare each against the requirements. Use \cref{guide:fig:positioning} to separate approaches by two main properties, leaving the gap as an empty cell. Then compare the closest approaches requirement by requirement in \cref{guide:tab:related}. Report each cell honestly: this work may meet a requirement fully, partially or not at all, and an existing approach may meet every row. Explain the contribution's difference and any trade-offs in the surrounding argument; the matrix need not establish universal superiority.
 
 For this work, every \texttt{\textbackslash gapyes}, \texttt{\textbackslash gappartial} or \texttt{\textbackslash gapno} cell must point to supporting evidence: a result in the evaluation or a theorem-like result proved elsewhere in the paper. Point at the result itself, the research question that reports it (\texttt{\textbackslash cref\{rq:correct\}}), its table or figure, or the theorem. A section of the evaluation only says where to look, so the lint asks the reader to check each section pointer by hand. Use \texttt{\textbackslash gapna} only with an explicit scope justification, stated in the cell or linked to a limitation or scope section. It does not mean an unmet requirement. Keep the positioning figure's distinct contribution in the previously empty cell.
 
 In the positioning figure, plot related work as dots on two axes with three levels each. Put a star for your work in the cell no existing approach reaches. Draw an arrow from the closest approach and label what you add. Choose the two properties that best distinguish approaches, either individual requirements or summaries of several. Give levels specific names, not low, medium and high.
 \begin{runningexample}[elsewhere]
-With Approach C, the closest one, the employer checks offline against a list fetched in the morning, so a diploma revoked at noon passes every check until the next fetch: it fails \cref{req:guide:timely}.
+With Approach C, the closest one, the employer checks offline against a list fetched in the morning, so a diploma revoked at noon passes every check until the next fetch: it fails \cref{guide:req:timely}.
 \end{runningexample}
 
 \begin{figure}[!ht]
@@ -574,9 +574,9 @@ With Approach C, the closest one, the employer checks offline against a list fet
     \draw[line width=0.9pt, -{Stealth[length=2.6mm]}] (0,0) -- (\xmax+0.3,0);
     \draw[line width=0.9pt, -{Stealth[length=2.6mm]}] (0,0) -- (0,\ymax+0.2);
     \node[anchor=south west, inner sep=0pt, font=\footnotesize] at (0.15,\ymax+0.05)
-      {\textbf{How soon a revocation is seen} $\uparrow$\enspace\textit{how far an approach meets \cref{req:guide:timely}}};
+      {\textbf{How soon a revocation is seen} $\uparrow$\enspace\textit{how far an approach meets \cref{guide:req:timely}}};
     \node[anchor=north east, align=right, font=\footnotesize] at (\xmax+0.3,-0.85)
-      {\textbf{What a check needs} $\rightarrow$\\\textit{how far it meets \cref{req:guide:offline}}};
+      {\textbf{What a check needs} $\rightarrow$\\\textit{how far it meets \cref{guide:req:offline}}};
     \foreach \y/\name/\what in {\rC/within $\delta$/bounded by\\the clocks, \rB/minutes/a cache's\\lifetime, \rA/days/the next list} {%
       \draw (-0.08,\y) -- (0.08,\y);
       \node[tick, anchor=south east] at (-0.15,\y+0.02) {\name};
@@ -607,13 +607,13 @@ With Approach C, the closest one, the employer checks offline against a list fet
       {+ values fresh within $\delta$\\+ checked without the issuer};
   \end{tikzpicture}
   \caption{Approaches compared on two distinguishing properties. Grey dots mark existing approaches; the blue star marks this work in the previously empty cell. The dashed arrow from the closest approach identifies what this work adds.}
-  \label{fig:guide:positioning}
+  \label{guide:fig:positioning}
 \end{figure}
 
 \begin{table}[!ht]
   \centering
   \caption{Gap matrix: each requirement against the closest approaches. \gaplegend. Cells for this work point to the proof or evaluation result that backs them.}
-  \label{tab:guide:related}
+  \label{guide:tab:related}
   \renewcommand{\arraystretch}{1.3}
   % Every column but the requirement's has a fixed width and wraps, so a long cell grows downwards
   % instead of squeezing the requirement column under its heading.
@@ -621,35 +621,35 @@ With Approach C, the closest one, the employer checks offline against a list fet
     \toprule
     & \textbf{Requirement} & \textbf{Approach A} & \textbf{Approach B} & \textbf{Approach C} & \textbf{This work} \\
     \midrule
-    \ref{req:guide:timely}  & Timely revocation & \gapyes & \gapno  & \gappartial & \gapyes\,(\cref{thm:guide:stale}) \\
-    \ref{req:guide:offline} & Offline checks    & \gapno  & \gapyes & \gapyes     & \gapyes\,(\cref{rq:guide:correct}) \\
-    \ref{req:guide:private} & Holder privacy    & \gapno  & \gapyes & \gappartial & \gapyes\,(\cref{rq:guide:correct}) \\
+    \ref{guide:req:timely}  & Timely revocation & \gapyes & \gapno  & \gappartial & \gapyes\,(\cref{guide:thm:stale}) \\
+    \ref{guide:req:offline} & Offline checks    & \gapno  & \gapyes & \gapyes     & \gapyes\,(\cref{guide:rq:correct}) \\
+    \ref{guide:req:private} & Holder privacy    & \gapno  & \gapyes & \gappartial & \gapyes\,(\cref{guide:rq:correct}) \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-\subsection{Gap}\label{app:chapters:gap}
+\subsection{Gap}\label{guide:chapters:gap}
 \guidebeat{the gap in one sentence, closed by this work}{the gap matrix and the results of the evaluation}{the scenario as the case only this work handles}{the conclusion}
-State the gap in one sentence, supported by the positioning figure and matrix. In the same paragraph, cite results showing what your work adds, and explain any partial or unmet requirements in the matrix. This establishes the novelty claim without hiding trade-offs. Here, the gap is rejection of credentials revoked more than $\delta$ ago by a verifier that asks nobody; the registry provides it according to \cref{thm:guide:stale} and the measurements for \cref{rq:guide:correct}.
+State the gap in one sentence, supported by the positioning figure and matrix. In the same paragraph, cite results showing what your work adds, and explain any partial or unmet requirements in the matrix. This establishes the novelty claim without hiding trade-offs. Here, the gap is rejection of credentials revoked more than $\delta$ ago by a verifier that asks nobody; the registry provides it according to \cref{guide:thm:stale} and the measurements for \cref{guide:rq:correct}.
 
 %----------------------------------------------------------------------------
-\section{Conclusion and future work}\label{app:chapters:conclusion}
+\section{Conclusion and future work}\label{guide:chapters:conclusion}
 %----------------------------------------------------------------------------
 \textbf{Criterion E.} Show that you delivered and evaluated the contributions promised in the introduction. Readers often open the conclusion just after the abstract, so start with the achievements. End with limitations and concrete future work.
 \textbf{Novelty:} restate each contribution from the introduction with the gap it closes.
 \textbf{Correctness:} restate each with the proof or measurement behind it.
 
-\subsection[Summary]{Summary\skimmark}\label{app:chapters:summary}
+\subsection[Summary]{Summary\skimmark}\label{guide:chapters:summary}
 \guidebeat{each contribution and its evidence}{the chapters behind C1--C3}{the example, now solved}{the limitations}
-Write one paragraph per contribution with its evidence: \cref{c:guide:model} with \cref{thm:guide:stale}, \cref{c:guide:registry} with the archived artifact, and \cref{c:guide:eval} with answers to \cref{rq:guide:correct,rq:guide:scale,rq:guide:robust}. Close the introductory scenario in a one- or two-sentence box.
+Write one paragraph per contribution with its evidence: \cref{guide:c:model} with \cref{guide:thm:stale}, \cref{guide:c:registry} with the archived artifact, and \cref{guide:c:eval} with answers to \cref{guide:rq:correct,guide:rq:scale,guide:rq:robust}. Close the introductory scenario in a one- or two-sentence box.
 \begin{runningexample}[in retrospect]
 The withdrawn diploma no longer gets anyone hired: the employer's offline check rejects it within $\delta$ of its revocation, and the university never learns that the employer asked.
 \end{runningexample}
 
-\subsection[Limitations and future work]{Limitations and future work\skimmark}\label{app:chapters:future}
+\subsection[Limitations and future work]{Limitations and future work\skimmark}\label{guide:chapters:future}
 \guidebeat{what is still open, and the next step that would lift each limitation}{the threats to validity}{what the example does not cover}{the venue to target next}
 Tag each limitation so future work can refer to the one it addresses.
 \begin{limitations}
-  \item\label{lim:guide:synthetic} \textbf{Synthetic workloads.} The evaluation uses synthetic issuer sets only.
-  \item\label{lim:guide:force} \textbf{No forced revocation.} The registry cannot make an issuer revoke a credential it should.
+  \item\label{guide:lim:synthetic} \textbf{Synthetic workloads.} The evaluation uses synthetic issuer sets only.
+  \item\label{guide:lim:force} \textbf{No forced revocation.} The registry cannot make an issuer revoke a credential it should.
 \end{limitations}

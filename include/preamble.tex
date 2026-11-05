@@ -189,8 +189,15 @@
 \newcommand{\beat}[4]{\todo[inline, caption={Beat: #1}]{\textbf{Beat.} \textit{Establishes:} #1. \textit{Evidence:} #2. \textit{Running example:} #3. \textit{Leads to:} #4.}}
 % A heading's pointer to its instruction and example in the guide chapter "The paper, chapter by
 % chapter" (guide/05-chapter-by-chapter.tex). Prints as a student todo, so the reviewer build drops it.
-%   \guidetodo{Context}{app:chapters:context}
-\newcommand{\guidetodo}[2]{\todo[inline, caption={#1}]{\textbf{#1.} What goes here, with an example: \cref{#2}.}}
+%   \guidetodo{Context}{guide:chapters:context}
+% The guide's labels carry a guide: prefix; a paper started before they did still writes app:...,
+% which is read as guide:... here, so its notes keep pointing at the guide.
+\makeatletter
+\def\tdk@guidelabel#1{\tdk@guidesplit#1\tdk@nil}
+\def\tdk@guidesplit#1:#2\tdk@nil{\def\tdk@prefix{#1}\def\tdk@app{app}\ifx\tdk@prefix\tdk@app\def\tdk@label{guide:#2}\else\def\tdk@label{#1:#2}\fi}
+\newcommand{\tdk@guidetodo}[2]{\todo[inline, caption={#1}]{\textbf{#1.} What goes here, with an example: \cref{#2}.}}
+\newcommand{\guidetodo}[2]{\tdk@guidelabel{#2}\edef\tdk@next{\noexpand\tdk@guidetodo{\unexpanded{#1}}{\tdk@label}}\tdk@next}
+\makeatother
 % The guide prints its beats as text, so they stay out of the paper's list of todos, and marks a
 % heading whose section holds something a skimming reviewer reads.
 % (\leavevmode before \color: a colour switch between a heading and its text would let the page

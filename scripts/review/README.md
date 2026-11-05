@@ -85,7 +85,7 @@ it besides the rule results and findings:
 - `chapter_roles`: for each of the seven chapter roles (intro, background, approach,
   implementation, evaluation, related, conclusion) its label, its name, the review-sheet criteria
   it carries, the guide section that explains it and the paper's chapters that have it:
-  `{"approach": {"label": "ch:approach", "name": "approach chapter", "criteria": ["D/1", "D/2"], "guide": "app:chapters:approach", "files": ["content/03-approach.tex"]}}`.
+  `{"approach": {"label": "ch:approach", "name": "approach chapter", "criteria": ["D/1", "D/2"], "guide": "guide:chapters:approach", "files": ["content/03-approach.tex"]}}`.
   The table lives in `scripts/lint/lintcore.lua` (`ROLE_CRITERIA`), beside the role labels.
   Criterion A is scored on the whole paper and belongs to no role. `texlua scripts/lint.lua
   criteria`, a template-only CI step, fails when the bold `\textbf{Criteri...}` heads of a role's
