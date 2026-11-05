@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +12,19 @@ cache=importlib.util.module_from_spec(spec);spec.loader.exec_module(cache)
 
 
 class CacheLeaseTests(unittest.TestCase):
+    def test_public_oci_is_readable_despite_private_controller_umask(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory=Path(tmp)/'oci'
+            old=os.umask(0o077)
+            try:
+                (directory/'blobs/sha256').mkdir(parents=True)
+                blob=directory/'blobs/sha256'/('a'*64);blob.write_text('public image')
+                cache.public_oci(directory)
+            finally:os.umask(old)
+            self.assertEqual(directory.stat().st_mode & 0o777,0o755)
+            self.assertEqual(blob.parent.stat().st_mode & 0o777,0o755)
+            self.assertEqual(blob.stat().st_mode & 0o777,0o644)
+
     def test_collection_keeps_active_and_pending_digests(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)/'root';base=Path(tmp)/'cache';base.mkdir()

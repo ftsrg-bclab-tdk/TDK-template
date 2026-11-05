@@ -21,6 +21,13 @@ def run(argv, **kwargs):
     return subprocess.run(argv,check=True,stdout=subprocess.DEVNULL,**kwargs)
 
 
+def public_oci(directory):
+    """Public registry blobs must be readable by the unprivileged image parser."""
+    for path in [directory,*directory.rglob('*')]:
+        if path.is_symlink():raise RuntimeError('unexpected OCI layout symlink')
+        path.chmod(0o755 if path.is_dir() else 0o644)
+
+
 def cache_disk():
     """Resize only our cache, while allocation is serialized and no job uses it."""
     with (ROOT/'control.lock').open('a') as lock:
@@ -146,10 +153,13 @@ def prepare(operation_id=None):
             if dest.exists():
                 raise RuntimeError('incomplete paper cache requires operator inspection')
             dest.mkdir(mode=0o755)
+            dest.chmod(0o755)
             subprocess.run(['skopeo', 'copy', '--override-os', 'linux', '--override-arch', 'amd64',
                 'docker://'+metadata['Name']+'@'+digest, 'oci:'+str(dest/'oci')+':job'],
                 check=True, stdout=subprocess.DEVNULL, timeout=1200)
             (dest/'ready.json').write_text(json.dumps(metadata))
+        dest.chmod(0o755)
+        public_oci(dest/'oci')
         if not (dest/'bundle').exists():unpack(dest)
         config=json.loads((dest/'bundle/config.json').read_text())
         def blob(value):return json.loads((dest/'oci/blobs'/value.replace(':','/')).read_text())

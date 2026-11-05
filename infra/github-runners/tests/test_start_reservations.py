@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -28,6 +29,28 @@ class StartReservationTests(unittest.TestCase):
     def reserve(self,identifier=None,disk_gib=8):
         with session.control_lock():
             return session.reserve(identifier or self.identifier,self.data,2700,disk_gib)
+
+    def test_private_controller_umask_keeps_public_bootstrap_readable(self):
+        self.reserve()
+        code=self.root/'code';code.mkdir();(code/'worker.py').write_text('fixture')
+        runtime=self.root/'runtime';runtime.mkdir()
+        (self.root/'run').mkdir();(self.root/'lib').mkdir()
+        def paths(value,*parts):
+            return Path({'/run':self.root/'run','/var/lib':self.root/'lib'}.get(str(value),value),*parts)
+        old=os.umask(0o077)
+        try:
+            with patch.object(session,'CODE',code),patch.object(session,'Path',side_effect=paths), \
+                 patch.object(session,'run',return_value=SimpleNamespace(stdout='[]')):
+                session.start(self.data,2700,{'rootfs':str(runtime)},identifier=self.identifier)
+        finally:os.umask(old)
+        control=self.root/'run'/('tdk-control-'+self.identifier)
+        for path in [control,runtime/'infra',runtime/'infra/scripts']:
+            self.assertEqual(path.stat().st_mode & 0o777,0o755)
+        for name in ['metadata.json','policy.json']:
+            path=control/name
+            self.assertEqual(path.stat().st_mode & 0o777,0o644)
+            self.assertNotIn(self.data['jit'],path.read_text())
+        self.assertEqual((self.root/'sessions'/(self.identifier+'.json')).stat().st_mode & 0o777,0o600)
 
     def test_pending_preparation_is_durable_visible_and_reserves_capacity(self):
         self.reserve(disk_gib=20)

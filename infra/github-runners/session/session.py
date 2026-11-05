@@ -50,6 +50,12 @@ def atomic_json(path, value):
     finally: os.close(directory)
 
 
+def public_json(path, value):
+    """Only non-secret bootstrap metadata is readable by the isolated worker."""
+    path.write_text(json.dumps(value))
+    path.chmod(0o644)
+
+
 def inventory():
     sessions={p.stem:json.loads(p.read_text()) for p in (ROOT/'sessions').glob('*.json')}
     for path in (ROOT/'operations').glob('*.json'):
@@ -109,6 +115,7 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
     name = unit(identifier)
     control = Path('/run') / ('tdk-control-' + identifier)
     control.mkdir(mode=0o755)
+    control.chmod(0o755)
     user = 'tdkj' + identifier[:16]
     proxy_unit = 'tdk-proxy-' + identifier
     proxy_socket = '/run/' + proxy_unit + '/proxy.sock'
@@ -122,18 +129,19 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
                     started_at=time.time(), deadline=time.time()+seconds)
     # Placeholder mount points are infrastructure overlays, never writable job data.
     rootfs = Path(runtime['rootfs'])
-    for rel in ['job','infra/usr','infra/scripts','infra/containers-config','infra/job-oci','infra/job-rootfs']:
+    for rel in ['job','infra','infra/usr','infra/scripts','infra/containers-config','infra/job-oci','infra/job-rootfs']:
         (rootfs / rel).mkdir(parents=True, exist_ok=True)
+        (rootfs / rel).chmod(0o755)
     (rootfs/'infra/job-image.json').touch(exist_ok=True)
     shutil.copytree(CODE, control/'scripts')
-    (control / 'metadata.json').write_text(json.dumps(metadata))
+    public_json(control/'metadata.json',metadata)
     if job_image:
-        (control / 'job-image.json').write_text(json.dumps(job_image))
+        public_json(control/'job-image.json',job_image)
     denied = []
     for interface in json.loads(run(['ip','-j','address']).stdout):
         for address in interface.get('addr_info', []):
             denied.append(str(ipaddress.ip_interface(f"{address['local']}/{address['prefixlen']}").network))
-    (control / 'policy.json').write_text(json.dumps(denied))
+    public_json(control/'policy.json',denied)
     metadata_path=ROOT/'sessions'/(identifier+'.json')
     temporary=metadata_path.with_suffix('.new')
     with temporary.open('x') as output:

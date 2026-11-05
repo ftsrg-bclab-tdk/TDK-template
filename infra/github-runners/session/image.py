@@ -17,6 +17,7 @@ def prepare():
     if os.geteuid() != 0:
         raise RuntimeError('root required')
     BASE.mkdir(mode=0o755, exist_ok=True)
+    BASE.chmod(0o755)
     with (BASE / 'prepare.lock').open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         metadata = json.loads(subprocess.check_output([
@@ -30,6 +31,7 @@ def prepare():
             if dest.exists():
                 raise RuntimeError('incomplete image cache; inspect before retry: ' + str(dest))
             dest.mkdir(mode=0o755)
+            dest.chmod(0o755)
             subprocess.run(['skopeo', 'copy', '--override-os', 'linux', '--override-arch', 'amd64',
                             'docker://ghcr.io/actions/actions-runner@' + digest,
                             'oci:' + str(dest / 'oci') + ':runtime'], check=True, stdout=sys.stderr, timeout=600)
@@ -40,6 +42,8 @@ def prepare():
             (dest / 'ready.json').write_text(json.dumps(metadata))
         # OCI permissions may include world-writable directories; cache is root-owned.
         (dest / 'bundle').chmod(0o755)
+        dest.chmod(0o755)
+        (dest / 'bundle/rootfs').chmod(0o755)
         for base, dirs, files in os.walk(dest / 'bundle/rootfs'):
             for path in [Path(base)] + [Path(base)/x for x in files]:
                 if not path.is_symlink(): path.chmod(path.stat().st_mode & ~0o022)
