@@ -124,7 +124,7 @@ return {
     why = "what could make the results wrong or not generalise, and what was done about each",
     add = "add a section \\section{Threats to validity}\\label{sec:validity} to the evaluation" },
 
-  { id = "positioning", role = "related", kind = "float", title = "Positioning figure", criterion = "B/2", example = "guide:fig:positioning", label = "fig:positioning",
+  { id = "positioning", role = "related", kind = "float", title = "Positioning figure", criterion = "B/2", example = "guide:fig:positioning", label = "fig:positioning", alt = "tab:positioning",
     why = "the related work on the two properties that separate it most, with this work in the cell no one else reaches",
     used = "it is referenced from the text",
     add = "add the positioning figure, \\label{fig:positioning}, to the related work" },

@@ -198,7 +198,7 @@ end
 
 local TEXT_USED = {
   introgap = function(f, a, b)
-    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^tab:related$") + refs_in_span(f, a, b, "^fig:positioning$") > 0 then return true end
+    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^tab:related$") + refs_in_span(f, a, b, "^fig:positioning$") + refs_in_span(f, a, b, "^tab:positioning$") > 0 then return true end
     return false, "point to the full comparison: \\cref{ch:related}, \\cref{tab:related} or \\cref{fig:positioning}"
   end,
   setup = function()
@@ -508,17 +508,20 @@ local FLOAT_USED = {
 }
 
 local function eval_float(row, r)
-  local fl = find_float(C.main_chapters(), row.label)
+  -- a row may accept a second label: the positioning figure as a table, tab:positioning
+  local label = row.label
+  local fl = find_float(C.main_chapters(), label)
+  if not fl and row.alt then fl = find_float(C.main_chapters(), row.alt); if fl then label = row.alt end end
   if not fl then
     -- moved out of the main text, typically to an appendix to meet the page limit
-    local elsewhere = find_float(C.CONTENT, row.label)
-    if elsewhere then return 0, string.format("%s is outside the main text (%s:%d); the reviewer looks for it in the %s: move it back", row.label, elsewhere.file, elsewhere.line, C.ROLE_NAME[row.role] or row.role) end
+    local elsewhere = find_float(C.CONTENT, label)
+    if elsewhere then return 0, string.format("%s is outside the main text (%s:%d); the reviewer looks for it in the %s: move it back", label, elsewhere.file, elsewhere.line, C.ROLE_NAME[row.role] or row.role) end
     return 0, row.add
   end
   r.where = place(fl.file, fl.line, fl.last)
-  local body, cap = float_parts(fl, row.label)
-  local sk = find_float(C.skeleton_files(), row.label)
-  local skbody = sk and float_parts(sk, row.label)
+  local body, cap = float_parts(fl, label)
+  local sk = find_float(C.skeleton_files(), label)
+  local skbody = sk and float_parts(sk, label)
   if body:match("[Pp]laceholder") or (skbody and skbody == body) then return 1, "still the template's placeholder: make it your own" end
   local words = 0
   for _ in C.prose(cap):gmatch("%a%a+") do words = words + 1 end
@@ -527,7 +530,7 @@ local function eval_float(row, r)
   if words < 6 or not C.trim(cap):match("%.$") then return 2, "the caption is shorter than a sentence: say what the reader should see" end
   local used = FLOAT_USED[row.id]
   local ok, why
-  if used then ok, why = used(fl) else ok = main_refs(row.label) > 0; why = "reference it from the text: \\cref{" .. row.label .. "}" end
+  if used then ok, why = used(fl) else ok = main_refs(label) > 0; why = "reference it from the text: \\cref{" .. label .. "}" end
   if ok then return 4, used and why or nil end
   return 3, why
 end
