@@ -105,7 +105,7 @@ class StartReservationTests(unittest.TestCase):
     def test_broker_restart_preserves_pending_host_reservation(self):
         host=self
         class Engine:
-            def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8):
+            def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8,paper=False):
                 if action=='list':return session.inventory()
                 if action=='start':
                     with session.control_lock():session.reserve(identifier,{**data,'jit':host.data['jit']},seconds,disk_gib)
@@ -128,7 +128,7 @@ class StartReservationTests(unittest.TestCase):
         host=self
         class DelayedEngine:
             def __init__(self):self.delayed=None;self.success=[]
-            def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8):
+            def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8,paper=False):
                 if action=='list':return session.inventory()
                 if action=='start':
                     data={**data,'jit':host.data['jit']}

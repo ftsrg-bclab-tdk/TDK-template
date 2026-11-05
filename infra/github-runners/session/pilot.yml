@@ -37,6 +37,17 @@ jobs:
           assert not pathlib.Path('/tmp/previous-job-marker').exists()
           pathlib.Path('/job/previous-job-marker').write_text('THIS JOB ONLY')
           pathlib.Path('/tmp/previous-job-marker').write_text('THIS JOB ONLY')
+          image=pathlib.Path('/infra/job-rootfs')
+          if image.exists():
+              assert not pathlib.Path('/job/image-upper').exists()
+              assert not pathlib.Path('/job/image-work').exists()
+              assert not pathlib.Path('/var/lib/tdk-paper-images').exists()
+              marker=image/'tmp/previous-job-marker'
+              assert not marker.exists()
+              marker.write_text('THIS JOB ONLY')
+              baseline=image/'etc/debian_version'
+              assert baseline.read_text()!='JOB_CHANGED'
+              baseline.write_text('JOB_CHANGED')
           # Bypass proxy settings deliberately: there is no external route.
           for addr in [('10.9.0.25',22),('169.254.169.254',80),('1.1.1.1',443)]:
               s=socket.socket();s.settimeout(.5)

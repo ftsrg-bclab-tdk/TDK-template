@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import socket
 import subprocess
 import time
 
@@ -37,7 +38,7 @@ def prepare():
         'resolved':reference.rsplit(':',1)[0]+'@'+digest,
         'resolved_at':float(os.environ['TDK_CONTAINER_RESOLVED_AT']),
         'dockerfile_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
-        'construction':'fresh OCI extraction plus the recorded pip recipe; no Docker image build',
+        'construction':'private overlay of immutable OCI image plus the recorded pip recipe; no Docker image build',
         'platform':'linux/amd64','dependency_install_seconds':time.time()-started},indent=2)+'\n')
 
 
@@ -53,12 +54,22 @@ def check():
     records=[]
     env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1')
     try:
+        # The outer hook creates this namespace before mapping container UID 0.
+        # Mapping UID 0 again after dropping capabilities fails on Linux >=5.12.
+        if os.environ.get('TDK_NETWORK_NONE')!='1' or any(name!='lo' for _,name in socket.if_nameindex()):
+            records.append({'name':'network','exit_code':1,'error':'offline step namespace required'})
+            return 1
+        try:
+            with socket.create_connection(('127.0.0.1',3128),timeout=.5):
+                records.append({'name':'network','exit_code':1,'error':'egress proxy reachable'})
+                return 1
+        except OSError:pass
         for name,argv in commands:
             start=time.time()
             record={'name':name,'started_at':start}
             try:
                 with (output/(name+'.log')).open('w') as log:
-                    result=subprocess.run(['unshare','--user','--map-root-user','--net','--',*argv],
+                    result=subprocess.run(argv,
                                           env=env,stdout=log,stderr=subprocess.STDOUT,timeout=1800)
                 record['exit_code']=result.returncode
             except subprocess.TimeoutExpired:
@@ -76,11 +87,11 @@ def check():
     finally:
         stat=os.statvfs('.')
         (output/'bme-acceptance.json').write_text(json.dumps({'schema':'bme-paper-acceptance/v1',
-            'runner_class':'bme-isolated-paper-v1','run_id':os.environ.get('GITHUB_RUN_ID'),
+            'runner_class':'bme-isolated-paper-v2','run_id':os.environ.get('GITHUB_RUN_ID'),
             'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT'),'source_sha':os.environ.get('GITHUB_SHA'),
             'commands':records,'filesystem_bytes':stat.f_blocks*stat.f_frsize,
             'free_bytes_after_checks':stat.f_bavail*stat.f_frsize,
-            'network':'new network namespace for each check command'},indent=2)+'\n')
+            'network':'offline step namespace created by the outer container hook'},indent=2)+'\n')
     return int(any(record['exit_code'] for record in records))
 
 

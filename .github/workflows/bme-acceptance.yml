@@ -8,7 +8,7 @@ permissions:
 jobs:
   paper:
     if: vars.BME_ACCEPTANCE_ENABLED == 'true'
-    runs-on: [self-hosted, Linux, X64, bme-isolated-paper-v1]
+    runs-on: [self-hosted, Linux, X64, bme-isolated-paper-v2]
     timeout-minutes: 40
     container: danteev/texlive:latest
     env:
@@ -21,6 +21,8 @@ jobs:
       - name: Resolve current paper dependencies using the shared recipe
         run: python3 infra/github-runners/session/paper.py prepare
       - name: Run configured paper checks and review evidence offline
+        env:
+          TDK_NETWORK_NONE: '1'
         run: python3 infra/github-runners/session/paper.py check
       - name: Preserve workload evidence
         if: always()

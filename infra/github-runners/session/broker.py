@@ -59,10 +59,11 @@ class GitHub:
 class Engine:
     def __init__(self, host=None):self.host=host
 
-    def call(self, action, identifier=None, data=None, seconds=2700, disk_gib=8):
+    def call(self, action, identifier=None, data=None, seconds=2700, disk_gib=8, paper=False):
         cmd=['/usr/local/lib/tdk-isolation/session.py',action]
         if identifier:cmd += ['--id',identifier]
         if action=='start':cmd += ['--seconds',str(seconds),'--disk-gib',str(disk_gib)]
+        if action=='start' and paper:cmd += ['--paper']
         if self.host:
             cmd=['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ForwardAgent=no',
                  self.host,shlex.join(['sudo',*cmd])]
@@ -148,7 +149,7 @@ class Broker:
             if name.startswith(self.prefix) and session['repo'] in self.config['repositories']:
                 entry=self.state['sessions'].setdefault(name,{'repo':session['repo'],'created_at':session['started_at']})
                 entry.update(runner_id=session['runner_id'],session_id=session['id'],disk_gib=session.get('disk_gib',8))
-                entry.setdefault('profile',next((p for p,d in self.profiles.items() if d==entry['disk_gib']),None))
+                entry.setdefault('profile',session.get('runner_class') or next((p for p,d in self.profiles.items() if d==entry['disk_gib']),None))
         self.save()
         jobs={repo:self.inventory(repo) for repo in self.config['repositories']}
         registrations={repo:self.github.pages(f'repos/{repo}/actions/runners','runners') for repo in jobs}
@@ -210,7 +211,7 @@ class Broker:
                 # A lost response must be reconciled/cancelled using this ID.
                 entry['runner_id']=jit['runner']['id'];entry['session_id']=uuid.uuid4().hex;self.save()
                 session=self.engine.call('start',entry['session_id'],data={'jit':jit['encoded_jit_config'],'repo':repo,
-                    'runner_id':entry['runner_id'],'label':name},seconds=self.config.get('deadline_seconds',2700),disk_gib=self.profiles[profile])
+                    'runner_id':entry['runner_id'],'label':name,'runner_class':profile},seconds=self.config.get('deadline_seconds',2700),disk_gib=self.profiles[profile],paper=profile=='bme-isolated-paper-v2')
                 if session['id']!=entry['session_id']:
                     raise RuntimeError('Host returned a different operation identity')
                 self.save()

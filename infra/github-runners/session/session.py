@@ -88,6 +88,7 @@ def reserve(identifier, data, seconds, disk_gib):
         raise RuntimeError('two job slots already occupied')
     capacity(sessions,disk_gib)
     operation={key:data[key] for key in ('repo','runner_id','label')}
+    operation['runner_class']=data.get('runner_class')
     operation.update(id=identifier,phase='preparing',disk_gib=disk_gib,
                      started_at=time.time(),preparation_deadline=time.time()+1350)
     atomic_json(path,operation)
@@ -112,6 +113,7 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
     proxy_unit = 'tdk-proxy-' + identifier
     proxy_socket = '/run/' + proxy_unit + '/proxy.sock'
     metadata = {key:data[key] for key in ('repo','runner_id','label')}
+    metadata['runner_class']=data.get('runner_class')
     source=hashlib.sha256()
     for file in sorted(CODE.iterdir()):
         if file.suffix in ('.py','.sh','.js'):
@@ -120,7 +122,7 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
                     started_at=time.time(), deadline=time.time()+seconds)
     # Placeholder mount points are infrastructure overlays, never writable job data.
     rootfs = Path(runtime['rootfs'])
-    for rel in ['job','infra/usr','infra/scripts','infra/containers-config','infra/job-oci']:
+    for rel in ['job','infra/usr','infra/scripts','infra/containers-config','infra/job-oci','infra/job-rootfs']:
         (rootfs / rel).mkdir(parents=True, exist_ok=True)
     (rootfs/'infra/job-image.json').touch(exist_ok=True)
     shutil.copytree(CODE, control/'scripts')
@@ -153,6 +155,23 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
         state=Path('/var/lib')/name
         state.mkdir(parents=True,mode=0o700)
         run(['mount','-o','loop,nodev,nosuid',str(disk),str(state)])
+        if job_image and job_image.get('unpacked'):
+            account=pwd.getpwnam(user)
+            # Own StateDirectory before starting systemd: its recursive ownership
+            # repair must never walk the merged image and copy every lower file.
+            os.chown(state,account.pw_uid,account.pw_gid)
+            for part in ['job','image-upper','image-work']:
+                (state/part).mkdir(mode=0o700)
+                os.chown(state/part,account.pw_uid,account.pw_gid)
+            lower=control/'image-lower';merged=control/'image-rootfs'
+            lower.mkdir();merged.mkdir()
+            mapping=f'X-mount.idmap=u:0:{account.pw_uid}:1 g:0:{account.pw_gid}:1'
+            run(['mount','--bind','-o',mapping,job_image['rootfs'],str(lower)])
+            if lower.stat().st_uid!=account.pw_uid or lower.stat().st_gid!=account.pw_gid:
+                raise RuntimeError('mount identity translation unavailable')
+            run(['mount','-o','remount,bind,ro,nodev,nosuid',str(lower)])
+            run(['mount','-t','overlay','overlay','-o',
+                 f'lowerdir={lower},upperdir={state}/image-upper,workdir={state}/image-work,nodev,nosuid',str(merged)])
         proxy = ['systemd-run','--quiet','--collect','--expand-environment=no','--unit',proxy_unit]
         for prop in ['Type=exec','User=tdk-proxy','NoNewPrivileges=yes','CapabilityBoundingSet=',
                      'ProtectHome=yes','ProtectSystem=strict','PrivateTmp=yes',
@@ -170,6 +189,8 @@ def start(data, seconds, runtime, disk_gib=8, job_image=None, *, identifier):
                  f'RuntimeMaxSec={seconds}s',f'StateDirectory={name}',
                  f'LoadCredential=jit:{jit_path}',f'ReadWritePaths={ROOT}',
                  f'ExecStopPost=+{CODE}/finish.py {identifier}']
+        if job_image and job_image.get('unpacked'):
+            props.append(f'ReadWritePaths={control}/image-rootfs')
         for prop in props:
             args += ['--property',prop]
         run(args + [str(CODE/'worker.py'),str(control/'metadata.json')])
@@ -196,7 +217,10 @@ def status(identifier):
     values=dict(line.split('=',1) for line in result.splitlines() if '=' in line)
     receipt=ROOT/'receipts'/(identifier+'.json')
     fixture={'ready':False,'listener_stopped':False,'host_uids':[]}
-    try: fixture['ready']=stat.S_ISREG((Path('/var/lib')/name/'probe-ready').lstat().st_mode)
+    try:
+        directory=Path('/var/lib')/name
+        if (directory/'job').is_dir():directory=directory/'job'
+        fixture['ready']=stat.S_ISREG((directory/'probe-ready').lstat().st_mode)
     except FileNotFoundError: pass
     cgroup=Path('/sys/fs/cgroup/system.slice')/(name+'.service')
     try: pids=(cgroup/'cgroup.procs').read_text().split()
@@ -258,6 +282,9 @@ def reap():
         # Only root-owned UUID-derived paths are traversed. rmtree does not follow
         # symlinks planted inside the untrusted job's private writable directory.
         directory=Path('/var/lib')/name
+        control=Path('/run')/('tdk-control-'+identifier)
+        for mount in [control/'image-rootfs',control/'image-lower']:
+            if os.path.ismount(mount):run(['umount',str(mount)])
         # Compatibility with the earlier DynamicUser acceptance sessions.
         if directory.is_symlink():
             directory=Path('/var/lib/private')/name
@@ -273,6 +300,7 @@ def reap():
         receipt=ROOT/'receipts'/(identifier+'.json')
         report=json.loads(receipt.read_text()) if receipt.exists() else {'id':identifier,'result':'startup-failed'}
         report.update(cleaned_at=time.time(),disk_removed=not directory.exists(),
+                      image_mounts_removed=not any(os.path.ismount(control/p) for p in ['image-rootfs','image-lower']),
                       cgroup_removed=not Path('/sys/fs/cgroup/system.slice',name+'.service').exists(),
                       runtime=metadata['runtime'],job_image=metadata.get('job_image'),disk_gib=metadata.get('disk_gib',8),configuration_sha256=metadata.get('configuration_sha256'))
         receipt.write_text(json.dumps(report))
@@ -289,11 +317,11 @@ def reap():
         file.unlink()
 
 
-def launch(identifier, data, seconds, disk_gib):
+def launch(identifier, data, seconds, disk_gib, paper=False):
     with control_lock():reserve(identifier,data,seconds,disk_gib)
     try:
         runtime=prepare()
-        job_image=prepare_job_image() if disk_gib==20 else None
+        job_image=prepare_job_image(identifier) if paper or disk_gib==20 else None
         with control_lock():
             return start(data,seconds,runtime,disk_gib,job_image,identifier=identifier)
     except BaseException:
@@ -307,6 +335,7 @@ def main():
     parser.add_argument('--id')
     parser.add_argument('--seconds',type=int,default=3600)
     parser.add_argument('--disk-gib',type=int,choices=(8,20),default=8)
+    parser.add_argument('--paper',action='store_true',help='Use the administrator-selected immutable paper image')
     args=parser.parse_args()
     if os.geteuid()!=0: raise RuntimeError('root controller required')
     ROOT.mkdir(mode=0o700,exist_ok=True)
@@ -315,7 +344,7 @@ def main():
     if args.action=='start':
         identifier=args.id or uuid.uuid4().hex
         data=json.load(sys.stdin)
-        print(json.dumps(launch(identifier,data,args.seconds,args.disk_gib)))
+        print(json.dumps(launch(identifier,data,args.seconds,args.disk_gib,args.paper)))
     else:
         # Preparation does not hold this lock, so cancellation and the root
         # reaper stay responsive while image downloads are in progress.

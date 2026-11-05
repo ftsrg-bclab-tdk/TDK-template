@@ -9,8 +9,8 @@ restarting it unless an administrator explicitly opts into trusted-only use.
 ## Boundary and supported jobs
 
 A root controller creates a fresh locked host account, user/PID/mount/IPC/UTS/
-network namespaces, a private 8 or 20 GiB ext4 disk and a systemd cgroup for each job.
-The only shared filesystem data is read-only: the official runner image, host
+network namespaces, a private 8 GiB ext4 disk and a systemd cgroup for each job.
+The only shared filesystem data is read-only: the official runner and paper images, host
 `/usr` helper tools and an immutable copy of the session scripts. No home directory,
 host service socket, host cgroup filesystem, cloud credential, GitHub registration
 authority or SSH agent is mounted. Set-ID image metadata can be unpacked, but
@@ -70,8 +70,11 @@ Host helper package versions are recorded separately in acceptance evidence.
 Runner startup, disk setup and cleanup add fixed overhead; CPU work is native.
 There is no measured whole-paper or proof throughput claim. The runner image is
 warm; writable workspaces are never shared across jobs. The paper class also has
-a root-selected, read-only cache of compressed public TeX image layers. Its latest
-tag is resolved on each admission; extraction remains private to each job.
+a root-selected, immutable cache of the public TeX image. Its latest tag is resolved
+on each admission. Each job gets its own OverlayFS upper/work directories on its
+private disk. Root idmaps the read-only lower tree to the fresh job identity;
+writes copy up into that job's disk. The guest cannot access the upper/work backing
+directories directly. This avoids repeated extraction without sharing job writes.
 See [live acceptance evidence](evidence-2026-11-05.md).
 
 ## Install and launch
@@ -145,17 +148,28 @@ operation records are retained to prevent delayed requests from reusing an ID.
 | Class | Writable disk | Supported execution |
 | --- | --- | --- |
 | `bme-isolated-native-v1` | 8 GiB | Native/JS actions and public OCI images that fit |
-| `bme-isolated-paper-v1` | 20 GiB | Public TeX job container and the paper acceptance adapter |
+| `bme-isolated-paper-v2` | 8 GiB | Immutable TeX lower image, private writable upper, paper adapter |
 
-The default 20 GiB admission budget permits two native jobs or one paper job.
-Root independently enforces the same 20 GiB total private disk budget and requires
+The current VM configuration admits one job at a time, with an 8 GiB admission
+budget. The engine independently caps all private disks at 20 GiB and requires
 4 GiB host free space beyond the reserved job capacity. Disks use `fallocate` and
 formatting disables discard; admission also accounts for any holes made by later
-discard. The compressed paper cache is a separate 4 GiB ext4 filesystem, mounted
-read-only in jobs. A larger/new image that cannot fit fails admission. There is no
-fallback to an older image. Cache updates may need an operator to remove obsolete
-digests after all referencing sessions have stopped. No writable build cache or
-derived Python environment survives a job.
+discard. The paper cache is a separate 14 GiB ext4 filesystem holding compressed
+layers and the unpacked tree. A networkless, unprivileged builder extracts the
+administrator-selected image under memory/CPU/deadline limits. It sees only host
+helper binaries, read-only OCI input and its private output directory. After its
+cgroup exits, root takes ownership without following symlinks; jobs receive only
+the idmapped read-only lower through their private overlay. Builder failures never
+promote partial output. A later prepare stops/reclaims an interrupted builder;
+the unit has an independent 20-minute deadline.
+
+Cache collection retains digests referenced by live sessions and durable pending
+operation leases. Other digests are removed before downloading the new latest
+image. A larger/new image that cannot fit fails admission, with no older fallback.
+No writable build cache or derived Python environment survives a job. The old
+`paper-v1` acceptance route extracted into a 20 GiB disk; it is not configured for
+automatic admission. Its measured 470-second initialization and offline-wrapper
+failure are retained as failed evidence, not readiness.
 
 Install `install-broker.sh` after the session engine. Configure the repository
 allowlist in `/etc/tdk-isolation/broker.json`, based on `broker.example.json`.
@@ -177,8 +191,10 @@ credentials need replacement and a broker restart to reload the systemd credenti
 `BME_ACCEPTANCE_ENABLED=true`; it is separate from ordinary CI. It runs the current
 TeX image in a job container, translates only the existing `paper.Dockerfile` pip
 recipe, records its hash and actual resolved package versions, then runs the
-configured paper checks, review evidence and maintainer checks in fresh offline
-network namespaces. This is a limited recipe adapter, not Dockerfile-build support.
+configured paper checks, review evidence and maintainer checks in an offline
+step namespace. `TDK_NETWORK_NONE=1` tells the outer hook to create that namespace
+before mapping container UID 0; the adapter verifies that it has no external
+interface or reachable proxy. This is a limited recipe adapter, not Dockerfile-build support.
 Its offline wrapper is a convention within a job; the outer host network policy
 remains enforced even when arbitrary workflow code bypasses the wrapper.
 Artifacts include run/attempt/source/config/tool/image identities and timings.
@@ -203,11 +219,16 @@ systemd loads it. The timer uses a lock to serialize cleanup with admission.
 Failure to clean a session consumes its slot rather than reusing its state.
 
 To remove this deployment, stop admitting sessions, call `stop --id` for each
-listed session, and verify their receipts show disk/cgroup/account removal.
+listed session, and verify their receipts show disk/cgroup/account and image-mount removal.
 Then disable `tdk-isolation-reap.timer`, remove its two unit files and the installed
 helper directory, and reload systemd. The read-only official-image cache may be
 removed after all sessions stop. Keep receipts as needed for audit. Do not enable
 the legacy persistent runner for student jobs as an automatic rollback.
+
+For the paper cache, wait for any image-builder unit to finish or stop it, then
+unmount `/var/lib/tdk-paper-images` before deleting its `.ext4` backing file. Cache
+resize is allowed only while the host is idle. It affects this deployment's cache,
+not the host filesystem layout or cloud allocation.
 
 Primary interface references: [GitHub container hooks](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/customize-containers),
 [runner hook implementation](https://github.com/actions/runner/blob/main/src/Runner.Worker/Container/ContainerHooks/ContainerHookManager.cs),

@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import io
-import importlib.util
 import ipaddress
 import json
 import os
@@ -22,6 +21,17 @@ import paper
 
 
 class PolicyTests(unittest.TestCase):
+    def test_offline_namespace_is_selected_before_container_identity_mapping(self):
+        meta={'rootfs':'/fixture','process':{},'reference':'fixture:latest','digest':'sha256:'+'a'*64,'resolved_at':1}
+        for offline in (False,True):
+            args={'environmentVariables':{'TDK_NETWORK_NONE':'1'} if offline else {}}
+            with patch.object(hook.subprocess,'run') as execute:
+                hook.container(meta,args,['true'])
+            argv=execute.call_args.args[0]
+            self.assertIn('--unshare-all',argv)
+            self.assertEqual('--share-net' in argv,not offline)
+            self.assertIn('--cap-drop',argv)
+
     def test_allowlist_requires_label_boundary(self):
         for name in ['github.com','api.github.com','foo.actions.githubusercontent.com','ghcr.io']:
             self.assertTrue(proxy.allowed_host(name),name)

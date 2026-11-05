@@ -2,3 +2,4 @@ self-hosted-runner:
   labels:
     - bme-isolated-native-v1
     - bme-isolated-paper-v1
+    - bme-isolated-paper-v2

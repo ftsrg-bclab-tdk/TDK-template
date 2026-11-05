@@ -4,12 +4,13 @@ import json
 import os
 from pathlib import Path
 import shutil
-import subprocess
 import sys
 
 metadata = json.loads(Path(sys.argv[1]).read_text())
 rootfs = Path(metadata['runtime']['rootfs'])
 work = Path(os.environ['STATE_DIRECTORY'])
+if (metadata.get('job_image') or {}).get('unpacked'):
+    work=work/'job'
 runner = work / 'runner'
 if runner.exists():
     raise RuntimeError('refusing a reused runner workspace')
@@ -37,6 +38,9 @@ args = ['/usr/bin/bwrap', '--unshare-all', '--unshare-user', '--uid', '1001', '-
 # No controller/admin environment survives. Only the single-job JIT file is exposed.
 if metadata.get('job_image'):
     position=args.index('--')
-    args[position:position]=['--ro-bind',metadata['job_image']['oci'],'/infra/job-oci',
-                            '--ro-bind',str(Path(sys.argv[1]).parent/'job-image.json'),'/infra/job-image.json']
+    extra=['--ro-bind',str(Path(sys.argv[1]).parent/'job-image.json'),'/infra/job-image.json']
+    if metadata['job_image'].get('unpacked'):
+        extra += ['--bind',str(Path(sys.argv[1]).parent/'image-rootfs'),'/infra/job-rootfs']
+    else:extra += ['--ro-bind',metadata['job_image']['oci'],'/infra/job-oci']
+    args[position:position]=extra
 os.execve(args[0], args, {'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})

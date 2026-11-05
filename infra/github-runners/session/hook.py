@@ -2,7 +2,6 @@
 """OCI compatibility hooks inside the job. Host security never depends on this code."""
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
@@ -36,6 +35,11 @@ def image(reference):
     directory.mkdir()
     cached=Path('/infra/job-image.json')
     cached=json.loads(cached.read_text()) if cached.exists() else None
+    if cached and cached['reference']==reference and cached.get('unpacked'):
+        resolved={**cached,'rootfs':'/infra/job-rootfs'}
+        (directory/'metadata.json').write_text(json.dumps(resolved))
+        print('Resolved immutable paper image '+reference+' -> '+cached['digest'],flush=True)
+        return resolved
     if cached and cached['reference']==reference:
         digest=cached['digest'];resolved_at=cached['resolved_at'];oci=Path('/infra/job-oci')
     else:
@@ -67,7 +71,8 @@ def image(reference):
 def container(meta, args, command, extra_env=None):
     restrictions(args)
     root=Path(meta['rootfs'])
-    bwrap=['--unshare-all','--share-net','--uid','0','--gid','0','--cap-drop','ALL',
+    offline=(args.get('environmentVariables') or {}).get('TDK_NETWORK_NONE')=='1'
+    bwrap=['--unshare-all',*([] if offline else ['--share-net']),'--uid','0','--gid','0','--cap-drop','ALL',
            '--die-with-parent','--new-session','--bind',str(root),'/',
            '--proc','/proc','--dev','/dev','--tmpfs','/tmp','--tmpfs','/run']
     for mount in args.get('systemMountVolumes',[]):

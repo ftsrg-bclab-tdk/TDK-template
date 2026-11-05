@@ -31,7 +31,7 @@ class GitHub:
 
 class Engine:
     def __init__(self):self.sessions=[];self.stopped=[];self.calls=[];self.fail_after_start=False;self.clean=True;self.preparing=False
-    def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8):
+    def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8,paper=False):
         self.calls.append((action,identifier))
         if action=='list':return copy.deepcopy(self.sessions)
         if action=='start':

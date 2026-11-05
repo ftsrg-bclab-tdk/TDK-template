@@ -18,7 +18,9 @@ class PaperReceiptTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp,contextlib.chdir(tmp):
             Path('project.json').write_text('{"role":"project"}')
             with patch.object(paper.subprocess,'run',side_effect=results), \
-                 patch.dict(os.environ,{'GITHUB_RUN_ID':'42','GITHUB_RUN_ATTEMPT':'2','GITHUB_SHA':'a'*40}), \
+                 patch.object(paper.socket,'if_nameindex',return_value=[(1,'lo')]), \
+                 patch.object(paper.socket,'create_connection',side_effect=ConnectionRefusedError), \
+                 patch.dict(os.environ,{'GITHUB_RUN_ID':'42','GITHUB_RUN_ATTEMPT':'2','GITHUB_SHA':'a'*40,'TDK_NETWORK_NONE':'1'}), \
                  contextlib.redirect_stdout(io.StringIO()):
                 try:exit_code=paper.check()
                 except KeyboardInterrupt:exit_code=130
