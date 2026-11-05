@@ -39,6 +39,7 @@ M.RULES = {
   companion = { "refs", "Companion papers are named, not cited" },
   code = { "refs", "Listings are captioned and ASCII-safe" },
   links = { "refs", "Every link answers" },
+  zenodo = { "refs", "The artifact is cited by its version DOI" },
   checkcites = { "refs", "Uncited entries and missing keys" },
   ["bibtex-log"] = { "refs", "BibTeX warnings" },
 

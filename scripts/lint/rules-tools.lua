@@ -254,6 +254,26 @@ rule("portal", "tools", "check", "always", "once the abstract is submitted to th
   return string.format("record=%s title=%.2f", best.slug, bestscore)
 end)
 
+rule("zenodo", "tools", "check", "always", "every cited Zenodo record is a version DOI, the release the results came from, not the concept DOI that follows the newest version; skipped offline", function()
+  if os.getenv("LINT_OFFLINE") or not C.have("curl") then C.skip("offline"); return end
+  local bib, seen, n = C.bib_entries(), {}, 0
+  local files = {}
+  for _, f in ipairs(C.CONTENT) do files[#files + 1] = f end
+  C.each_cite(files, function(f, line, key)
+    local e = bib[key]
+    local id = e and e.body:lower():match("10%.5281/zenodo%.(%d+)")
+    if not id or seen[id] then return end
+    seen[id] = true; n = n + 1
+    local rec = C.json_decode(C.run(string.format("curl -sS -f -L --max-time 20 -A 'tdk-lint' %q", "https://zenodo.org/api/records/" .. id)) or "")
+    if type(rec) ~= "table" or not rec.conceptrecid then note(e.file, nil, "Zenodo record " .. id .. " (" .. key .. ") did not load; not checked"); return end
+    if tostring(rec.conceptrecid) == id then
+      fail(e.file, nil, string.format("%s cites the concept DOI 10.5281/zenodo.%s, which follows the newest version", key, id),
+        string.format("cite the version you mean, for your own artifact the release your results came from: https://zenodo.org/records/%s/versions lists them (the newest is 10.5281/zenodo.%s)", id, tostring(rec.id)))
+    end
+  end)
+  return string.format("records=%d", n)
+end)
+
 rule("links", "tools", "advice", "always", "every \\url and \\href answers over the network; skipped when LINT_OFFLINE is set", function()
   if os.getenv("LINT_OFFLINE") or not C.have("curl") then C.skip("offline"); return end
   local urls, seen = {}, {}

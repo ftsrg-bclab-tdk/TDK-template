@@ -43,7 +43,7 @@ If you cannot connect the repository, upload an archive manually. Choose \emph{+
 \section{Cite it}\label{app:zenodo:cite}
 Each release has a \emph{version DOI}. The \emph{concept DOI} identifies all versions and resolves to the newest; see \href{https://support.zenodo.org/help/en-gb/1-upload-deposit/97-what-is-doi-versioning}{DOI versioning}.
 \begin{itemize}
-  \item Cite the \textbf{concept DOI} in the paper, following the \texttt{artifact} entry in \texttt{bib/references.bib}, in \tplref{ch:implementation}. Beside it, name the \textbf{results tag}: the Git tag and corresponding Zenodo version used for every reported number. The DOI leads to the latest packaging; the tag identifies the exact measured version.
+  \item Cite the \textbf{version DOI} of the release whose tag is the \textbf{results tag}, the Git tag every reported number was measured at, following the \texttt{artifact} entry in \texttt{bib/references.bib}, in \tplref{ch:implementation}, and name the tag beside it. A reviewer who follows the DOI lands on exactly the code that produced the numbers; Zenodo's record page shows that newer versions exist. The \texttt{zenodo} rule fails on a cited concept DOI.
   \item Put the concept DOI badge in \texttt{README.md} (\cref{app:code:readme}). Copy the badge's Markdown from the record page's DOI badge dialog.
   \item Copy both DOIs from the Zenodo record; never guess a DOI by changing its number.
 \end{itemize}
@@ -51,4 +51,4 @@ Each release has a \emph{version DOI}. The \emph{concept DOI} identifies all ver
 \section{Release a new version}\label{app:zenodo:versions}
 After fixing code, update \texttt{version} and \texttt{publication\_date} in \texttt{.zenodo.json}, commit, and publish a release under a new tag, such as \texttt{v1.0.1}. Zenodo adds a version with its own DOI to the record; see \href{https://help.zenodo.org/docs/deposit/manage-versions/}{manage versions}. Never move an old tag or rerun the paper's measurements against a version it does not describe. Keep the paper's results tag unchanged.
 
-The lifecycle (\cref{tab:lifecycle}) allows code polish \emph{after} the paper deadline, because the paper cites the concept DOI, which opens the version current when a reviewer visits. You have about two days after upload to finish the README, the Docker images, the results map and the reproduction-limits section, and to release them as a new version. Polish after that is allowed, but reviewers may already have looked.
+The lifecycle (\cref{tab:lifecycle}) allows code polish \emph{after} the paper deadline: the paper cites the measured version, and a polished release becomes a newer version of the same record, which its page offers to every visitor. You have about two days after upload to finish the README, the Docker images, the results map and the reproduction-limits section, and to release them as a new version. Polish after that is allowed, but reviewers may already have looked.

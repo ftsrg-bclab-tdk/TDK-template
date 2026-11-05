@@ -67,7 +67,7 @@ Red rows mark anchors. Yellow rows marked \official{} are the faculty's steps: t
   Advisor review & both & Our comments are resolved and the todo list is empty & \lcref{app:latex:todo}{Todo notes} \\
   Review sheet hill climb & you & You have scored A--E, fixed the weakest criterion and repeated until no cheap fixes remain & \lcref{app:tdk:sheet}{The review sheet} \\
   Skim pass (a hill climb) & you & Three passes done, or fewer once we accept what remains; aim for the maximum on every criterion from the skim view alone & \lcref{app:lifecycle:reviewers}{Reviewer passes} \\
-  Code archive & you & The code is on Zenodo, cited by its concept DOI, and the results tag is named in the paper & \lcref{app:zenodo}{Zenodo} \\
+  Code archive & you & The code is on Zenodo, cited by the version DOI of the results tag, which the paper names & \lcref{app:zenodo}{Zenodo} \\
   \rowcolor{department}
   Writing session \department & both & You attended with pizza, closed the last todos and had an advisor check the reviewer PDF & \lcref{tab:polish}{Requirements} \\
   \lcphase{6. Submit}{29 October -- 1 November, or earlier once the paper is complete}
@@ -178,7 +178,7 @@ The words \emph{must}, \emph{we recommend} and \emph{you can} mean what \cref{ap
   \textbf{PDF.} Bookmarks and metadata are correct, every link resolves, and the Zenodo DOI opens the record. & Advisors & \texttt{pdf-file}, \texttt{links}, reading & \texttt{polish} \\
   \textbf{Read-only passes.} Three readers can each follow one layer alone: figures and captions; running-example boxes; or the abstract and each chapter's first paragraph. Fill in any step missing from a layer. & Advisors & reading & \texttt{polish} \\
   \textbf{Reproducibility.} The documented container command runs \texttt{just reproduce} to regenerate every figure and table from the results tag named in the paper (\cref{app:code:readme}). & Advisors & reading & \texttt{polish} \\
-  \textbf{Code archive.} The code is on Zenodo, cited by its concept DOI, and the results tag is named in the paper (\cref{app:zenodo:cite}). & Advisors & \texttt{essentials}, reading & \texttt{polish} \\
+  \textbf{Code archive.} The code is on Zenodo, cited by the version DOI of the results tag, which the paper names (\cref{app:zenodo:cite}). & Advisors & \texttt{essentials}, \texttt{zenodo}, reading & \texttt{polish} \\
   \textbf{Review sheet hill climb.} Finished: no cheap fix is left on any criterion (\cref{tab:lifecycle}, Review sheet hill climb; \cref{app:tdk:sheet}). & Advisors & reading & \texttt{polish} \\
   \textbf{Reviewer passes.} The skim pass is finished and a run of the panel raises no blocker (\cref{tab:lifecycle}, Skim pass; \cref{app:lifecycle:reviewers}). & Advisors & reading & \texttt{polish} \\
   \textbf{Page count.} The main text, from the first page of \tplref{ch:intro} to the last page of the conclusion (\path{content/07-conclusion.tex}), is 30--35 pages; the title page, the abstracts, the acknowledgements, the glossary lists, the bibliography, the AI declaration and the appendices do not count (\cref{app:tdk:form}). & Faculty: call; the counting rule: us & \texttt{pages}, \texttt{pdf-pages} & \texttt{submit} \\
