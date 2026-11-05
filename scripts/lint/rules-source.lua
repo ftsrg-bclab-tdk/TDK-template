@@ -599,9 +599,8 @@ rule("axes", "source", "advice", "polish", "every pgfplots axis label carries a 
         else
           v = v:sub(#k + 1):gsub("^%s*=%s*", ""):sub(2, -2)
           local dimensionless = v:match("[Cc]ount") or v:match("[Nn]umber") or v:match("[Rr]ate") or v:match("%%") or v:match("[Ss]ize") or v:match("[Ss]essions") or v:match("[Ii]ssuers") or v:match("%$n%$") or v:match("[Rr]atio") or v:match("[Ss]core")
-            -- a label ending in a plural noun names what is counted: "Proof steps", "Nodes"
-            or (v:match("%as%s*$") and not v:match("ss%s*$"))
-          if not v:match("%[.+%]") and not dimensionless then warn(f, n, k .. " without a unit in brackets: " .. v) end
+          -- a count is named as one: "Number of proof steps", not "Proof steps"
+          if not v:match("%[.+%]") and not dimensionless and not v:match("\\#") then warn(f, n, k .. " without a unit in brackets: " .. v, "add the unit, Latency [ms]; or, for a count, say so: Number of " .. v:sub(1, 1):lower() .. v:sub(2)) end
         end
       end
     end
