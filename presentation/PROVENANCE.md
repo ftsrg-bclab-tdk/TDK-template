@@ -17,10 +17,11 @@ an editable PowerPoint version.
   relicense the entire legacy presentation as new material.
 - `powerpoint/templates/ftsrg-current.pptx` and `.potx` are newly authored native
   Office Open XML versions of the current `theme/bme.css` design. They reuse the
-  existing graph artwork and logos unchanged. The twelve layouts follow the
+  existing graph artwork and logos unchanged. The fourteen layouts follow the
   BPM 2026 talk at `6f1b07b`, including its inline closing styles, font weights,
-  tracking, compact header, cover author block and closing panels. They include
-  native table/chart examples and a connected native workflow diagram.
+  tracking, compact header, cover author block and closing panels. Cover variants
+  accommodate a two-line research title or the original portrait/QR arrangement.
+  They include native table/chart examples and a connected native workflow diagram.
   They are a PowerPoint adaptation, not a synchronized export
   of `slides.md`. The examples are instructional; the chart data are synthetic.
 - `powerpoint/assets/workflow.png` is a raster copy of `figures/workflow.svg` for

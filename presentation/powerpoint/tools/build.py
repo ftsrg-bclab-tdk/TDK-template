@@ -5,6 +5,7 @@ The checked-in PPTX/POTX are student deliverables, not renders of Markdown.
 All dimensions below are CSS pixels on the source theme's 1280 x 720 canvas.
 """
 import argparse
+import copy
 import io
 import json
 import struct
@@ -87,7 +88,7 @@ def decorative(cnv):
 
 def text_body(parent, texts, style=None, inherited=False, tag="p:txBody"):
     b = sub(parent, tag)
-    attrs = {} if inherited else dict(wrap="square", lIns=0, rIns=0, tIns=0, bIns=0, anchor="t")
+    attrs = {} if inherited else dict(wrap="square", lIns=0, rIns=0, tIns=0, bIns=0, anchor=(style or {}).get("anchor", "t"))
     bp = sub(b, "a:bodyPr", **attrs)
     if not inherited:
         sub(bp, "a:noAutofit")
@@ -131,6 +132,8 @@ def paragraph_style(pp, style, level=0):
              b=int(style.get("bold", False)), kern=1200)
     if style.get("tracking"):
         rp.set("spc", str(round(style["tracking"] * 75)))
+    if style.get("caps"):
+        rp.set("cap", "all")
     solid(rp, style.get("color", "tx1"))
     sub(rp, "a:latin", typeface=style.get("font", "+mn-lt"))
 
@@ -319,6 +322,8 @@ def make_master(pkg, number, name, layouts):
 
 
 def placeholder(name, kind, idx, box, text, **style):
+    if kind in ("title", "ctrTitle", "subTitle"):
+        style["caps"] = True
     return dict(name=name, ph=(kind, idx), box=box, text=text, style=style)
 
 
@@ -328,12 +333,12 @@ def layouts():
     title = lambda text, y=91.625: placeholder("Slide title", "title", 0, (64, y, 1152, 48), text, size=30, leading=36, color="accent1", align="ctr", font="+mj-lt", tracking=2.1)
     caption = lambda text, y=560: placeholder("Caption / source", "body", 10, (100, y, 1080, 64), text, size=18, leading=25.2, color="3D3D3D", align="ctr")
     body = lambda name, idx, box, text, **kw: placeholder(name, "body", idx, box, text, **kw)
-    eyebrow = lambda text: body("Section / topic", 11, (64, 70, 1152, 19), text.upper(), size=12.5, leading=15.625, font="Montserrat SemiBold", color="4A4A4A", tracking=2.75, align="ctr")
-    label = lambda name, idx, box, text, color="accent1": body(name, idx, box, text, size=12, leading=17.4, bold=True, tracking=2.4, color=color)
-    return [
+    eyebrow = lambda text: body("Section / topic", 11, (64, 70, 1152, 19), text.upper(), size=12.5, leading=15.625, font="Montserrat SemiBold", color="4A4A4A", tracking=2.75, align="ctr", caps=True)
+    label = lambda name, idx, box, text, color="accent1": body(name, idx, box, text, size=12, leading=17.4, bold=True, tracking=2.4, color=color, caps=True)
+    specs = [
         dict(name="01 Cover", master=2, kind="title", items=[
-            placeholder("Presentation title", "ctrTitle", 0, (90, 184.4, 1100, 51), "YOUR RESEARCH TITLE", size=38, leading=49.4, color="FFFFFF", align="ctr", font="Montserrat SemiBold", tracking=4.56),
-            placeholder("Subtitle", "subTitle", 1, (90, 233.8, 1100, 104), "THE PROBLEM AND\nYOUR CONTRIBUTION", size=32, leading=49, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.8),
+            placeholder("Presentation title", "ctrTitle", 0, (90, 184.4, 1100, 49), "Research title", size=38, leading=49.4, color="FFFFFF", align="ctr", font="Montserrat SemiBold", tracking=4.56),
+            placeholder("Subtitle", "subTitle", 1, (90, 233.8, 1100, 104), "The problem and\nyour contribution", size=32, leading=49, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.8),
             body("Authors", 2, (160, 396, 960, 24), "STUDENT NAME · COAUTHOR NAME", size=16, leading=22.4, color="E8E6E1", align="ctr", tracking=3.2),
             body("Event and date", 3, (160, 418.4, 960, 24), "TDK CONFERENCE · PRESENTATION DATE", size=13, leading=18.2, color="E3C6CB", align="ctr", tracking=3.64),
             body("Presenter name", 4, (630, 613.6, 380, 23), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
@@ -350,29 +355,29 @@ def layouts():
              panels=[(618, 433, 44, 1, "D9B9BE")],
              notes="This optional divider comes from the BPM/AVM shared CSS; the final BPM 2026 talk itself does not use a divider. Edit the section label and transition sentence. The purple graph artwork and overlay are shared on the Section master. Keep the title to two lines and the summary short."),
         dict(name="03 Title and text", master=1, kind="tx", items=[title("ASSUMPTIONS AND LIMITATIONS"), eyebrow("Research scope"),
-            body("Main points", 1, (64, 165, 1152, 290), "A stable identifier must refer to the same logical job.\nA database transaction does not automatically cover an external service.\nA successful test covers the tested execution; a proof depends on its model.", size=23, leading=32.2, after=430, bullets=True),
-            label("Note label", 2, (86, 465, 1108, 20), "NEXT EXPERIMENT"),
-            body("Supporting note", 3, (86, 494, 1108, 72), "Introduce an external notification and inspect the gap between sending it and recording completion.", size=20.7, leading=30.015)],
-             panels=[(64, 447, 1152, 137, "FFFFFF")],
+            body("Main points", 1, (64, 165, 1152, 150), "A stable identifier must refer to the same logical job.\nA database transaction does not automatically cover an external service.\nA successful test covers the tested execution; a proof depends on its model.", size=23, leading=32.2, after=430, bullets=True),
+            label("Note label", 2, (86, 348, 1108, 20), "NEXT EXPERIMENT"),
+            body("Supporting note", 3, (86, 377, 1108, 72), "Introduce an external notification and inspect the gap between sending it and recording completion.", size=20.7, leading=30.015)],
+             panels=[(64, 330, 1152, 137, "FFFFFF")],
              notes="Home > New Slide > Title and text adds this layout. Titles, topic labels and body text inherit their formatting from the layout. Enter creates another bullet; Tab / Shift+Tab changes level. Home > Reset restores geometry. Edit the project label and centered event/author line on the Content master."),
         dict(name="04 Two columns", master=1, kind="twoObj", items=[title("A RETRY CAN REPEAT A COMPLETED JOB"), eyebrow("Running example"),
             label("Left column label", 12, (86, 178, 517, 21), "EXAMPLE SCENARIO"),
-            body("Left column", 1, (86, 207, 517, 135), "A worker completes a job, but its acknowledgement is lost. The queue sends the same job again.", size=20.7, leading=30.015),
+            body("Left column", 1, (86, 207, 517, 108), "A worker completes a job, but its acknowledgement is lost. The queue sends the same job again.", size=20.7, leading=30.015),
             label("Right column label", 13, (677, 178, 517, 21), "WHY IT MATTERS", "A85E08"),
-            body("Right column", 2, (677, 207, 517, 135), "Running a payment twice may change the result. The system needs an explicit rule for retries.", size=20.7, leading=30.015),
-            body("Discussion question", 3, (88, 386, 1104, 49), "What happens when the same request arrives twice?", size=21.16, leading=29.624, align="ctr", color="3D3D3D"),
-            caption("Illustrative example only. Replace it with your own research context.", 462)],
-             panels=[(64, 160, 561, 201, "FFFFFF"), (655, 160, 561, 201, "FDEBD6"), (64, 374, 1152, 1, "A8A8A8"), (64, 442, 1152, 1, "A8A8A8")],
+            body("Right column", 2, (677, 207, 517, 108), "Running a payment twice may change the result. The system needs an explicit rule for retries.", size=20.7, leading=30.015),
+            body("Discussion question", 3, (88, 355, 1104, 49), "What happens when the same request arrives twice?", size=21.16, leading=29.624, align="ctr", color="3D3D3D"),
+            caption("Illustrative example only. Replace it with your own research context.", 431)],
+             panels=[(64, 160, 561, 170, "FFFFFF"), (655, 160, 561, 170, "FDEBD6"), (64, 343, 1152, 1, "A8A8A8"), (64, 411, 1152, 1, "A8A8A8")],
              notes="The two-column layout uses the BPM CSS's 30 px column gap, 22 px card padding and compact label/body hierarchy. Every label and paragraph is editable. The panels and discussion rules are on the layout. Read left to right. Replace the fictional scenario before using it as evidence."),
         dict(name="05 Three columns", master=1, kind="cust", items=[title("MODEL, RULE AND EVIDENCE"), eyebrow("Research method"),
             label("Model label", 12, (86, 178, 325.33, 21), "MODEL"),
-            body("Model", 1, (86, 207, 325.33, 165), "State which messages can be lost and what storage survives.", size=20.7, leading=30.015),
+            body("Model", 1, (86, 207, 325.33, 108), "State which messages can be lost and what storage survives.", size=20.7, leading=30.015),
             label("Rule label", 13, (477.33, 178, 325.33, 21), "RULE"),
-            body("Rule", 2, (477.33, 207, 325.33, 165), "Record job completion together with its effect.", size=20.7, leading=30.015),
+            body("Rule", 2, (477.33, 207, 325.33, 108), "Record job completion together with its effect.", size=20.7, leading=30.015),
             label("Check label", 14, (868.67, 178, 325.33, 21), "CHECK"),
-            body("Check", 3, (868.67, 207, 325.33, 165), "Explore a retry before, during and after completion.", size=20.7, leading=30.015),
-            caption("Each step produces something another researcher can inspect.", 420)],
-             panels=[(64 + i * (1174/3), 160, 1108/3, 230, "FFFFFF") for i in range(3)],
+            body("Check", 3, (868.67, 207, 325.33, 108), "Explore a retry before, during and after completion.", size=20.7, leading=30.015),
+            caption("Each step produces something another researcher can inspect.", 360)],
+             panels=[(64 + i * (1174/3), 160, 1108/3, 170, "FFFFFF") for i in range(3)],
              notes="The three columns follow the BPM CSS's 22 px gap, 22 px horizontal padding and separate compact labels. Use this layout for parallel material. Use two columns when there are only two ideas. Keep labels short and replace the example text with your own method."),
         dict(name="06 Figure and caption", master=1, kind="picTx", items=[title("SYSTEM MODEL"), eyebrow("Research method"),
             placeholder("Research figure", "pic", 1, (80, 155, 1120, 400), "Insert your figure", size=23, align="ctr"),
@@ -418,6 +423,29 @@ def layouts():
             caption("These are prompts, not citations. Replace them with verified sources.", 520)],
              notes="The backup tag and 30 px title follow the BPM talk's backup pages. Use actual source titles and persistent links. Cite borrowed figures on their slides too. Follow the paper's AI declaration rules. Remove unused prompts and keep detailed evidence after the close."),
     ]
+    # Keep the BPM portrait composition as an explicit choice. With empty picture
+    # slots, it leaves a misleading gap beside the presenter on the default cover.
+    portrait = copy.deepcopy(specs[0])
+    portrait["name"] = "14 Cover with portrait and QR"
+    specs[0]["items"] = [p for p in specs[0]["items"] if p["ph"][0] != "pic"]
+    for item in specs[0]["items"]:
+        if item["name"].startswith("Presenter"):
+            x, y, w, h = item["box"]
+            item["box"] = (x + 206, y, w, h)
+    specs[0]["notes"] = "The default cover follows BPM's title, subtitle, rule and author hierarchy. It has no empty image slots: the presenter block aligns to the right margin. For a portrait and QR code choose layout 14. For a longer title choose layout 13, keeping the original type size. Title and subtitle use native All Caps formatting, so normal-case editing preserves the visual style. Save a copy and replace the example details."
+    long_title = copy.deepcopy(specs[0])
+    long_title["name"] = "13 Cover with two-line title"
+    for item in long_title["items"]:
+        if item["name"] == "Presentation title":
+            item["box"] = (90, 150, 1100, 100)
+            item["text"] = "Formal analysis of\nreliable job execution"
+        elif item["name"] == "Subtitle":
+            item["box"] = (90, 259, 1100, 88)
+            item["style"]["leading"] = 41.6
+            item["text"] = "Assumptions and evidence\nfor retries and failures"
+    long_title["notes"] = "Use this cover when the main research title needs two lines. Insert a deliberate line break at a phrase boundary. The title keeps BPM's 38 px SemiBold type and the subtitle keeps its 32 px Light type. Their separate boxes do not overlap. Keep the main title within two lines and the subtitle within two lines. The fictional job-execution title is an editing example, not a reported finding."
+    specs.extend([long_title, portrait])
+    return specs
 
 
 def frame(t, name, box, ph, descr):
@@ -565,6 +593,7 @@ def add_chart(pkg, t, rels):
         sub(axis, "c:crosses", val="autoZero")
         if typ == "valAx":
             sub(axis, "c:crossBetween", val="between")
+            sub(axis, "c:majorUnit", val=5)
         else:
             sub(axis, "c:auto", val=1)
             sub(axis, "c:lblAlgn", val="ctr")
@@ -583,8 +612,8 @@ def add_chart(pkg, t, rels):
 def add_diagram(t):
     ids = []
     for i, (label, text) in enumerate([("Model", "Failures and state"), ("Rule", "Completion and effect"), ("Evidence", "Tests or proofs")]):
-        s = shape(t, label, (90 + i * 405, 230, 290, 140), label + "\n" + text,
-                  dict(size=23, leading=32.2, align="ctr", after=900), fill="lt1", border="accent1")
+        s = shape(t, label, (90 + i * 405, 230, 290, 110), label + "\n" + text,
+                  dict(size=23, leading=32.2, align="ctr", after=900, anchor="ctr"), fill="lt1", border="accent1")
         ids.append(s.find("p:nvSpPr/p:cNvPr", NS).get("id"))
     for i in range(2):
         c = sub(t, "p:cxnSp")
@@ -595,12 +624,12 @@ def add_diagram(t):
         sub(pr, "a:endCxn", id=ids[i+1], idx=1)
         sub(nv, "p:nvPr")
         sp = sub(c, "p:spPr")
-        xfrm(sp, (380+i*405, 300, 115, 0))
+        xfrm(sp, (380+i*405, 285, 115, 0))
         sub(sub(sp, "a:prstGeom", prst="line"), "a:avLst")
         ln = sub(sp, "a:ln", w=emu(3))
         solid(ln, "accent1")
         sub(ln, "a:tailEnd", type="triangle", w="med", len="med")
-    shape(t, "Diagram explanation", (120, 420, 1040, 75), "Each arrow connects an explicit input to an inspectable output.", dict(size=18, leading=25.2, align="ctr"))
+    shape(t, "Diagram explanation", (120, 375, 1040, 75), "Each arrow connects an explicit input to an inspectable output.", dict(size=18, leading=25.2, align="ctr"))
 
 
 def notes_master(pkg):
@@ -654,7 +683,7 @@ def build(output):
                     shape(st, ph["name"], text="", ph=ph["ph"])
             else:
                 s = shape(st, ph["name"], text=ph["text"], ph=ph["ph"])
-                if i == 1 and ph["name"] == "Authors":
+                if ph["name"] == "Authors":
                     p = s.find("p:txBody/a:p", NS)
                     r = p.find("a:r", NS)
                     first, separator, rest = ph["text"].partition(" · ")

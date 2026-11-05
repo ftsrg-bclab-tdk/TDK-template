@@ -41,14 +41,19 @@ embedding with all characters for editing, then reopen the saved file to check.
 
 The 16:9 template uses three masters: light-grey content, dark graph cover and
 closing, and purple graph section divider. They share one color/font theme.
-The twelve named layouts are cover, divider, title and text, two columns, three
+The fourteen named layouts are cover, divider, title and text, two columns, three
 columns, figure and caption, code and explanation, table, chart, title only,
-closing, and references/backup. Every example has a real title placeholder.
+closing, references/backup, a two-line cover title, and a cover with portrait/QR
+placeholders. Every example has a real title placeholder.
 
 Text geometry and styles live on layouts, so new slides inherit them and Reset
 can restore them. Body lists have three useful levels; keep deeper detail in
 backup slides. Content titles use one short line with a separate topic label
-above it. Cover subtitles and divider titles have two lines. Shorten crowded
+above it. Titles and subtitles use native All Caps formatting: you can type
+normal-case text without losing the BPM appearance. The default cover has a
+one-line title and a two-line subtitle. Choose **13 Cover with two-line title**
+for a longer research title; it keeps the BPM font sizes and reserves room
+for both lines. Cover subtitles and divider titles have two lines. Shorten crowded
 content instead of reducing the type. Content slides have automatic slide-number fields; cover,
 divider and closing slides omit them.
 
@@ -68,9 +73,10 @@ divider and closing slides omit them.
 - **Code:** edit the text directly in JetBrains Mono. Keep long listings in
   an appendix or repository. The example is pseudocode, not a verified result.
 
-The cover includes optional picture placeholders for a portrait and a contact
-QR code. The closing includes one for a project QR code. Empty placeholders do
-not appear in Slide Show; select the picture icon in Normal view to fill them.
+The default cover aligns the presenter details to the right margin without
+reserving empty image slots. Choose **14 Cover with portrait and QR** to use
+the BPM cover's portrait and contact QR arrangement. The closing includes a
+project QR placeholder. Empty placeholders do not appear in Slide Show; select the picture icon in Normal view to fill them.
 For a portrait, use **Picture Format > Crop > Crop to Shape > Oval**. Use a QR
 image only after checking its destination and testing it on a phone. The
 template supplies no portrait or working QR code for someone else's identity.
@@ -140,9 +146,9 @@ into `powerpoint/templates/`, update `SHA256SUMS`, and run the check again.
 CI verifies hashes, internal relationships, native object structure, placeholder
 inheritance, chart/workbook consistency, and reproducibility from the builder.
 It is not a complete Office Open XML schema or accessibility validator.
-Five regression tests exercise lost title semantics, an invisible table type,
-inherited hanging indents in plain text, stale chart values and an external
-workbook link.
+Seven regression tests exercise lost title semantics and capitalization,
+overlapping cover title/subtitle boxes, an invisible table type, inherited
+hanging indents in plain text, stale chart values and an external workbook link.
 
 The initial release was rendered with LibreOffice, and every example slide was
 visually inspected. Structural and geometry checks also passed. **Microsoft
@@ -151,7 +157,7 @@ also open both formats in desktop PowerPoint: test New Slide, Reset, Change
 Picture, Edit Data, editing the shared master, and saving/reopening a copy.
 Confirm that no repair prompt appears and run the Accessibility Checker.
 
-A LibreOffice POTX-to-PPTX round trip retained the twelve slides and notes,
+A LibreOffice POTX-to-PPTX round trip retained the original twelve slides and notes,
 native table and chart, but dropped the separate embedded Excel workbook.
 Use the supplied originals for PowerPoint editing; do not distribute a
 LibreOffice-resaved copy without checking chart editing again.

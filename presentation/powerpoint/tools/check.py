@@ -59,7 +59,7 @@ def inspect(path):
         require(p.find("p:sldSz", NS).attrib == {"cx": "12192000", "cy": "6858000", "type": "screen16x9"}, "Wrong canvas")
         prs = relationships(z, "ppt/presentation.xml")
         slides = [prs[e.get("{" + NS["r"] + "}id")][1] for e in p.findall("p:sldIdLst/p:sldId", NS)]
-        require(len(slides) == 12, "Missing example slide")
+        require(len(slides) == 14, "Missing example slide")
         require(len(p.findall("p:sldMasterIdLst/p:sldMasterId", NS)) == 3, "Expected three shared masters")
         layout_names = set()
         for i, part in enumerate(slides, 1):
@@ -76,6 +76,19 @@ def inspect(path):
                 if style.find("a:buNone", NS) is not None:
                     require(style.get("marL") == "0" and style.get("indent") == "0",
                             f"Non-bullet layout text inherits a hanging indent on {i}")
+            layout_titles = [s for s in layout.findall(".//p:sp", NS)
+                             if any(ph.get("type") in ("title", "ctrTitle") for ph in s.findall(".//p:ph", NS))]
+            for title in layout_titles:
+                require(title.find("p:txBody/a:lstStyle/a:lvl1pPr/a:defRPr", NS).get("cap") == "all",
+                        f"Title loses automatic capitalization on {i}")
+            subtitles = [s for s in layout.findall(".//p:sp", NS)
+                         if s.find(".//p:ph[@type='subTitle']", NS) is not None]
+            if subtitles:
+                title_pos = layout_titles[0].find("p:spPr/a:xfrm", NS)
+                subtitle_pos = subtitles[0].find("p:spPr/a:xfrm", NS)
+                bottom = int(title_pos.find("a:off", NS).get("y")) + int(title_pos.find("a:ext", NS).get("cy"))
+                require(bottom <= int(subtitle_pos.find("a:off", NS).get("y")),
+                        f"Cover title overlaps subtitle on {i}")
             shapes = slide.find("p:cSld/p:spTree", NS)
             titles = [s for s in shapes if any(ph.get("type") in ("title", "ctrTitle") for ph in s.findall(".//p:ph", NS))]
             require(len(titles) == 1 and shapes[2] is titles[0], f"Title missing or not first in reading order on {i}")
@@ -93,10 +106,10 @@ def inspect(path):
             notes_path = next(target for typ, target in rs.values() if typ == "notesSlide")
             notes = ET.fromstring(z.read(notes_path))
             require(len("".join(notes.itertext())) > 150, f"Missing editing guidance on {i}")
-            numbered = i not in (1, 2, 11)
+            numbered = i not in (1, 2, 11, 13, 14)
             fields = slide.findall(".//a:fld[@type='slidenum']", NS)
             require(len(fields) == int(numbered), f"Incorrect automatic numbering on {i}")
-        require(len(layout_names) == 12, "Examples must cover twelve distinct layouts")
+        require(len(layout_names) == 14, "Examples must cover fourteen distinct layouts")
         table_slide = ET.fromstring(z.read(slides[7]))
         table_data = table_slide.find(".//a:graphicData[a:tbl]", NS)
         require(table_data is not None and table_data.get("uri") == "http://schemas.openxmlformats.org/drawingml/2006/table", "Table has an invalid graphicData type (can render invisible)")

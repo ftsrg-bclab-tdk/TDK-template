@@ -30,6 +30,20 @@ class BrokenTemplates(unittest.TestCase):
     def test_inherited_hanging_indent(self):
         self.damaged("ppt/slideLayouts/slideLayout4.xml", b' marL="0" indent="0"', b'', "inherits a hanging indent")
 
+    def test_lost_title_capitalization(self):
+        self.damaged("ppt/slideLayouts/slideLayout1.xml", b' cap="all"', b'', "automatic capitalization")
+
+    def test_overlapping_cover_title(self):
+        from xml.etree import ElementTree as ET
+        from check import NS
+        part = "ppt/slideLayouts/slideLayout1.xml"
+        with zipfile.ZipFile(ROOT / "templates/ftsrg-current.pptx") as z:
+            layout = ET.fromstring(z.read(part))
+        subtitle = next(s for s in layout.findall(".//p:sp", NS)
+                        if s.find(".//p:ph[@type='subTitle']", NS) is not None)
+        y = subtitle.find("p:spPr/a:xfrm/a:off", NS).get("y")
+        self.damaged(part, f'y="{y}"'.encode(), b'y="0"', "overlaps subtitle")
+
     def test_stale_chart_cache(self):
         self.damaged("ppt/charts/chart1.xml", b'<c:v>12</c:v>', b'<c:v>99</c:v>', "values disagree")
 
