@@ -332,6 +332,8 @@ Use three research questions, one for each evaluation section below. These are t
 \guidebeat{how the measurements were made, so that each can be checked}{hardware, software versions, workloads, repetitions, the rerun command}{the example as the base workload, scaled up for the scalability question}{the results}
 For the registry: one 8-core virtual machine, four ledger nodes, synthetic issuer sets of 10 to 10\,000 issuers with 100 credentials each, 10 runs per point with fresh sets, and the command that reruns them.
 
+When most benchmark instances can be decided without what your contribution adds, a result on them says little about the contribution, whichever method wins. Say so, and derive harder instances from the same benchmark, ones the contribution has to work on. State how you derived them and how you chose their parameters, report both sets, and name the variant under threats to validity, because you built it.
+
 \subsection{Artifact availability}\label{guide:chapters:artifact-availability}
 Archive code, models and measurement scripts on Zenodo (\cref{guide:zenodo}). Name the results tag, such as \texttt{v1.0.0}, and the reproduction command required by \cref{guide:code:readme}.
 
