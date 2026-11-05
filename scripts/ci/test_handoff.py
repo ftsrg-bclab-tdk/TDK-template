@@ -33,7 +33,8 @@ class HandoffTests(unittest.TestCase):
                 if "/artifacts?" in path:
                     return {"artifacts":[owner.artifact]}
                 return {"id":10,"default_branch":"main"}
-            def download(self,path,target,limit):
+            def download(self,path,target,limit,accept=None):
+                assert accept == "application/vnd.github+json"
                 shutil.copyfile(owner.archive,target)
                 if mutation:
                     mutation(target)

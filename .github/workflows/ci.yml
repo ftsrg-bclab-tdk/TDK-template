@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       python-version: ${{ steps.python.outputs.python-version }}
+      java-version: ${{ steps.java.outputs.version }}
     steps:
       - uses: actions/checkout@main
         with:
@@ -38,6 +39,12 @@ jobs:
         id: python
         with:
           python-version: '3.x'
+          check-latest: true
+      - uses: actions/setup-java@main
+        id: java
+        with:
+          distribution: temurin
+          java-version: latest
           check-latest: true
       - name: Resolve current schema-check dependency
         run: python3 -m pip install --upgrade jsonschema
@@ -58,6 +65,11 @@ jobs:
       - uses: actions/setup-python@main
         with:
           python-version: ${{ needs.source.outputs.python-version }}
+      - uses: actions/setup-java@main
+        with:
+          distribution: temurin
+          java-version: ${{ needs.source.outputs.java-version }}
+          check-latest: true
       - uses: actions/setup-node@main
         with:
           node-version: '*'
@@ -65,6 +77,12 @@ jobs:
       - name: Install current PDF inspection tools
         if: github.event_name != 'pull_request' || !github.event.pull_request.draft
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Reclaim hosted SDK disk before the paper image
+        if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+        run: |
+          # This job uses Python, Node and Docker; these preinstalled SDKs are unused.
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          df -h / /var/lib/docker
       - name: Plan and execute configured checks
         env:
           EVENT_NAME: ${{ github.event_name }}

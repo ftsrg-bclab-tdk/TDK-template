@@ -39,7 +39,8 @@ class CandidateTests(unittest.TestCase):
                     self.value["assets"].append(item);return item
                 if method=="PATCH":self.value.update(value);self.value["immutable"]=True
                 return self.value
-            def download(self,path,target,limit):
+            def download(self,path,target,limit,accept="application/octet-stream"):
+                assert accept == "application/octet-stream"
                 data=self.data[int(path.rsplit('/',1)[1])]
                 if len(data)>limit:raise ValueError("limit")
                 Path(target).write_bytes(data)

@@ -29,6 +29,40 @@ def timestamp(value):
         raise ValueError("Invalid evidence timestamp") from exc
 
 
+def validate_runtime(runtime, tested_sha, config_sha256, component=None, require_tlc=False):
+    if (not isinstance(runtime, dict) or runtime.get("schema") != "runtime-resolution/v1"
+            or runtime.get("source_sha") != tested_sha
+            or runtime.get("project_config_sha256") != config_sha256):
+        raise ValueError("Runtime identity mismatch")
+    if component:
+        tools = runtime.get("tools")
+        required_tools = {"python", "git"} | {
+            "paper": {"tex", "latexmk", "inkscape", "pdfinfo", "python_packages"},
+            "presentation": {"node", "npm", "browser"},
+        }.get(component, set())
+        members = runtime.get("components")
+        if (not isinstance(tools, dict) or not required_tools <= tools.keys()
+                or any(not isinstance(v, str) or not v.strip() for v in tools.values())
+                or not isinstance(members, list) or members != [component]):
+            raise ValueError("Required component runtime content mismatch: " + component)
+    if require_tlc:
+        proof = runtime.get("proof_tools")
+        if (not isinstance(proof, dict) or not isinstance(proof.get("tlc"), dict)
+                or not isinstance(proof.get("java"), dict)):
+            raise ValueError("Missing resolved TLC/JVM identity")
+        tlc, java = proof["tlc"], proof["java"]
+        if (not all(tlc.get(k) for k in ("tag", "release_id", "asset_id", "jar", "requested", "resolved_at"))
+                or not all(java.get(k) for k in ("executable", "version"))
+                or any(not re.fullmatch(r"[0-9a-f]{64}", item.get("sha256", "")) for item in (tlc, java))
+                or any(runtime["tools"].get(k) != json.dumps(proof[k], sort_keys=True) for k in ("tlc", "java"))):
+            raise ValueError("Invalid resolved TLC/JVM identity/content")
+    return runtime
+
+
+def uses_tlc(checks):
+    return any(any(Path(arg).name == "tlc.py" for arg in step.get("argv", [])) for step in checks)
+
+
 def verify_report(report_path, *, repository, tested_sha, config_sha256,
                   required_components, expected_report_sha256=None, after=None,
                   require_clean=True, require_runtime=True):
@@ -48,11 +82,16 @@ def verify_report(report_path, *, repository, tested_sha, config_sha256,
         raise ValueError("Report repository/source/config identity mismatch")
     if require_clean and source.get("dirty") is not False:
         raise ValueError("Dirty or unknown source state")
-    if require_clean and report.get("source_after", {}).get("dirty", False):
+    source_after = report.get("source_after", {})
+    if (not isinstance(source_after, dict) or any(source_after.get(k) != source.get(k)
+            for k in ("repository", "source_sha", "tested_sha"))):
+        raise ValueError("Post-run source identity mismatch")
+    if require_clean and source_after.get("dirty") is not False:
         raise ValueError("Source became dirty during execution")
     execution = report.get("execution", {})
     started, completed = timestamp(execution.get("started_at")), timestamp(execution.get("completed_at"))
-    if completed < started or started > datetime.now(timezone.utc):
+    current = datetime.now(timezone.utc)
+    if completed < started or started > current or completed > current:
         raise ValueError("Invalid execution interval")
     if after and started < timestamp(after):
         raise ValueError("Evidence predates required roundtrip/clone boundary")
@@ -76,6 +115,12 @@ def verify_report(report_path, *, repository, tested_sha, config_sha256,
     if not required_components or len(set(required_components)) != len(required_components):
         raise ValueError("Caller must declare unique required components")
     for name in required_components:
+        nested = runtime.get("components", {}).get(name) if runtime and isinstance(runtime.get("components"), dict) else runtime
+        if require_runtime:
+            try:
+                validate_runtime(nested, tested_sha, config_sha256, name, uses_tlc(report.get("components", {}).get(name, {}).get("checks", [])))
+            except ValueError as exc:
+                raise ValueError("Required component runtime identity/content mismatch: " + name) from exc
         component = report.get("components", {}).get(name, {})
         if (not plan.get("components", {}).get(name, {}).get("selected")
                 or component.get("execution_status") != "completed" or component.get("gate_outcome") != "pass"

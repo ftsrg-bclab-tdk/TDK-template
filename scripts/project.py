@@ -14,6 +14,7 @@ from ci.config import inside, load_project, read_json
 from ci.dependencies import plan as dependency_plan
 from ci.process import execute
 from ci.results import interpret
+from ci.evidence import validate_runtime, uses_tlc
 
 
 def now():
@@ -102,12 +103,21 @@ def doctor(root, config, config_digest):
             "scope": "configuration and executable discovery; no component or service access verified"}
 
 
-def run_check(root, component, step, output, strict, mode="ordinary"):
+def run_check(root, component, step, output, strict, mode="ordinary", runtime=None):
     cwd = inside(root, component["cwd"])
     result_file = inside(cwd, step["result_file"]) if "result_file" in step else None
     if result_file and result_file.exists():
         raise ValueError("Stale adapter result exists before execution: " + str(result_file))
-    result = execute(step["argv"], cwd, output, step["name"], step["timeout"])
+    for relative in step["outputs"]:
+        path = inside(cwd, relative)
+        if path.exists() or path.is_symlink():
+            raise ValueError("Stale required output exists before execution: " + relative)
+    argv = list(step["argv"])
+    if any(Path(arg).name == "tlc.py" for arg in argv) and runtime and runtime.get("proof_tools_path"):
+        if read_json(runtime["proof_tools_path"])[0] != runtime.get("proof_tools"):
+            raise ValueError("Proof tool receipt changed before execution")
+        argv += ["--runtime", runtime["proof_tools_path"]]
+    result = execute(argv, cwd, output, step["name"], step["timeout"])
     result.update(name=step["name"], kind=step["kind"], files=[])
     native = None
     try:
@@ -116,6 +126,9 @@ def run_check(root, component, step, output, strict, mode="ordinary"):
         elif result_file and result_file.is_file():
             native, _ = read_json(result_file)
             shutil.copyfile(result_file, output / (step["name"] + ".result.json"))
+        if (runtime and runtime.get("proof_tools") and native and step["kind"] == "proof"
+                and native.get("runtime") != runtime["proof_tools"]):
+            raise ValueError("Proof result differs from resolved TLC/JVM runtime")
         result.update(interpret(step["kind"], result["raw_exit"], native, strict=strict))
         if step["kind"] == "benchmark" and native and native.get("mode") != ("full" if mode == "full" else "smoke"):
             raise ValueError("Benchmark result mode differs from requested execution")
@@ -128,7 +141,7 @@ def run_check(root, component, step, output, strict, mode="ordinary"):
             result.update(outcome="unknown", gate_outcome="fail", reason="Required output missing: " + relative)
             continue
         for member in paths:
-            if member.stat().st_size == 0:
+            if member.stat().st_size == 0 and relative not in step.get("allow_empty_outputs", []):
                 result.update(outcome="unknown", gate_outcome="fail", reason="Required output empty: " + relative)
                 continue
             target = output / "files" / step["name"] / member.relative_to(cwd)
@@ -199,12 +212,25 @@ def check(root, config, config_digest, plan, output, runtime=None, config_path="
                     component["cwd"] = staged
                 if mode not in component["profiles"]:
                     raise ValueError("No configured profile: " + mode)
+                if uses_tlc(component["profiles"][mode]):
+                    validate_runtime(runtime, plan["source"]["tested_sha"], config_digest, name, require_tlc=True)
                 for step in component["profiles"][mode]:
                     try:
-                        record = run_check(root, component, step, component_output, mode == "submit", mode)
+                        record = run_check(root, component, step, component_output, mode == "submit", mode, runtime)
                     except (ValueError, OSError) as exc:
                         record = {"name": step["name"], "kind": step["kind"], "execution_status": "error", "outcome": "unknown", "gate_outcome": "fail", "reason": str(exc)}
                     result["checks"].append(record)
+                    if name == "presentation" and step["kind"] == "build" and record["gate_outcome"] == "pass":
+                        exported = component_output / "files" / step["name"] / "dist"
+                        browser = runtime.get("browser_path") if runtime else os.environ.get("CHROME_PATH")
+                        if not browser:
+                            raise ValueError("Export verification requires resolved browser identity")
+                        exported_check = execute(["node", str(Path(__file__).parent / "ci/export_check.mjs"),
+                                                  str(inside(root, component["cwd"])), str(exported), browser],
+                                                 root, component_output, step["name"] + "-export", step["timeout"])
+                        exported_check.update(name=step["name"] + "-export", kind="command", files=[])
+                        exported_check.update(interpret("command", exported_check["raw_exit"]))
+                        result["checks"].append(exported_check)
                 passed = all(c["gate_outcome"] == "pass" for c in result["checks"])
                 result.update(execution_status="completed" if all(c["execution_status"] == "completed" for c in result["checks"]) else "error",
                               outcome="findings" if passed and any(c["outcome"] == "findings" for c in result["checks"]) else "pass" if passed else "unknown",

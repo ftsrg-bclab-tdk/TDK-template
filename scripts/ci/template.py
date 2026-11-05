@@ -36,6 +36,7 @@ def main():
                       "scripts/readme","scripts/maintenance","scripts/overleaf","benchmark","proof",
                       "code/scripts/tests","scratch/scripts/tests"):
             run([sys.executable,"-m","unittest","discover","-s",suite,"-v"])
+        run([sys.executable, "proof/acceptance.py"])
     elif mode == "paper":
         paper = root/"paper"
         if not (paper/"draft.pdf").is_file() or not (paper/"final.pdf").is_file():

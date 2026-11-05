@@ -30,8 +30,10 @@ class BoundaryTests(unittest.TestCase):
         plan = {'source': source, 'configuration': dict(config), 'draft': False,
                 'components': {'paper': {'selected': True}}}
         config['dependency_plan_sha256'] = canonical_digest(plan)
-        runtime = {'schema': 'runtime-resolution/v1', 'source_sha': self.sha, 'project_config_sha256': self.digest}
-        self.report = {'schema': 'project-checks/v1', 'source': source, 'configuration': config,
+        runtime = {'schema': 'runtime-resolution/v1', 'source_sha': self.sha, 'project_config_sha256': self.digest,
+                   'components': ['paper'],
+                   'tools': {name: 'synthetic fixture version' for name in ('python', 'git', 'tex', 'latexmk', 'inkscape', 'pdfinfo', 'python_packages')}}
+        self.report = {'schema': 'project-checks/v1', 'source': source, 'source_after': dict(source), 'configuration': config,
                        'execution': {'started_at': '2026-01-01T00:04:00Z', 'completed_at': '2026-01-01T00:05:00Z',
                                      'actor': 'fixture', 'method': 'test-only', 'log_reference': 'log.txt'},
                        'plan': plan, 'gate_outcome': 'pass', 'runtime': runtime, 'runtime_sha256': canonical_digest(runtime),
@@ -82,6 +84,22 @@ class BoundaryTests(unittest.TestCase):
         (self.root/'report.json').write_text(json.dumps(self.report))
         with self.assertRaisesRegex(ValueError, 'digest mismatch'):
             ingest(self.root/'report.json', config, self.digest, self.sha, verified_boundary=boundary)
+
+    def test_signed_postrun_identity_and_future_completion_rejected(self):
+        original = copy.deepcopy(self.report)
+        for key, value in (("tested_sha", "e" * 40), ("source_sha", "e" * 40), ("repository", "other/repository")):
+            self.report = copy.deepcopy(original)
+            self.report["source_after"][key] = value
+            self.receipt["report"] = self.artifact("report.json", json.dumps(self.report).encode())
+            self.sign()
+            with self.assertRaisesRegex(ValueError, "Post-run"):
+                self.verify()
+        self.report = copy.deepcopy(original)
+        self.report["execution"]["completed_at"] = "2999-01-01T00:00:00Z"
+        self.receipt["report"] = self.artifact("report.json", json.dumps(self.report).encode())
+        self.sign()
+        with self.assertRaisesRegex(ValueError, "interval"):
+            self.verify()
 
     def test_no_dict_or_direct_constructor_authority(self):
         for value in ({}, {'completed_at': '2026-01-01T00:03:00Z'}):

@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import project
 from ci.config import inside, load_project, read_json
 from ci.runtime import resolve_oci, snapshot
-from ci.evidence import canonical_digest
+from ci.evidence import canonical_digest, validate_runtime, uses_tlc
 
 
 def call(argv, root, log):
@@ -44,6 +44,12 @@ def merge_reports(plan, reports, output, config, config_digest, started):
             report = reports[name]
             if report.get("source") != source or report.get("configuration", {}).get("project_config_sha256") != config_digest:
                 raise ValueError("Component identity mismatch: " + name)
+            after = report.get("source_after", {})
+            if any(after.get(k) != source.get(k) for k in ("repository", "source_sha", "tested_sha")):
+                raise ValueError("Component post-run source identity mismatch: " + name)
+            validate_runtime(report.get("runtime"), source["tested_sha"], config_digest, name, uses_tlc(report["components"][name].get("checks", [])))
+            if report.get("runtime_sha256") != canonical_digest(report["runtime"]):
+                raise ValueError("Component runtime digest mismatch: " + name)
             components[name] = copy.deepcopy(report["components"][name])
             if report.get("gate_outcome") != "pass":
                 components[name].update(gate_outcome="fail",outcome="unknown",reason=report.get("error","component execution did not pass"))
@@ -54,7 +60,8 @@ def merge_reports(plan, reports, output, config, config_digest, started):
     selected = [components[n] for n,d in plan["components"].items() if d["selected"]]
     gate = "incomplete" if plan["draft"] else "pass" if all(c["gate_outcome"] == "pass" for c in selected) else "fail"
     runtime_complete = all(runtime["components"].get(n) for n,d in plan["components"].items() if d["selected"])
-    return {"schema":"project-checks/v1", "source":source,
+    source_after = dict(source, dirty=source["dirty"] or any(r.get("source_after", {}).get("dirty") is not False for r in reports.values()))
+    return {"schema":"project-checks/v1", "source":source, "source_after":source_after,
             "configuration":{"project_config_sha256":config_digest,"dependency_plan_sha256":canonical_digest(plan)},
             "control":{"orchestrator_sha256":project.file_hash(Path(__file__))},
             "execution":{"started_at":started,"completed_at":project.now(),"actor":os.environ.get("GITHUB_ACTOR",os.environ.get("USER","unknown")),
@@ -63,7 +70,7 @@ def merge_reports(plan, reports, output, config, config_digest, started):
                          "workflow_sha":os.environ.get("GITHUB_WORKFLOW_SHA"),
                          "log_reference":"https://github.com/"+config["repository"]+"/actions/runs/"+os.environ.get("GITHUB_RUN_ID","") if os.environ.get("GITHUB_RUN_ID") else str(output)},
             "plan":plan,"components":components,"runtime":runtime,"runtime_sha256":canonical_digest(runtime),
-            "gate_outcome":gate,"acceptance_eligible":gate=="pass" and not source["dirty"] and runtime_complete and all(d["selected"] for n,d in plan["components"].items() if config["components"][n]["enabled"]),
+            "gate_outcome":gate,"acceptance_eligible":gate=="pass" and not source_after["dirty"] and runtime_complete and all(d["selected"] for n,d in plan["components"].items() if config["components"][n]["enabled"]),
             "files":inventory(output)}
 
 
@@ -149,6 +156,8 @@ def main():
         if load_project(root)[1] != config_digest:
             report.update(gate_outcome="fail",acceptance_eligible=False,error="Config changed during orchestration")
         report["source_after"]=project.identity(root,config)
+        if any(report["source_after"].get(k) != plan["source"].get(k) for k in ("repository", "source_sha", "tested_sha")):
+            report.update(gate_outcome="fail", acceptance_eligible=False, error="Source identity changed during orchestration")
         if report["source_after"]["dirty"]:
             report["acceptance_eligible"]=False
         (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")

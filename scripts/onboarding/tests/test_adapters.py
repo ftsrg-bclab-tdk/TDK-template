@@ -305,7 +305,11 @@ class AdapterTests(unittest.TestCase):
         plan = project.make_plan(self.root, config, digest, args)
         sha = plan["source"]["tested_sha"]
         runtime = {"schema": "runtime-resolution/v1", "source_sha": sha, "project_config_sha256": digest,
-                   "tools": {"python": sys.version}}
+                   "components": ["paper"],
+                   # Synthetic tool identities exercise receipt validation; this fixture
+                   # executes build.py, not a claim that the TeX toolchain ran.
+                   "tools": {"python": sys.version, **{name: "fixture" for name in
+                       ("git", "tex", "latexmk", "inkscape", "pdfinfo", "python_packages")}}}
         output = self.root / ".project/checks"
         # This is a local disposable repository, independent of the hosting CI job.
         # Keep the production guard: the real runner identity must reject another repo.

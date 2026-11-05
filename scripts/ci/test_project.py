@@ -13,6 +13,7 @@ import project
 from ci.config import load_project
 from ci.evidence import verify_report
 from ci.results import interpret
+from ci.run import merge_reports
 
 
 class ResultTests(unittest.TestCase):
@@ -71,7 +72,7 @@ class ProjectTests(unittest.TestCase):
     def run_report(self, directory="checks"):
         config, sha = load_project(self.root)
         plan = project.make_plan(self.root, config, sha, self.args)
-        runtime = {"schema":"runtime-resolution/v1", "source_sha":plan["source"]["tested_sha"], "project_config_sha256":sha, "tools":{"python":sys.version}}
+        runtime = {"schema":"runtime-resolution/v1", "source_sha":plan["source"]["tested_sha"], "project_config_sha256":sha, "components":["paper"], "tools":{name:sys.version for name in ("python", "git", "tex", "latexmk", "inkscape", "pdfinfo", "python_packages")}}
         report = project.check(self.root, config, sha, plan, self.root / ".project" / directory, runtime)
         return report
 
@@ -90,6 +91,62 @@ class ProjectTests(unittest.TestCase):
         (self.root / ".project/checks/paper/files/fixture/built.txt").write_text("tampered")
         with self.assertRaisesRegex(ValueError, "size|digest"):
             self.verify()
+
+    def test_stale_ignored_binary_fails_noop_build(self):
+        (self.root / "paper/built.txt").write_text("old binary")
+        (self.root / "paper/build.py").write_text("pass\n")
+        report = self.run_report()
+        self.assertEqual(report["gate_outcome"], "fail")
+        self.assertIn("Stale required output", report["components"]["paper"]["checks"][0]["reason"])
+
+    def test_postrun_identity_and_future_completion_rejected(self):
+        report = self.run_report()
+        path = self.root / ".project/checks/report.json"
+        for field, value in (("tested_sha", "a" * 40), ("source_sha", "b" * 40), ("repository", "another/repository")):
+            changed = copy.deepcopy(report)
+            changed["source_after"][field] = value
+            path.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(ValueError, "Post-run"):
+                self.verify()
+        report["execution"]["completed_at"] = "2999-01-01T00:00:00+00:00"
+        path.write_text(json.dumps(report))
+        with self.assertRaisesRegex(ValueError, "interval"):
+            self.verify()
+
+    def test_aggregate_rejects_postrun_revision_and_runtime_receipt(self):
+        report = self.run_report()
+        config, sha = load_project(self.root)
+        for mutation in (lambda r: r["source_after"].update(tested_sha="a" * 40),
+                         lambda r: r.update(runtime=None),
+                         lambda r: r.update(runtime_sha256="b" * 64)):
+            changed = copy.deepcopy(report)
+            mutation(changed)
+            with self.assertRaisesRegex(ValueError, "identity|digest"):
+                merge_reports(report["plan"], {"paper": changed}, self.root / ".project/checks", config, sha,
+                              report["execution"]["started_at"])
+
+    def test_tlc_execution_requires_nested_tlc_and_jvm_identities(self):
+        report = self.run_report()
+        report["components"]["paper"]["checks"][0]["argv"] = ["python3", "tlc.py", "check"]
+        path = self.root / ".project/checks/report.json"
+        for proof in (None, {}, {"tlc": {}, "java": {}}):
+            report["runtime"]["proof_tools"] = proof
+            report["runtime_sha256"] = project.digest(report["runtime"])
+            path.write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "component runtime"):
+                self.verify()
+
+    def test_nested_runtime_missing_wrong_or_empty_rejected(self):
+        report = self.run_report()
+        path = self.root / ".project/checks/report.json"
+        original = report["runtime"]
+        for nested in (None, {}, dict(original, source_sha="a" * 40), dict(original, project_config_sha256="b" * 64), dict(original, tools={})):
+            report["runtime"] = {"schema": "runtime-resolution/v1", "source_sha": original["source_sha"],
+                                 "project_config_sha256": original["project_config_sha256"], "components": {"paper": nested}}
+            report["runtime_sha256"] = project.digest(report["runtime"])
+            path.write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "component runtime"):
+                self.verify()
 
     def test_missing_output_fails_even_exit_zero(self):
         (self.root / "paper/build.py").write_text("pass\n")

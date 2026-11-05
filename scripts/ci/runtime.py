@@ -93,6 +93,16 @@ def snapshot(root, config_path, component, image=None, npm_stage=None, run=comma
             value["tools"][name] = (result.stdout + result.stderr).strip()[:10000]
         else:
             value["tools"][name] = run(argv)
+    if component == "proof" and any(any(Path(arg).name == "tlc.py" for arg in step["argv"]) for profile in config["components"][component]["profiles"].values() for step in profile):
+        receipt = inside(root, config["components"][component]["cwd"]) / ".tools/run-resolution.json"
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        if receipt.exists():
+            raise ValueError("Proof tools already resolved; reuse the runtime receipt")
+        run(["python3", "tlc.py", "resolve", "--output", ".tools/run-resolution.json"], cwd=inside(root, config["components"][component]["cwd"]))
+        value["proof_tools"] = read_json(receipt)[0]
+        value["proof_tools_path"] = str(receipt)
+        value["tools"]["tlc"] = json.dumps(value["proof_tools"]["tlc"], sort_keys=True)
+        value["tools"]["java"] = json.dumps(value["proof_tools"]["java"], sort_keys=True)
     if image:
         receipt, _ = read_json(image)
         if not re.fullmatch(r"sha256:[0-9a-f]{64}", receipt.get("manifest_digest", "")):

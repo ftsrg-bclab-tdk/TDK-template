@@ -151,7 +151,8 @@
               "dist/slides.html",
               "dist/slides.pdf",
               "dist/slides-notes.pdf",
-              "dist/assets"
+              "dist/assets",
+              "dist/figures"
             ]
           },
           {

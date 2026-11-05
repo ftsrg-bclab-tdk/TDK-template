@@ -118,7 +118,7 @@ def validate_project(config, root):
                 raise ValueError("Enabled " + name + " profile needs structured " + required_kind + " evidence")
             names = set()
             for check in checks:
-                keys(check, {"name", "kind", "argv", "timeout", "outputs"}, {"result_file"})
+                keys(check, {"name", "kind", "argv", "timeout", "outputs"}, {"result_file", "allow_empty_outputs"})
                 if not isinstance(check["name"], str) or not re.fullmatch(r"[a-z][a-z0-9_-]*", check["name"]) or check["name"] in names:
                     raise ValueError("Invalid or duplicate check name")
                 names.add(check["name"])
@@ -134,6 +134,11 @@ def validate_project(config, root):
                 outputs = check["outputs"]
                 if not isinstance(outputs, list) or not all(isinstance(o, str) for o in outputs) or len(set(outputs)) != len(outputs):
                     raise ValueError("Invalid output list")
+                empty = check.get("allow_empty_outputs", [])
+                if (not isinstance(empty, list) or not all(isinstance(o, str) for o in empty)
+                        or len(set(empty)) != len(empty) or not set(empty) <= set(outputs)
+                        or check.get("result_file") in empty):
+                    raise ValueError("Invalid empty diagnostic output list")
                 for output in outputs:
                     inside(cwd, output)
                 if check["kind"] in ("tests", "proof", "benchmark") and "result_file" not in check:

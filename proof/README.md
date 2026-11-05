@@ -12,7 +12,8 @@ they are not installed adapters or a claim of CI support.
 
 ## TLC finite-state invariant profile
 
-Install Java 11+ and GitHub CLI, then run from `proof/`:
+Install Java 11+ and Python 3.11+, then run from `proof/`. Public tool
+downloads do not require GitHub CLI authentication:
 
 ```sh
 python3 tlc.py smoke --output results/adapter-smoke.json
@@ -25,7 +26,8 @@ Each invocation resolves the [latest stable TLA+ tools release](https://github.c
 once, downloads its `tla2tools.jar`, records release/asset IDs and SHA-256, and
 uses that one JAR throughout the invocation. Smoke reuses it for both examples.
 Download failure stops the run; there is no cached-version fallback. The runtime
-JAR is removed afterwards; logs and result files remain. The [upstream command
+JAR is removed afterwards for standalone commands; logs and result files remain.
+Shared CI retains its single run-local resolution for all model commands. The [upstream command
 documentation](https://github.com/tlaplus/tlaplus/blob/master/USE.md) describes
 the native tools. No host package installer runs in this adapter.
 
@@ -64,6 +66,7 @@ configuration and declared dependencies for your actual project:
   "timeout": 240,
   "outputs": ["results/counter.json", "results/counter.json.logs/Counter.stdout",
               "results/counter.json.logs/Counter.stderr"],
+  "allow_empty_outputs": ["results/counter.json.logs/Counter.stderr"],
   "result_file": "results/counter.json"
 }]
 ```
@@ -73,3 +76,13 @@ repository, source, configuration and runtime. Keep raw prover logs in evidence,
 not tracked source. Unknown results cannot satisfy a required proof check.
 Maintainer smoke coverage must include both acceptance examples whenever this
 adapter is offered as supported.
+
+`allow_empty_outputs` permits an empty declared diagnostic stream; result JSON and
+stdout remain nonempty required outputs. All declared outputs must be absent before
+the command starts. Shared CI resolves TLC and the Java executable once per run and
+reuses the recorded paths and byte identities for every selected model command.
+
+Template maintainer source checks run `python3 proof/acceptance.py`, which resolves
+the public release in a fresh Git fixture and exercises the documented dispatcher
+profile, both native verdicts, an initial-state violation and shared runtime
+receipts. This runs even while the student proof component is disabled.

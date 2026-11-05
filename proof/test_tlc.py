@@ -24,6 +24,7 @@ class TLCTests(unittest.TestCase):
         summary, rows, _ = outcome(12, 'Error: Invariant Safe is violated.', ['Safe', 'TypeOK'])
         self.assertEqual(summary, 'violated')
         self.assertEqual(rows, [{'id': 'Safe', 'outcome': 'violated'}, {'id': 'TypeOK', 'outcome': 'unknown'}])
+        self.assertEqual(outcome(12, 'Error: Invariant Safe is violated by the initial state:', ['Safe'])[0], 'violated')
         self.assertEqual(outcome(12, 'Syntax error', ['Safe'])[0], 'unknown')
         self.assertEqual(outcome(124, 'Error: Invariant Safe is violated.', ['Safe'])[0], 'unknown')
 

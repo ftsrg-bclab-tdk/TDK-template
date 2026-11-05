@@ -66,6 +66,9 @@ class ReleaseHandoffTests(unittest.TestCase):
         subprocess.run(["git","-C",str(self.root),"add","tool.py","metadata.json","release.json"],check=True)
         subprocess.run(["git","-C",str(self.root),"-c","user.email=test@example.com","-c","user.name=Fixture","commit","-qm","release fixture"],check=True)
         part=self.run_report("checks/paper")
+        part["runtime"]["tools"].update(tlc='tlaplus/tlaplus latest resolved asset SHA256 fixture', java='resolved JVM version/executable SHA256 fixture')
+        part["runtime"]["proof_tools"] = {"tlc": {"sha256": "c" * 64}, "java": {"sha256": "d" * 64}}
+        part["runtime_sha256"] = test_project.project.digest(part["runtime"])
         config,digest=load_project(self.root)
         checks=self.root/".project/checks"
         report=merge_reports(part["plan"],{"paper":part},checks,config,digest,part["execution"]["started_at"])
@@ -76,6 +79,10 @@ class ReleaseHandoffTests(unittest.TestCase):
         (self.root/"paper/build.py").write_text("raise RuntimeError('selected source must not execute during packaging')\n")
         result=checks_to_bundle(checks,self.root,"release.json",self.root/".project/bundle")
         self.assertEqual(result["source_sha"],report["source"]["tested_sha"])
+        runtime = json.loads((self.root / ".project/bundle/runtime.json").read_text())
+        self.assertEqual(runtime["producer_resolution"]["components"]["paper"]["proof_tools"], part["runtime"]["proof_tools"])
+        self.assertEqual(runtime["tools"]["paper/tlc"], part["runtime"]["tools"]["tlc"])
+        self.assertEqual(runtime["tools"]["paper/java"], part["runtime"]["tools"]["java"])
         with zipfile.ZipFile(self.root/".project/bundle/research.zip") as archive:
             self.assertEqual(archive.read("tool.py"),b"print('fixture')\n")
         self.assertTrue((self.root/".project/bundle/receipt.json").is_file())

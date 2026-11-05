@@ -103,7 +103,7 @@ def fetch(*, repository, repository_id, run_id, attempt, source_sha, workflow_pa
     require(expected_artifact_sha256 is None or digest == expected_artifact_sha256, "Expected artifact digest mismatch")
     with tempfile.TemporaryDirectory() as directory:
         archive = Path(directory) / "artifact.zip"
-        client.download(f"{prefix}/actions/artifacts/{artifact['id']}/zip", archive, MAX_BYTES)
+        client.download(f"{prefix}/actions/artifacts/{artifact['id']}/zip", archive, MAX_BYTES, accept="application/vnd.github+json")
         require(sha_file(archive) == digest, "Downloaded artifact digest mismatch")
         extract(archive, Path(output))
         if retain_archive:
