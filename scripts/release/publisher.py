@@ -110,6 +110,52 @@ def read_bundle(directory, expected):
     return {'receipt': receipt, 'manifest': manifest, 'archives': archives, 'metadata': metadata}
 
 
+# Legacy Deposit API vocabulary: https://developers.zenodo.org/#deposit-metadata
+UPLOAD_TYPES = {'publication', 'poster', 'presentation', 'dataset', 'image', 'video',
+                'software', 'lesson', 'physicalobject', 'other'}
+SUBTYPES = {
+    'publication': set(('annotationcollection book section conferencepaper datamanagementplan '
+                        'article patent preprint deliverable milestone proposal report '
+                        'softwaredocumentation taxonomictreatment technicalnote thesis '
+                        'workingpaper other').split()),
+    'image': set('figure plot drawing diagram photo other'.split()),
+}
+
+
+def metadata_type(metadata):
+    """Compare Deposit upload fields and Records resource_type without losing subtype."""
+    if not isinstance(metadata, dict):
+        raise ValueError('Metadata must be an object')
+    representations = []
+    if 'upload_type' in metadata:
+        kind = metadata['upload_type']
+        subtype = metadata.get(kind + '_type') if isinstance(kind, str) else None
+        representations.append((kind, subtype))
+        for field in ('publication_type', 'image_type'):
+            if field in metadata and field != str(kind) + '_type':
+                raise ValueError('Unexpected resource subtype')
+    elif any(field in metadata for field in ('publication_type', 'image_type')):
+        raise ValueError('Resource subtype requires upload_type')
+    if 'resource_type' in metadata:
+        resource = metadata['resource_type']
+        if not isinstance(resource, dict) or not set(resource) <= {'type', 'subtype', 'title'}:
+            raise ValueError('Invalid Records resource_type')
+        representations.append((resource.get('type'), resource.get('subtype')))
+    if not representations:
+        raise ValueError('Resource type required')
+    for kind, subtype in representations:
+        if not isinstance(kind, str) or kind not in UPLOAD_TYPES:
+            raise ValueError('Invalid resource type')
+        if kind in SUBTYPES:
+            if not isinstance(subtype, str) or subtype not in SUBTYPES[kind]:
+                raise ValueError('Invalid or missing resource subtype')
+        elif subtype is not None:
+            raise ValueError('Unexpected resource subtype')
+    if any(value != representations[0] for value in representations):
+        raise ValueError('Conflicting resource type representations')
+    return representations[0]
+
+
 def desired_metadata(bundle, key, marker):
     metadata = copy.deepcopy(bundle['metadata'][key])
     if not isinstance(metadata, dict):
@@ -117,6 +163,7 @@ def desired_metadata(bundle, key, marker):
     for name in ('title', 'description', 'upload_type', 'version', 'publication_date'):
         if not isinstance(metadata.get(name), str) or not metadata[name].strip():
             raise ValueError('Missing explicit Zenodo metadata: ' + name)
+    metadata_type(metadata)
     if not metadata.get('creators') or not all(isinstance(c, dict) and c.get('name') for c in metadata['creators']):
         raise ValueError('Named creators required')
     if 'doi' in metadata or 'prereserve_doi' in metadata:
@@ -135,7 +182,11 @@ def desired_metadata(bundle, key, marker):
 
 
 def metadata_matches(actual, desired):
+    if metadata_type(actual) != metadata_type(desired):
+        return False
     for key, value in desired.items():
+        if key in ('upload_type', 'publication_type', 'image_type', 'resource_type'):
+            continue
         observed = actual.get(key)
         if key == 'license' and isinstance(observed, dict):
             observed = observed.get('id')
@@ -333,8 +384,8 @@ class Publisher:
             self.verify_files(key, record, complete=True)
             if not metadata_matches(record.get('metadata', {}), self.desired[key]):
                 raise ValueError('Published metadata not yet verified against reviewed operation')
+            self.advance_latest(key, state)
             state.update(fields, status='published', pending=None)
-            self.registry.data['latest'][key] = state['deposition_id']
         elif pending and pending['action'] == 'publish':
             state['status'] = 'publishing'
             # Keep pending: absence of publication isn't proof POST wasn't accepted.
@@ -346,6 +397,29 @@ class Publisher:
             state['pending'] = None
         self.registry.save()
         return remote
+
+    def advance_latest(self, key, state):
+        latest = self.registry.data['latest'].get(key)
+        current = state['deposition_id']
+        if latest in (state['previous_id'], current):
+            self.registry.data['latest'][key] = current
+            return
+        # Historical reads may verify an ancestor again, but must preserve the tip.
+        parents = {}
+        for operation in self.registry.data['operations'].values():
+            record = operation['records'].get(key)
+            if record and record['deposition_id'] is not None:
+                rid = record['deposition_id']
+                if rid in parents and parents[rid] != record['previous_id']:
+                    raise ValueError('Conflicting publication ancestry')
+                parents[rid] = record['previous_id']
+        seen = set()
+        while latest is not None and latest not in seen:
+            if latest == current:
+                return
+            seen.add(latest)
+            latest = parents.get(latest)
+        raise ValueError('Latest publication is not a descendant of this operation')
 
     def stage_record(self, key):
         state = self.op['records'][key]

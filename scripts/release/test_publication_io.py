@@ -5,7 +5,7 @@ import unittest
 
 from packager import encode, parse
 from publication_io import HTTP, GitHubStore, RemoteError
-from publisher import Zenodo
+from publisher import Zenodo, metadata_matches
 
 
 class Response(io.BytesIO):
@@ -56,6 +56,23 @@ class TransportTests(unittest.TestCase):
         self.assertEqual(api.newversion(101)['id'],102)
         self.assertEqual([r.method for r in opener.requests],['POST','GET'])
         self.assertTrue(opener.requests[1].full_url.endswith('/102'))
+
+    def test_published_records_endpoint_uses_resource_type(self):
+        # Records shape confirmed by read-only GET /api/records/3242074 on 2026-11-05.
+        # Identifiers and content below are synthetic; this is never a publish request.
+        metadata = {'title': 'Synthetic', 'resource_type': {'title': 'Software', 'type': 'software'},
+                    'license': {'id': 'mit'}}
+        response = {'id': 101, 'status': 'published', 'state': 'done', 'submitted': True,
+                    'doi': '10.5072/zenodo.101', 'conceptdoi': '10.5072/zenodo.100',
+                    'metadata': metadata, 'files': []}
+        opener = Opener([response])
+        api = Zenodo(HTTP('https://sandbox.zenodo.org', 'secret', opener=opener), 'sandbox')
+        record, fields = api.published({'id': 101, 'record_id': 101})
+        self.assertTrue(metadata_matches(record['metadata'],
+                        {'title': 'Synthetic', 'upload_type': 'software', 'license': 'mit'}))
+        self.assertEqual(fields['version_doi'], response['doi'])
+        self.assertEqual([(r.method, r.full_url) for r in opener.requests],
+                         [('GET', 'https://sandbox.zenodo.org/api/records/101')])
 
     def test_bucket_origin_validation_precedes_upload(self):
         opener=Opener([])

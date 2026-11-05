@@ -126,3 +126,18 @@ python scripts/release/writeback.py --repo /project --receipt /verified/publicat
 This writes a patch and evidence, not changes to the repository. Defaults target README.md, paper/bib/references.bib and a dedicated paper/content/artifact-availability.tex. Supply actual integration paths if different. Only keyed generated blocks are replaced; other text is preserved. The patch adds a concept-DOI badge, exact-version citation and availability sentence. Review sentence placement/inclusion rather than silently rewriting student prose. Zotero-managed bibliography and symlink targets are refused. Applying the same generated patch once then regenerating produces no diff. No tags move and the archived source stays fixed; writeback is a later reviewed commit/PR owned by normal integration.
 
 No authenticated sandbox or production requests have been executed for this implementation. Tests cover local/fake API behavior; live API normalization, credentials, storage connectivity, upload/newversion/publish and DOI propagation still need the authorized sandbox pilot.
+
+Published metadata verification compares Deposit API `upload_type` and its required
+`publication_type`/`image_type` with Records API `resource_type.type`/`subtype`.
+Unknown, missing or conflicting types and subtypes fail verification; all other
+reviewed metadata fields still have to match. The vocabulary follows the
+[Zenodo Deposit metadata documentation](https://developers.zenodo.org/#deposit-metadata).
+A read-only check of [public record 3242074](https://zenodo.org/api/records/3242074)
+on 2026-11-05 confirmed the Records representation. The tests use synthetic
+Records-shaped responses, including license objects and file keys/checksums.
+They do not replace the authenticated sandbox acceptance pilot.
+
+Historical receipt and reconciliation requests preserve a later published tip.
+The journal advances `latest` only from the operation's recorded predecessor or
+keeps its current ID; an older operation must be an ancestor of the current tip.
+Unrelated or conflicting journal ancestry requires operator reconciliation.

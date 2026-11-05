@@ -8,7 +8,7 @@ import sys
 
 from packager import digest, encode
 from publication_io import FileStore, Registry, RemoteError
-from publisher import Publisher, PublicationIncomplete, read_bundle, main, validate_context
+from publisher import Publisher, PublicationIncomplete, read_bundle, main, validate_context, metadata_matches, metadata_type
 import test_packager
 
 
@@ -86,7 +86,17 @@ class FakeZenodo:
         return [self.get(k) for k,v in self.deposits.items() if marker in v['metadata']['description']]
 
     def published(self, remote):
-        return self.get(remote['id']), {'version_doi':'10.5072/zenodo.'+str(remote['id']),
+        record = self.get(remote['id'])
+        metadata = record['metadata']
+        kind = metadata.pop('upload_type')
+        resource = {'type': kind, 'title': kind.title()}
+        if kind in ('publication', 'image'):
+            resource['subtype'] = metadata.pop(kind + '_type')
+        metadata['resource_type'] = resource
+        metadata['license'] = {'id': metadata['license']}
+        record['files'] = [{'key': f['filename'], 'size': f['filesize'],
+                            'checksum': 'md5:' + f['checksum']} for f in record['files']]
+        return record, {'version_doi':'10.5072/zenodo.'+str(remote['id']),
             'concept_doi':'10.5072/zenodo.100','record_url':self.origin+'/records/'+str(remote['id']),
             'verified_at':'2026-11-04T00:00:00+00:00'}
 
@@ -228,13 +238,13 @@ class PublisherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             second.save()
 
-    def next_bundle(self):
-        self.fixture.write('code/main.py', b'print("version two")\n')
-        self.metadata['version'] = '2.0'
+    def next_bundle(self, version=2):
+        self.fixture.write('code/main.py', f'print("version {version}")\n'.encode())
+        self.metadata['version'] = f'{version}.0'
         self.fixture.write('meta.json', encode(self.metadata))
         self.fixture.commit()
-        self.fixture.run_pack('second')
-        path=self.root/'second'
+        self.fixture.run_pack(f'version-{version}')
+        path=self.root/f'version-{version}'
         expected=digest((path/'receipt.json').read_bytes())
         return read_bundle(path, expected), expected
 
@@ -249,6 +259,68 @@ class PublisherTests(unittest.TestCase):
         self.assertTrue(self.api.deposits[101]['submitted'])
         self.assertEqual(self.api.deposits[101]['metadata']['version'], '1.0')
         self.assertEqual(self.api.deposits[102]['metadata']['version'], '2.0')
+
+    def test_historical_receipts_preserve_tip_and_allow_three_versions(self):
+        self.service().run('stage')
+        self.service().run('publish')
+        second, second_hash = self.next_bundle()
+        self.service('study-2', second, second_hash).run('stage')
+        self.service('study-2', second, second_hash).run('publish')
+        for phase in ('receipt', 'reconcile', 'publish'):
+            self.assertEqual(self.service().run(phase)['status'], 'published')
+            self.assertEqual(self.store.read()[0]['latest']['research'], 102)
+        third, third_hash = self.next_bundle(3)
+        self.service('study-3', third, third_hash).run('stage')
+        self.assertEqual(self.service('study-3', third, third_hash).run('publish')['status'], 'published')
+        for service in (self.service('study-2', second, second_hash), self.service(),
+                        self.service('study-3', third, third_hash), self.service()):
+            self.assertEqual(service.run('reconcile')['status'], 'published')
+            self.assertEqual(self.store.read()[0]['latest']['research'], 103)
+        self.assertEqual(self.mutation_count('publish'), 3)
+        self.assertEqual(self.mutation_count('newversion'), 2)
+
+    def test_unrelated_latest_is_not_overwritten(self):
+        self.service().run('stage')
+        self.service().run('publish')
+        registry = Registry(self.store, 42, 'sandbox')
+        registry.data['latest']['research'] = 999
+        registry.save()
+        with self.assertRaises(PublicationIncomplete):
+            self.service().run('receipt')
+        self.assertEqual(self.store.read()[0]['latest']['research'], 999)
+
+    def test_record_type_and_subtype_are_verified_with_other_metadata(self):
+        for kind, subtype in (('software', None), ('publication', 'article'), ('image', 'diagram')):
+            desired = {**self.metadata, 'upload_type': kind}
+            if subtype:
+                desired[kind + '_type'] = subtype
+            actual = {k: v for k, v in desired.items() if k not in
+                      ('upload_type', 'publication_type', 'image_type')}
+            actual['resource_type'] = {'type': kind, 'title': 'Display label'}
+            if subtype:
+                actual['resource_type']['subtype'] = subtype
+            actual['license'] = {'id': 'mit'}
+            self.assertTrue(metadata_matches(actual, desired))
+            actual['title'] = 'Foreign edit'
+            self.assertFalse(metadata_matches(actual, desired))
+            actual['title'] = desired['title']
+            actual['resource_type'] = {'type': 'dataset'}
+            self.assertFalse(metadata_matches(actual, desired))
+            if subtype:
+                actual['resource_type'] = {'type': kind, 'subtype': 'other'}
+                self.assertFalse(metadata_matches(actual, desired))
+
+    def test_invalid_and_conflicting_type_representations_rejected(self):
+        invalid = [{}, {'upload_type': 'unknown'}, {'upload_type': 'publication'},
+                   {'upload_type': 'software', 'image_type': 'figure'},
+                   {'resource_type': {'type': 'image', 'subtype': 'article'}},
+                   {'resource_type': {'type': 'software', 'subtype': 'other'}},
+                   {'resource_type': {'type': 'software', 'unexpected': True}},
+                   {'resource_type': 'software'},
+                   {'upload_type': 'software', 'resource_type': {'type': 'dataset'}}]
+        for metadata in invalid:
+            with self.subTest(metadata=metadata), self.assertRaises(ValueError):
+                metadata_type(metadata)
 
     def test_lost_new_version_reply_requires_explicit_adoption(self):
         self.service().run('stage')
