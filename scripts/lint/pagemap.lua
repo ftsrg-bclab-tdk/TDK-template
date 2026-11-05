@@ -55,6 +55,7 @@ M.RULES = {
   pages = { "form", "30--35 pages of main text" },
   aidecl = { "form", "AI declaration filled in" },
   titlepage = { "form", "Title page filled in" },
+  portal = { "form", "Title and abstracts match the portal" },
   ["pdf-file"] = { "form", "The PDF file" },
   ["pdf-font"] = { "form", "Body font" },
   ["pdf-spacing"] = { "form", "Line spacing" },

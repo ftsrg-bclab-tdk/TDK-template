@@ -412,6 +412,7 @@ MUTATIONS = [
     ("an unknown phase in thesis.tex stops the lint", "markers", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "from \\lintphase in thesis.tex", {"args": "--doc reviewer", "exit": 2}),
     ("an unknown phase on the Checks page", "markers", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "The lint did not run", {"args": "overleaf --tex", "exit": 2}),
     # a rule that cannot run says skipped, and --json carries every rule's result
+    ("an offline portal check is skipped, not passed", "portal", lambda d: None, "portal        check   skipped", {"fresh": True}),
     ("an offline link check is skipped, not passed", "links", lambda d: None, "links         advice  skipped", {"fresh": True}),
     ("a PDF rule without a PDF is skipped", "pdf-margins", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     ("json carries the findings of every rule", "bib", append(BG, "See~\\cite{nosuchref}."), '"msg":"cited key nosuchref is in no .bib file","rule":"bib"', {"args": "all --doc reviewer --phase submit --json", "exit": 1}),

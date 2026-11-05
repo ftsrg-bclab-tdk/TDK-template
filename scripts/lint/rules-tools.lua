@@ -152,6 +152,108 @@ rule("spelling", "tools", "advice", "always", "aspell on the detexed chapters: u
   return string.format("unknown=%d american=%d british=%d (add project words to scripts/words.txt)", #order, #american, #british)
 end)
 
+-- the words of a text, lower case, for comparing the portal's copy with the source: LaTeX
+-- commands, comments, notes and punctuation go, accented letters stay
+local function words_of(text)
+  text = text:gsub("\\%%", "%%"):gsub("%%[^\n]*", "")
+  -- soft hyphens and zero-width spaces the portal's copy carries from a PDF or a word processor
+  text = text:gsub("\194\173", ""):gsub("\226\128\139", "")
+  text = text:gsub("\\begin{comment}.-\\end{comment}", " "):gsub("\\iffalse.-\\fi", " ")
+  text = text:gsub("\\addcontentsline%s*%b{}%s*%b{}%s*%b{}", " ")
+  text = text:gsub("\\todo%s*%b[]%s*%b{}", " "):gsub("\\todo%s*%b{}", " ")
+  text = text:gsub("\\%a+%*?", " "):gsub("[{}%[%]~]", " ")
+  local w = {}
+  for x in text:lower():gmatch("[%w\128-\255]+") do w[#w + 1] = x end
+  return w
+end
+-- the portal's copy: often pasted from a PDF, with words hyphenated across its lines
+local function portal_words(text) return words_of((text or ""):gsub("([^%s%-])%-%s*\n%s*([^%s])", "%1%2")) end
+-- how alike two word lists are: 2 * longest common subsequence / total length, 1 when equal
+local function likeness(a, b)
+  if #a == 0 and #b == 0 then return 1 end
+  local prev = {}
+  for j = 0, #b do prev[j] = 0 end
+  for i = 1, #a do
+    local cur = { [0] = 0 }
+    for j = 1, #b do cur[j] = a[i] == b[j] and prev[j - 1] + 1 or math.max(prev[j], cur[j - 1]) end
+    prev = cur
+  end
+  return 2 * prev[#b] / (#a + #b)
+end
+-- up to n words of a that b lacks, in a's order
+local function missing(a, b, n)
+  local have, out = {}, {}
+  for _, x in ipairs(b) do have[x] = (have[x] or 0) + 1 end
+  for _, x in ipairs(a) do
+    if (have[x] or 0) > 0 then have[x] = have[x] - 1 elseif #out < n then out[#out + 1] = x end
+  end
+  return table.concat(out, " ")
+end
+local function fetch_json(url)
+  local body = C.run(string.format("curl -sS -f -L --max-time 30 -A 'tdk-lint' %q", url))
+  if not body or body == "" then return nil end
+  return C.json_decode(body)
+end
+
+-- 0.95: the portal holds plain text and the source LaTeX, so a glossary macro, a dash or a quote
+-- may differ; a changed sentence does not pass
+local PORTAL_ALIKE = 0.95
+rule("portal", "tools", "check", "always", "once the abstract is submitted to the TDK portal, the paper's title, English abstract and Hungarian Kivonat match the portal's copy; skipped offline or before the portal has the paper", function()
+  if os.getenv("LINT_OFFLINE") or not C.have("curl") then C.skip("offline"); return end
+  local last, first, title = C.setting("vikszerzoVezeteknev"), C.setting("vikszerzoKeresztnev"), C.setting("vikcim")
+  if not (last and first and title) or last == "Gipsz" or title:match("TODO") then C.skip("no author or title in thesis.tex yet"); return end
+  local vars = C.readfile("include/tdk-variables.tex") or ""
+  local year = vars:match("\\newcommand{\\tdkev}{(%d%d%d%d)}") or (os.getenv("LINT_DATE") or os.date("%Y-%m-%d")):sub(1, 4)
+  local list = fetch_json("https://tdk.bme.hu/api/conference/VIK/" .. year .. "/Paper")
+  if type(list) ~= "table" then C.skip("the portal's paper list for " .. year .. " did not load"); return end
+  -- the author's papers: the surname, and every given name the paper's title page uses
+  local mine = {}
+  for _, p in ipairs(list) do
+    for _, a in ipairs(p.paperAuthors or {}) do
+      local ok = (a.lastName or "") == last
+      for g in first:gmatch("%S+") do if not (a.firstName or ""):find(g, 1, true) then ok = false end end
+      if ok and not p.isDeleted then mine[#mine + 1] = p end
+    end
+  end
+  if #mine == 0 then C.skip(string.format("no %d paper of %s %s on the portal yet", tonumber(year), last, first)); return end
+  -- with two papers (a companion), the one whose title is closest
+  local tw, best, bestscore = words_of(title), nil, -1
+  for _, p in ipairs(mine) do
+    local sc = math.max(likeness(tw, words_of(p.title or "")), likeness(tw, words_of(p.titleEn or "")))
+    if sc > bestscore then best, bestscore = p, sc end
+  end
+  local rec = fetch_json("https://tdk.bme.hu/api/conference/VIK/" .. year .. "/Paper/" .. best.slug)
+  if type(rec) ~= "table" then C.skip("the portal record " .. best.slug .. " did not load"); return end
+  local where = "https://tdk.bme.hu" .. (rec.detailsUrl or "")
+  if bestscore < PORTAL_ALIKE then
+    fail("thesis.tex", nil, string.format("the title differs from the portal's (%s): %q", where, rec.titleEn ~= "" and rec.titleEn or rec.title), "the submitted title is fixed: \\vikcim must be the portal's English title")
+  elseif likeness(tw, words_of(rec.titleEn or "")) < likeness(tw, words_of(rec.title or "")) then
+    note("thesis.tex", nil, "the portal has the English title in its Hungarian title field and the other way round", "ask the TDK office to swap them, if the portal still allows it")
+  end
+  local abs = C.FILES.abstract or "content/00-abstract.tex"
+  local src = C.readfile(abs) or ""
+  local hu = src:match("\\chapter%*{Kivonat}(.-)\\selectenglish") or src:match("\\chapter%*{Kivonat}(.-)\\chapter") or ""
+  local en = src:match("\\chapter%*{Abstract}(.*)$") or ""
+  -- each abstract against the closer of the portal's two fields: a student may have typed either
+  -- into the other, as with the title
+  local fields = { portal_words(rec.abstractEn), portal_words(rec.abstract) }
+  for _, part in ipairs({ { "English abstract", en, 1 }, { "Kivonat", hu, 2 } }) do
+    local a = words_of(part[2])
+    local b, sc = fields[part[3]], likeness(a, fields[part[3]])
+    local other = likeness(a, fields[3 - part[3]])
+    if other > sc then b, sc = fields[3 - part[3]], other end
+    if #b > 0 then
+      if sc < PORTAL_ALIKE then
+        local lack, extra = missing(b, a, 8), missing(a, b, 8)
+        fail(abs, nil, string.format("the %s is %.0f%% like the portal's (%s)%s%s", part[1], 100 * sc, where,
+          lack ~= "" and "; the paper lacks: " .. lack or "", extra ~= "" and "; the portal lacks: " .. extra or ""),
+          "the submitted abstract is fixed: copy the portal's text into " .. abs)
+      end
+    end
+  end
+  return string.format("record=%s title=%.2f", best.slug, bestscore)
+end)
+
 rule("links", "tools", "advice", "always", "every \\url and \\href answers over the network; skipped when LINT_OFFLINE is set", function()
   if os.getenv("LINT_OFFLINE") or not C.have("curl") then C.skip("offline"); return end
   local urls, seen = {}, {}

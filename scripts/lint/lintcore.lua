@@ -28,6 +28,68 @@ function M.run_quiet(cmd) local h = io.popen(cmd .. " 2>/dev/null"); if not h th
 function M.have(tool) local s = M.run("command -v " .. tool); return s ~= nil and s:match("%S") ~= nil end
 function M.escape(s) return (s:gsub("%p", "%%%0")) end
 function M.trim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
+-- a JSON document as Lua values (null is nil), or nil and the reason; enough for the TDK portal's API
+function M.json_decode(s)
+  local pos = 1
+  local function ws() pos = s:find("[^ \t\r\n]", pos) or #s + 1 end
+  local value
+  local function str()
+    local out, i = {}, pos + 1
+    while true do
+      local c = s:sub(i, i)
+      if c == "" then error("unterminated string") end
+      if c == '"' then pos = i + 1; return table.concat(out) end
+      if c == "\\" then
+        local e = s:sub(i + 1, i + 1)
+        if e == "u" then
+          local cp = tonumber(s:sub(i + 2, i + 5), 16); i = i + 6
+          if cp >= 0xD800 and cp <= 0xDBFF and s:sub(i, i + 1) == "\\u" then
+            local lo = tonumber(s:sub(i + 2, i + 5), 16); cp = 0x10000 + (cp - 0xD800) * 0x400 + (lo - 0xDC00); i = i + 6
+          end
+          out[#out + 1] = utf8.char(cp)
+        else
+          out[#out + 1] = ({ b = "\b", f = "\f", n = "\n", r = "\r", t = "\t" })[e] or e; i = i + 2
+        end
+      else
+        local j = s:find('["\\]', i) or #s + 1
+        out[#out + 1] = s:sub(i, j - 1); i = j
+      end
+    end
+  end
+  function value()
+    ws()
+    local c = s:sub(pos, pos)
+    if c == "{" then
+      local t = {}; pos = pos + 1; ws()
+      if s:sub(pos, pos) == "}" then pos = pos + 1; return t end
+      while true do
+        ws(); local k = str(); ws(); pos = pos + 1 -- the colon
+        t[k] = value(); ws()
+        local d = s:sub(pos, pos); pos = pos + 1
+        if d == "}" then return t elseif d ~= "," then error("bad object at " .. pos) end
+      end
+    elseif c == "[" then
+      local t = {}; pos = pos + 1; ws()
+      if s:sub(pos, pos) == "]" then pos = pos + 1; return t end
+      while true do
+        t[#t + 1] = value(); ws()
+        local d = s:sub(pos, pos); pos = pos + 1
+        if d == "]" then return t elseif d ~= "," then error("bad array at " .. pos) end
+      end
+    elseif c == '"' then return str()
+    elseif s:sub(pos, pos + 3) == "true" then pos = pos + 4; return true
+    elseif s:sub(pos, pos + 4) == "false" then pos = pos + 5; return false
+    elseif s:sub(pos, pos + 3) == "null" then pos = pos + 4; return nil
+    else
+      local num = s:match("^-?%d+%.?%d*[eE]?[-+]?%d*", pos)
+      if not num or num == "" then error("unexpected " .. c .. " at " .. pos) end
+      pos = pos + #num; return tonumber(num)
+    end
+  end
+  local ok, v = pcall(value)
+  if ok then return v end
+  return nil, v
+end
 function M.count(s, pat) return select(2, s:gsub(pat, "")) end
 
 -- the content files are the ones thesis.tex reaches through \include, \input and
