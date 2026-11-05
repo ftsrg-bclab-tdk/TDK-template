@@ -532,9 +532,16 @@ end)
 rule("figures", "source", "check", "always", "every figure, table, listing, algorithm and numbered equation is referenced from the text; floats have captions and labels; raster images are flagged", function()
   if #MAIN == 0 then fail(nil, nil, "no chapter files"); return end
   local labels, refs = C.collect_labels_and_refs(MAIN)
+  -- an \autoref is not a reference the template counts: the crefs rule asks for \cref, and the
+  -- float's own finding says so too
+  local auto = {}
+  C.each_line(MAIN, function(_, _, l) for keys in l:gmatch("\\autoref{([^}]*)}") do for key in keys:gmatch("[^,%s]+") do auto[key] = true end end end)
   for key, at in pairs(labels) do
     if key:match("^fig:") or key:match("^tab:") or key:match("^lst:") or key:match("^alg:") or key:match("^eq:") then
-      if (refs[key] or 0) == 0 and not at.sub then fail(at.file, at.line, key .. " is never referenced from the text") end
+      if (refs[key] or 0) == 0 and not at.sub then
+        if auto[key] then fail(at.file, at.line, key .. " is referenced only with \\autoref", "write \\cref{" .. key .. "}")
+        else fail(at.file, at.line, key .. " is never referenced from the text") end
+      end
     end
   end
   C.each_line(MAIN, function(f, n, l)

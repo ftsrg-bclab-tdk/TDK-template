@@ -247,6 +247,7 @@ MUTATIONS = [
     ("a double space is left to typography", "lacheck", append(BG, "Some text  ~here."), "!double space"),
     ("a missing tie is reported once, by typography", "chktex", append(BG, "As shown \\cite{lamport1978time}, it holds."), "!Non-breaking space"),
     ("a listing with an odd dollar sign", "lacheck", append(BG, "\\begin{lstlisting}[caption={Rule.}, label={lst:rule}]\nrule R: [ In($N) ] --> [ ]\n\\end{lstlisting}"), "!unmatched"),
+    ("a float referenced only with autoref", "figures", both(append(BG, "\\begin{figure}[!ht]\\centering\\caption{A figure that shows the flow.}\\label{fig:auto}\\end{figure}"), append(BG, "See \\autoref{fig:auto}.")), "fig:auto is referenced only with \\autoref"),
     ("an axis label without a unit", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Nodes}, ylabel={Latency}]\n\\end{axis}"), "ylabel without a unit in brackets: Latency"),
     ("an axis label that says it counts", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Number of nodes}, ylabel={\\# of proof steps}]\n\\end{axis}"), "!without a unit"),
     ("a bare plural is not yet a count", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Number of nodes}, ylabel={Proof steps}]\n\\end{axis}"), "Number of proof steps"),
