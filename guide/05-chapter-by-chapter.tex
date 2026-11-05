@@ -178,6 +178,7 @@ State guarantees as \enquote{under these assumptions, against this adversary, th
 
 \subsection[Adversary]{Adversary\skimmark}\label{guide:chapters:adversary}
 In the example box, show each adversary and the guarantee that stops it.
+\textbf{When the attack is the contribution,} the lists turn around. The threats name the attacker you are and its capabilities, the assumptions what the attack needs from the target and its environment, and the guarantees what the attack achieves, each checked in the evaluation like any other guarantee. The defences you propose, if any, then get their own adversary: the one who knows them.
 \begin{threats}
   \item\label{guide:thr:holder} \textbf{Malicious holder.} A holder who keeps a witness from before the revocation and presents it again.
   \item\label{guide:thr:network} \textbf{Network adversary.} Controls the network between the registry and the verifiers, in the Dolev--Yao model: reads, replays, delays and drops messages.
