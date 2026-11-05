@@ -198,8 +198,8 @@ end
 
 local TEXT_USED = {
   introgap = function(f, a, b)
-    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^guide:tab:related$") + refs_in_span(f, a, b, "^guide:fig:positioning$") + refs_in_span(f, a, b, "^tab:positioning$") > 0 then return true end
-    return false, "point to the full comparison: \\cref{ch:related}, \\cref{guide:tab:related} or \\cref{guide:fig:positioning}"
+    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^tab:related$") + refs_in_span(f, a, b, "^fig:positioning$") + refs_in_span(f, a, b, "^tab:positioning$") > 0 then return true end
+    return false, "point to the full comparison: \\cref{ch:related}, \\cref{tab:related} or \\cref{fig:positioning}"
   end,
   setup = function()
     local key, why = cited_artifact(C.role_files("evaluation"))
@@ -211,8 +211,8 @@ local TEXT_USED = {
     return false, "show the measurements in a figure or table, and reference it"
   end,
   gap = function(f, a, b)
-    if refs_in_span(f, a, b, "^guide:tab:related$") > 0 then return true end
-    return false, "base the gap on the gap matrix: reference \\cref{guide:tab:related}"
+    if refs_in_span(f, a, b, "^tab:related$") > 0 then return true end
+    return false, "base the gap on the gap matrix: reference \\cref{tab:related}"
   end,
   summary = function(f, a, b)
     for _, p in ipairs({ "^ch:evaluation", "^rq:", "^fig:", "^tab:", "^thm:" }) do if refs_in_span(f, a, b, p) > 0 then return true end end
@@ -492,7 +492,7 @@ end
 
 local FLOAT_USED = {
   correctness = function(fl)
-    if main_refs("guide:tab:correctness") == 0 then return false, "reference the table from the text" end
+    if main_refs("tab:correctness") == 0 then return false, "reference the table from the text" end
     local inblock = {}
     for keys in fl.block:gmatch("\\[Cc]?ref%*?{([^}]*)}") do for k in keys:gmatch("[^,%s]+") do inblock[k] = true end end
     local miss = {}
@@ -647,8 +647,8 @@ end
 function M.gapmatrix()
   local fails = {}
   M.gapwarn = {}
-  local fl = find_float(C.main_chapters(), "guide:tab:related")
-  if not fl then return { "no gap matrix table labelled guide:tab:related" } end
+  local fl = find_float(C.main_chapters(), "tab:related")
+  if not fl then return { "no gap matrix table labelled tab:related" } end
   fl.block = table.concat(C.printed_lines(fl.file), "\n", fl.line, fl.last)
   local parsed, problem = matrix_rows(fl.block)
   if not parsed then return { problem } end
@@ -689,7 +689,7 @@ function M.gapmatrix()
   local function result_problem(key)
     local at = labels[key]
     if not at then return key .. ", which no label defines in the printed paper" end
-    if not key:match("^ch:") and key ~= "guide:tab:related" then
+    if not key:match("^ch:") and key ~= "tab:related" then
       if key:match("^rq:") or key:match("^g:") or key:match("^dr:") then return nil end
       local thm = theorems[key]
       if thm and thm.file == at.file and thm.start == at.start then return nil end

@@ -39,7 +39,7 @@ rule("frame", "source", "check", "always", "the template's frame is still there:
   local last, want = -1, -1
   for _, f in ipairs(CONTENT) do
     -- a figure or table body \input from figures/ or tables/ is part of a chapter, not one of its files
-    if f ~= C.FILES.glossary and not f:match("^figures/") and not f:match("^tables/") then
+    if f ~= C.FILES.glossary and f ~= "content/contribution-statement.tex" and not f:match("^figures/") and not f:match("^tables/") then
       local nn = f:match("([^/]+)%.tex$"):match("^(%d%d)%-")
       if not nn then
         warn(f, nil, "content files are named NN-name.tex in reading order, " .. string.format("%02d", last + 1) .. "-<name>.tex here", renumber_fix(f, want + 1))
@@ -686,10 +686,10 @@ rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vert
   end
 end)
 
-rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:, and guide: for the headings after \\appendix), so references read right and the lint can trace them", function()
+rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:, and app: for the headings after \\appendix), so references read right and the lint can trace them", function()
   local envpref = { figure = "fig", table = "tab", sidewaystable = "tab", listing = "lst", lstlisting = "lst", algorithm = "alg", equation = "eq", align = "eq", definition = "def", theorem = "thm", lemma = "lem", proposition = "prop", corollary = "cor", invariant = "inv", property = "prty", claim = "claim", remark = "rem", notation = "not", example = "ex", subfigure = "fig", subtable = "tab" }
   local listpref = { contributions = "c", requirements = "req", derivedrequirements = "dr", assumptions = "asm", guarantees = "g", threats = "thr", limitations = "lim", rqlist = "rq" }
-  local appendix = false -- after \appendix, a heading's label may say guide:, the paper's appendix prefix (the guide's own labels say guide:)
+  local appendix = false -- after \appendix, a heading's label may say app:, the paper's appendix prefix (the guide's own labels say guide:)
   for _, f in ipairs(MAIN) do
     local stack = {}
     local lastheading
@@ -1795,7 +1795,7 @@ rule("placeholders", "source", "count", "submit", "what the template left for yo
   local function matrix_span(f)
     local ls = C.lines(f)
     for n, l in ipairs(ls) do
-      if C.strip_comment(l):match("\\label%s*{guide:tab:related}") then
+      if C.strip_comment(l):match("\\label%s*{tab:related}") then
         local a, b = n, n
         while a > 1 and not ls[a]:match("\\begin%s*{table") do a = a - 1 end
         while b < #ls and not ls[b]:match("\\end%s*{table") do b = b + 1 end

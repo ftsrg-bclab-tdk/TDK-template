@@ -355,7 +355,7 @@ function M.setting(name)
   end
   return value
 end
--- the phase the calendar has reached: the lifecycle's dates (guide, guide:tab:lifecycle) in the year of
+-- the phase the calendar has reached: the lifecycle's dates (guide, tab:lifecycle) in the year of
 -- today's date, or of LINT_DATE (YYYY-MM-DD) in the tests. From 30 October the paper is being
 -- submitted, whatever draft.tex says; before 1 October the calendar asks nothing
 M.PHASE_DATES = { { "10-01", "draft" }, { "10-22", "polish" }, { "10-30", "submit" } }

@@ -1,6 +1,6 @@
 #!/usr/bin/env texlua
 -- Builds guide/guide.bbl, the guide's own reference list, from guide/guide.bib: the keys the guide
--- cites, in the order the guide cites them (its guide:chapters as guide/guide.tex lists them), formatted by BibTeX with tdkieee.bst. The .bbl is
+-- cites, in the order the guide cites them (its chapters as guide/guide.tex lists them), formatted by BibTeX with tdkieee.bst. The .bbl is
 -- committed, so no build of a paper runs BibTeX for the guide; run this after editing the guide's
 -- citations or guide/guide.bib.
 --   texlua scripts/guide-bib.lua        (or: make guide-bib)
@@ -8,7 +8,7 @@ local function readfile(p) local h = io.open(p, "r"); if not h then return nil e
 local list = readfile("guide/guide.tex") or error("run from the template's root: guide/guide.tex not found")
 local keys, seen = {}, {}
 for line in list:gmatch("[^\n]*") do
-  local guide:code = line:gsub("\\%%", ""):gsub("%%.*$", "")
+  local code = line:gsub("\\%%", ""):gsub("%%.*$", "")
   local f = code:match("\\include{(guide/[^}]+)}")
   if f then
     local s = readfile(f .. ".tex") or error("missing " .. f .. ".tex")

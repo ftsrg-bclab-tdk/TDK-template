@@ -56,20 +56,20 @@ return {
     used = "it points to the full comparison: the related-work chapter, the gap matrix or the positioning figure",
     add = "add a paragraph \\paragraph{Gap.}\\label{par:gap} to the introduction" },
 
-  { id = "overview", role = "intro", kind = "float", title = "Leading figure", criterion = "B/1", example = "guide:fig:overview", label = "guide:fig:overview",
+  { id = "overview", role = "intro", kind = "float", title = "Leading figure", criterion = "B/1", example = "guide:fig:overview", label = "fig:overview",
     why = "the problem, the contributions and the headline result in one picture; the reviewer looks here first",
     used = "it is referenced from the text",
-    add = "add the leading figure, \\label{guide:fig:overview}, to the introduction" },
+    add = "add the leading figure, \\label{fig:overview}, to the introduction" },
 
   { id = "contributions", role = "intro", kind = "tags", title = "Contributions", criterion = "E", example = "guide:chapters:contributions", prefix = "c",
     why = "what this work claims, as checkable items; the sheet's E names stating the main contribution as a must",
     used = "each contribution points to the chapter that delivers it and is referenced in the conclusion",
     add = "add a contributions list (\\begin{contributions}, items labelled c:)" },
 
-  { id = "architecture", role = "approach", kind = "float", title = "Architecture figure", criterion = "B/1", example = "guide:fig:architecture", label = "guide:fig:architecture",
+  { id = "architecture", role = "approach", kind = "float", title = "Architecture figure", criterion = "B/1", example = "guide:fig:architecture", label = "fig:architecture",
     why = "the approach end to end, with what is yours set apart from what is reused",
     used = "it is referenced from the text",
-    add = "add an architecture figure, \\label{guide:fig:architecture}, to the approach" },
+    add = "add an architecture figure, \\label{fig:architecture}, to the approach" },
 
   { id = "threats", role = "approach", kind = "tags", title = "Threats", criterion = "D/2", example = "guide:chapters:adversary", prefix = "thr",
     why = "who the adversary is and what it can do; a reviewer of a security topic looks for it first",
@@ -102,10 +102,10 @@ return {
     used = "the evaluation cites the archived artifact by its Zenodo DOI",
     add = "add a section \\section{Setup}\\label{sec:setup} to the evaluation" },
 
-  { id = "correctness", role = "evaluation", kind = "float", title = "Correctness", criterion = "D/2", example = "guide:tab:correctness", label = "guide:tab:correctness",
+  { id = "correctness", role = "evaluation", kind = "float", title = "Correctness", criterion = "D/2", example = "guide:tab:correctness", label = "tab:correctness",
     why = "how each guarantee and requirement was checked: proved, tested or model-checked, with the result",
     used = "it is referenced from the text, and every guarantee (g:) has a row in it",
-    add = "add the correctness table, \\label{guide:tab:correctness}, to the evaluation" },
+    add = "add the correctness table, \\label{tab:correctness}, to the evaluation" },
 
   { id = "scalability", role = "evaluation", kind = "text", title = "Scalability", criterion = "E", example = "guide:chapters:scalability", key = "scalability", label = "sec:scalability",
     headings = { "scalab", "scaling", "performance", "cost" }, words = 100,
@@ -124,20 +124,20 @@ return {
     why = "what could make the results wrong or not generalise, and what was done about each",
     add = "add a section \\section{Threats to validity}\\label{sec:validity} to the evaluation" },
 
-  { id = "positioning", role = "related", kind = "float", title = "Positioning figure", criterion = "B/2", example = "guide:fig:positioning", label = "guide:fig:positioning", alt = "tab:positioning",
+  { id = "positioning", role = "related", kind = "float", title = "Positioning figure", criterion = "B/2", example = "guide:fig:positioning", label = "fig:positioning", alt = "tab:positioning",
     why = "the related work on the two properties that separate it most, with this work in the cell no one else reaches",
     used = "it is referenced from the text",
-    add = "add the positioning figure, \\label{guide:fig:positioning}, to the related work" },
+    add = "add the positioning figure, \\label{fig:positioning}, to the related work" },
 
-  { id = "gapmatrix", role = "related", kind = "float", title = "Gap matrix", criterion = "D/1", example = "guide:tab:related", label = "guide:tab:related",
+  { id = "gapmatrix", role = "related", kind = "float", title = "Gap matrix", criterion = "D/1", example = "guide:tab:related", label = "tab:related",
     why = "each requirement against the closest approaches, reporting achievements, trade-offs and limits honestly",
     used = "each requirement has exactly one row; this work's met, partial or unmet cells point to evidence, and not-applicable cells give an explicit scope justification",
-    add = "add the gap matrix, \\label{guide:tab:related}, to the related work" },
+    add = "add the gap matrix, \\label{tab:related}, to the related work" },
 
   { id = "gap", role = "related", kind = "text", title = "The gap", criterion = "D/1", example = "guide:chapters:gap", key = "gap", label = "sec:gap",
     headings = { "gap" }, words = 100,
     why = "the gap in one sentence, shown closed by this work's results",
-    used = "it is based on the gap matrix (references guide:tab:related)",
+    used = "it is based on the gap matrix (references tab:related)",
     add = "add a section \\section{Gap}\\label{sec:gap} to the related work" },
 
   { id = "summary", role = "conclusion", kind = "text", title = "Summary with evidence", criterion = "E", example = "guide:chapters:summary", key = "summary", label = "sec:summary",

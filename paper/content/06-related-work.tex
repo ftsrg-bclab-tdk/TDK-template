@@ -8,7 +8,7 @@
 
 \section{Existing approaches}
 \guidetodo{Existing approaches}{guide:chapters:existing-approaches}
-TODO The related work by family; \cref{guide:fig:positioning} places it, and \cref{guide:tab:related} compares the closest approaches.
+TODO The related work by family; \cref{fig:positioning} places it, and \cref{tab:related} compares the closest approaches.
 
 \begin{runningexample}[elsewhere]
 TODO How the closest approach would handle the scenario, and which requirement it fails on.
@@ -16,22 +16,22 @@ TODO How the closest approach would handle the scenario, and which requirement i
 
 \begin{figure}[!ht]
   \centering
-  \missingfigure[figheight=2cm]{Positioning figure: \cref{guide:fig:positioning}}
+  \missingfigure[figheight=2cm]{Positioning figure: \cref{fig:positioning}}
   \caption{TODO positioning figure.}
-  \label{guide:fig:positioning}
+  \label{fig:positioning}
 \end{figure}
 
 \begin{table}[!ht]
   \centering
   \caption{TODO Gap matrix: each requirement against the closest approaches. \gaplegend.}
-  \label{guide:tab:related}
+  \label{tab:related}
   % Every column but the requirement's has a fixed width and wraps, so a long cell grows downwards
   % instead of squeezing the requirement column under its heading.
   \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.2em} >{\raggedright\arraybackslash}X *{3}{>{\centering\arraybackslash}p{5.5em}} >{\centering\arraybackslash}p{6.5em}}
     \toprule
     & \textbf{Requirement} & \makecell{\textbf{Approach A}\\\cite{lamport1978time}} & \makecell{\textbf{Approach B}\\\cite{w3c2025vcdm}} & \textbf{Approach C} & \textbf{This work} \\
     \midrule
-    \ref{req:first} & TODO short name & \gapyes & \gappartial & \gapno & \gapyes\,(\cref{guide:rq:correct}) \\
+    \ref{req:first} & TODO short name & \gapyes & \gappartial & \gapno & \gapyes\,(\cref{rq:correct}) \\
     \bottomrule
   \end{tabularx}
 \end{table}
