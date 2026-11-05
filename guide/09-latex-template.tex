@@ -17,6 +17,10 @@ A note prints inline, as a block across the text width under the line it is writ
 \missingfigure{A placeholder for a figure that does not exist yet.}
 \beat{what a paragraph establishes}{its evidence}{what the running example shows in it}{the next paragraph}
 \advisortodo{A note for the advisors: a draft to confirm or a link to add.}
+Six kinds of note have their own colour, so the draft shows at a glance what is left: \texttt{\textbackslash todoproof}, \texttt{\textbackslash todowrite}, \texttt{\textbackslash todoref}, \texttt{\textbackslash todofix}, \texttt{\textbackslash todoformula} and \texttt{\textbackslash todoidea}. Each takes the options of \texttt{\textbackslash todo}.
+\todoproof{Lemma 2 still needs its induction step.}
+\todoref{The survey this claim comes from.}
+\todoidea{Would a second baseline help here?}
 A word or two can still go in the margin, clear of the text, with \texttt{noinline}.\atodo[noinline, nolist]{Cite this.}
 
 Mark missing content in the sentence: proving one slice takes \tbd{the proving time} on a laptop; an unsupported claim needs a source\citeneeded[the 2023 survey]. These gap markers also work in table cells and captions, where margin notes cannot go (\cref{guide:tab:latex:gaps}). Both appear in the todo list. The reviewer PDF prints a red [missing] or [citation needed] in their place, so a gap left at upload shows as a gap instead of a sentence with a hole in it. Use them instead of typed marker words or bracketed citation marks. The lint rejects typed markers and, at the submit phase, any remaining \texttt{\textbackslash tbd} or \texttt{\textbackslash citeneeded}.

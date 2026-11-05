@@ -272,6 +272,19 @@
 %   \atodo{review comment}  \atodo[noinline]{cite}  \atodo[author=IK]{...}
 \newcommand{\atodo}[2][]{\todo[color=green!25, bordercolor=green!50!black, author=A, #1]{#2}}
 
+% Kinds of student notes, each with its own colour, so the draft and the list of todos show at a
+% glance what is left: a proof to write, text to write, a reference to find, something to rework,
+% a formula to work into the text, an idea still to decide. Like \todo, they print inline unless
+% given [noinline], take every \todo option, and disappear in the reviewer build.
+\colorlet{todoproof}{pink!50}\colorlet{todowrite}{magenta!30}\colorlet{todoref}{red!30!orange!45}
+\colorlet{todofix}{red!40!magenta!40}\colorlet{todoformula}{violet!30}\definecolor{todoidea}{RGB}{190,175,240}
+\newcommand{\todoproof}[2][]{\todo[color=todoproof, caption={Proof: #2}, #1]{\textbf{Proof:} #2}}
+\newcommand{\todowrite}[2][]{\todo[color=todowrite, caption={Write: #2}, #1]{\textbf{Write:} #2}}
+\newcommand{\todoref}[2][]{\todo[color=todoref, caption={Reference: #2}, #1]{\textbf{Reference:} #2}}
+\newcommand{\todofix}[2][]{\todo[color=todofix, caption={Rework: #2}, #1]{\textbf{Rework:} #2}}
+\newcommand{\todoformula}[2][]{\todo[color=todoformula, caption={Formula: #2}, #1]{\textbf{Formula:} #2}}
+\newcommand{\todoidea}[2][]{\todo[color=todoidea, caption={Idea: #2}, #1]{\textbf{Idea:} #2}}
+
 % A gap the paper still has to fill, in a sentence, a table cell or a caption, where a margin note
 % cannot go (a float has no margin):
 %   \tbd{the proving time}          a value or a sentence still to write

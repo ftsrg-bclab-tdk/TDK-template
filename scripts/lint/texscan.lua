@@ -51,7 +51,7 @@ local MATH = { math=true, displaymath=true, equation=true, ['equation*']=true,
   align=true, ['align*']=true, alignat=true, ['alignat*']=true, flalign=true, ['flalign*']=true,
   gather=true, ['gather*']=true, multline=true, ['multline*']=true, eqnarray=true, ['eqnarray*']=true }
 local PICTURE = { tikzpicture=true, axis=true, forest=true }
-local NOTE = { todo=1, todoinline=1, atodo=1, advisortodo=1, guidetodo=2, beat=4 }
+local NOTE = { todo=1, todoinline=1, atodo=1, advisortodo=1, guidetodo=2, beat=4, todoproof=1, todowrite=1, todoref=1, todofix=1, todoformula=1, todoidea=1 }
 T.LINK = { url=true, href=true, weblink=true, nolinkurl=true }
 local ADDRESS = { url=true, path=true, href=true, weblink=true, nolinkurl=true }
 -- The first argument of a command, with at most two optional arguments.
