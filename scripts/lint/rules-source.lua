@@ -745,18 +745,6 @@ end
 -- listing is the program's text, and no fix touches it (lintcore.lua, M.literal_spans)
 rule("crefs", "source", "check", "always", "references go through \\cref: no 'Figure~\\ref', no \\autoref, \\Cref at the start of a sentence, and no bare \\ref outside table cells", function()
   local lines_of = {}
-  -- the label of a list item: \cref would print "Item 3", so "check~\ref{chk:step}" is the way to
-  -- name it
-  local item = {}
-  C.each_editable_line(MAIN, function(_, _, l)
-    if l:match("\\item%f[%A]") then
-      for key in l:gmatch("\\label{([^}]*)}") do item[key] = true end
-    end
-  end)
-  local function only_items(l)
-    for key in l:gmatch("\\ref{([^}]*)}") do if not item[key] then return false end end
-    return true
-  end
   C.each_editable_line(MAIN, function(f, n, l)
     if l:match("[Ff]igure~?\\ref") or l:match("[Tt]able~?\\ref") or l:match("[Ss]ection~?\\ref") or l:match("[Cc]hapter~?\\ref") or l:match("[Ll]isting~?\\ref") then fail(f, n, "a typed reference with \\ref", "write \\cref{...}", cref_fix(l, "(%a+)~?\\ref{([^}]*)}", function(w) return TYPED_REF[w:lower()] end)) end
     if l:match("\\autoref") then fail(f, n, "\\autoref", "the template uses cleveref, write \\cref", cref_fix(l, "\\(auto)ref{([^}]*)}", function() return true end)) end
@@ -769,7 +757,7 @@ rule("crefs", "source", "check", "always", "references go through \\cref: no 'Fi
         if (starts and before:match("^%s*$")) or before:match("[%.%?!]%s+$") then return "\\Cref{" end
       end))) or nil)
     end
-    if l:match("\\ref{") and not l:match("&") and not l:match("\\ref{req:") and not l:match("\\ref{g:") and not l:match("\\ref{c:") and not l:match("\\ref{asm:") and not l:match("\\ref{thr:") and not l:match("\\ref{dr:") and not only_items(l) then warn(f, n, "bare \\ref in prose", "\\cref names the kind of thing for you", ref_fix(l)) end
+    if l:match("\\ref{") and not l:match("&") and not l:match("\\ref{req:") and not l:match("\\ref{g:") and not l:match("\\ref{c:") and not l:match("\\ref{asm:") and not l:match("\\ref{thr:") and not l:match("\\ref{dr:") then warn(f, n, "bare \\ref in prose", "\\cref names the kind of thing for you", ref_fix(l)) end
     if l:match("\\pageref") then note(f, n, "\\pageref: rarely needed with hyperlinks") end
   end)
 end)

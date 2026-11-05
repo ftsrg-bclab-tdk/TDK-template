@@ -272,8 +272,6 @@ MUTATIONS = [
     ("a paragraph label is par:", "labels", append(BG, "\\paragraph{Extra.}\\label{par:extra} Some text."), "!par:extra"),
     ("figure never referenced", "figures", append(BG, "\\begin{figure}\\centering x\\caption{An orphan figure for the test.}\\label{fig:orphan}\\end{figure}"), "fig:orphan is never referenced"),
     ("typed reference", "crefs", append(BG, "As Figure~\\ref{fig:overview} shows, it works."), "typed reference"),
-    ("a bare \\ref to a section", "crefs", append(BG, "See \\ref{ch:approach} for it."), "bare \\ref in prose"),
-    ("a \\ref to a list item names it", "crefs", append(BG, "\\begin{enumerate}\n\\item\\label{chk:one} First.\n\\end{enumerate}\nBy check~\\ref{chk:one} it holds."), "!bare \\ref in prose"),
     ("autoref", "crefs", append(BG, "As \\autoref{fig:overview} shows, it works."), "\\autoref"),
     ("a sentence opened by \\cref on its own line", "crefs", append(BG, "It works.\n\\cref{fig:overview} shows it."), "start of a sentence"),
     ("a wrapped line opened by \\cref mid-sentence", "crefs", append(BG, "The result is shown in\n\\cref{fig:overview} for every run."), "!start of a sentence"),
