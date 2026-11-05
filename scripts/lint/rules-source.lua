@@ -1511,6 +1511,58 @@ rule("aidecl", "source", "check", "submit", "the AI declaration is filled in: ex
     if body:match("indoklása:}%s*TODO") or body:match("overall value:}%s*TODO") then fail(f, nil, "the justification of the overall share is still TODO") end
   end
   if s:match("\\todo") then warn(f, nil, "the declaration's instructions todo is still in the file") end
+  -- the numbers the declaration states must agree with each other and with the paper
+  local lines = C.lines(f)
+  local function pcts(t)
+    local out = {}
+    for l in (t .. "\n"):gmatch("([^\n]*)\n") do
+      for x in C.strip_comment(l):gmatch("(%d+[,.]?%d*)\\?%%") do out[#out + 1] = (x:gsub(",", ".")) end
+    end
+    return out
+  end
+  local function last(t) local p = pcts(t); return p[#p] end
+  local overall_line
+  for n, l in ipairs(lines) do if l:match("Overall percentage") or l:match("Összesített százalékos") then overall_line = n end end
+  -- each row's share against the share its explanation arrives at: the last percentage before the next row
+  local function is_row(l)
+    l = C.strip_comment(l)
+    if l:match("^%s*\\[re]*n?e?w?command") or l:match("^%s*\\def") then return false end -- a row macro's definition
+    return l:match("\\aiused") or (l:match("&") and l:match("\\?%%%s*\\\\"))
+  end
+  local n = 1
+  while overall_line and n < overall_line do
+    if is_row(lines[n]) then
+      local value, m, expl = last(lines[n]), n + 1, {}
+      while m < overall_line and not is_row(lines[m]) do expl[#expl + 1] = lines[m]; m = m + 1 end
+      local said = last(table.concat(expl, "\n"))
+      if value and said and tonumber(value) ~= tonumber(said) then warn(f, n, string.format("the row says %s%%, its explanation arrives at %s%%", value, said), "make the row and its explanation agree") end
+      n = m
+    else n = n + 1 end
+  end
+  if overall_line then
+    local overall = last(lines[overall_line])
+    local rest = {}
+    for m = overall_line + 1, #lines do
+      if lines[m]:match("Attention:") or lines[m]:match("Figyelem:") then break end
+      rest[#rest + 1] = lines[m]
+    end
+    local said = pcts(table.concat(rest, "\n"))
+    local agrees = #said == 0
+    for _, x in ipairs(said) do if overall and tonumber(x) == tonumber(overall) then agrees = true end end
+    if overall and not agrees then warn(f, overall_line, string.format("the overall share is %s%%, its justification says %s%%", overall, table.concat(said, "%, ")), "make them agree") end
+  end
+  -- a count of the paper's sources against its bibliography
+  local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))
+  if bbl then
+    local items = C.count(bbl, "\\bibitem")
+    for k, l in ipairs(lines) do
+      for _, word in ipairs({ "sources", "references", "cited works", "forrás" }) do
+        for num in C.strip_comment(l):gmatch("(%d+)%s+" .. word) do
+          if tonumber(num) ~= items then warn(f, k, string.format("%s %s here, %d entries in the bibliography", num, word, items), "count them again") end
+        end
+      end
+    end
+  end
 end)
 
 rule("titlepage", "source", "check", "submit", "the title page variables are filled in: title, author, year, the second author where there is one", function()
