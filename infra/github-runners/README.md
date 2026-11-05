@@ -1,10 +1,15 @@
 # BME cloud runner pilot
 
-BME cloud is the preferred backend. The existing `bme-cloud-29136` organization
-runner is now running with [trusted-job hardening](native/README.md). Separately,
-a native offline sandbox has passed live cross-job isolation tests on that host.
-The persistent GitHub runner is **not** automatically using that sandbox and is
-not ready for arbitrary untrusted workflows. See the [measured evidence](native/evidence-2026-11-03.md).
+BME cloud is the preferred backend. The [native one-job integration](session/README.md)
+now runs fresh repository-scoped JIT runners inside host-enforced sandboxes, with
+restricted egress, private bounded storage and external cleanup. Native and OCI
+container GitHub jobs, artifact transfer, cancellation and controller-loss tests
+have been exercised on the existing VM. See the [November 5 evidence](session/evidence-2026-11-05.md).
+
+The older persistent org runner has been stopped and disabled after an idle check.
+It remains registered offline because the current token cannot administer org
+runners. It must not be re-enabled for student workflows. The [November 3 native
+prototype and hardening](native/README.md) remain documented for history.
 
 Active paper workflows remain GitHub-hosted. This directory also retains the
 original disposable-VM pilot below. Nothing here creates cloud resources or

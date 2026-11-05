@@ -17,5 +17,6 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -m unittest discover -s infra/github-runners/tests -v
-      - run: bash -n infra/github-runners/prepare-image.sh infra/github-runners/native/install.sh
-      - run: shellcheck infra/github-runners/prepare-image.sh infra/github-runners/native/install.sh
+      - run: bash -n infra/github-runners/prepare-image.sh infra/github-runners/native/install.sh infra/github-runners/session/install.sh infra/github-runners/session/entry.sh
+      - run: shellcheck infra/github-runners/prepare-image.sh infra/github-runners/native/install.sh infra/github-runners/session/install.sh infra/github-runners/session/entry.sh
+      - run: python3 -m compileall -q infra/github-runners/session

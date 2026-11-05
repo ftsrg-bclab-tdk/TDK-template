@@ -14,7 +14,7 @@ if [[ $mode == --dry-run ]]; then
   exit 0
 fi
 install -d -o root -g root -m 0755 /usr/local/lib/tdk-native
-for file in sandbox.py egress.py verify.py harden.py; do
+for file in sandbox.py egress.py verify.py harden.py result.py; do
   install -o root -g root -m 0755 "$here/$file" "/usr/local/lib/tdk-native/$file"
 done
 install -m 0644 "$here/trusted.conf" /usr/local/lib/tdk-native/trusted.conf
