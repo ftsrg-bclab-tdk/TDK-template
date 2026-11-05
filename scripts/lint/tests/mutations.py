@@ -261,6 +261,7 @@ MUTATIONS = [
     ("a float without its label is missing", "essentials", drop_line("content/06-related-work.tex", "\\label{fig:positioning}"), "○ Positioning figure"),
     ("text below the threshold is started", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(15)), "◑ Context\n    help: 14 own words"),
     ("text above the threshold is written and enough", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(50)), "intro ●◔◔◔◔◔◔◔"),
+    ("a skeleton list beside the student's own heading", "essentials", append("content/03-approach.tex", "\\section{Soundness assumptions}\nThe prover is honest."), 'has a heading "Soundness assumptions"'),
     ("some items own is started", "essentials", both(three_reqs, own_items("content/01-introduction.tex", "req", only="req:first")), "◑ Requirements\n    help: 1 of 3 items written"),
     ("an own figure with a TODO caption is started", "essentials", replace_line("content/03-approach.tex", "\\missingfigure[figheight=2cm]{Architecture:",
         "  \\begin{tikzpicture}\\node[draw] (h) {Holder}; \\node[draw, right=of h] {Registry};\\end{tikzpicture}"), "◑ Architecture figure\n    help: the caption is still a TODO"),

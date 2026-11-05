@@ -388,6 +388,21 @@ local function first_of(list, n)
   return s
 end
 
+-- a heading of the paper that names the row, outside the tagged list's own place: a student who
+-- wrote the items as prose under their own heading left the skeleton's list behind
+local function heading_naming(row, skip_file, skip_line)
+  local word = row.title:lower():match("%a+")
+  for _, f in ipairs(C.MAIN) do
+    for n, raw in ipairs(C.lines(f)) do
+      local l = C.strip_comment(raw):gsub("(\\%a+%*?)%s*%b[]", "%1")
+      local t = l:match("\\%a*section%*?%s*{([^}]*)}") or l:match("\\paragraph%*?%s*{([^}]*)}")
+      -- the skeleton's own headings are where the list belongs, not a sign of another one
+      local own_heading = not C.skeleton_lines()[C.prose_key(raw)]
+      if t and own_heading and t:lower():find(word, 1, true) and not (f == skip_file and math.abs(n - skip_line) <= 3) then return f, n, t end
+    end
+  end
+end
+
 local function eval_tags(row, r)
   local items = tag_items(row.prefix)
   if #items == 0 then return 0, row.add end
@@ -395,7 +410,11 @@ local function eval_tags(row, r)
   local own = 0
   for _, it in ipairs(items) do if own_item(it) then own = own + 1 end end
   r.items, r.own = #items, own
-  if own == 0 then return 1, string.format("%d item%s, all TODO or the template's text: write them", #items, #items == 1 and "" or "s") end
+  if own == 0 then
+    local hf, hn, ht = heading_naming(row, items[1].file, items[1].line)
+    local hint = hf and string.format("; %s:%d has a heading \"%s\": move its items into this list and delete the template's", hf, hn, C.trim(ht)) or ""
+    return 1, string.format("%d item%s, all TODO or the template's text: write them%s", #items, #items == 1 and "" or "s", hint)
+  end
   if own < #items then return 2, string.format("%d of %d items written; the rest are TODO or the template's text", own, #items) end
   local used = TAG_USED[row.prefix]
   if not used then return 4 end
