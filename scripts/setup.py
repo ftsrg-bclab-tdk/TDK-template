@@ -18,6 +18,8 @@ import tempfile
 
 from onboarding import accounts, bootstrap, session, workflow, platforms, workspace, provision, checks
 
+from readme.badges import invalidate_blocks
+
 from ci.config import MACROS, inside, load_project, validate_project
 
 
@@ -95,6 +97,11 @@ def atomic_json(path, value):
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(name, path)
+        directory = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
     finally:
         if os.path.exists(name):
             os.unlink(name)
@@ -139,7 +146,7 @@ def metadata(root, config, apply=False):
     for macro, item in config["metadata"].items():
         # Parse only the balanced argument, leaving trailing comments untouched.
         start, end = declaration(after, macro)
-        desired = tex(item["value"])
+        desired = item["expected"] if item["value"] == item["expected"] else tex(item["value"])
         if after[start:end] == desired:
             continue
         if after[start:end] != item["expected"]:
@@ -180,9 +187,10 @@ def scaffold(root, repository, existing, paper_source=None):
     for macro in sorted(MACROS):
         if macro in config["metadata"]:
             continue  # Never reset an expected value over a student's edit.
-        found = re.findall(r"^\\newcommand\{\\" + macro + r"\}\{([^{}]*)\}", content, re.M)
-        if len(found) == 1:
-            config["metadata"][macro] = {"expected": found[0], "value": found[0]}
+        if not re.search(r"^\\newcommand\{\\" + re.escape(macro) + r"\}\{", content, re.M):
+            continue
+        start, end = declaration(content, macro)
+        config["metadata"][macro] = {"expected": content[start:end], "value": content[start:end]}
     validate_project(config, root)
     metadata(root, config)  # All retained expectations must still be valid.
     return config
@@ -214,9 +222,9 @@ def bootstrap_report(runner=run, smoke=False):
 def ask(prompt):
     print(prompt["service"] + ": " + prompt["text"])
     print("Sign up: " + prompt["signup_url"] + "\nProfile: " + prompt["profile_url"])
-    value = input("Confirm [yes/no]: " if prompt["field"] == "account_attested" else "Identifier (no passwords or tokens): ")
+    value = input("Confirm [yes/no/edit]: " if prompt["field"] == "account_attested" else "Identifier (no passwords or tokens): ")
     if prompt["field"] == "account_attested":
-        return {"yes": True, "y": True, "no": False, "n": False}.get(value.strip().lower())
+        return "edit" if value.strip().lower() == "edit" else {"yes": True, "y": True, "no": False, "n": False}.get(value.strip().lower())
     return value
 
 
@@ -280,6 +288,8 @@ def main(argv=None):
                     # Refuse to overwrite edits made while preparing the proposal.
                     if load_project(root, args.config)[1] != config_digest:
                         raise ValueError("Project configuration changed during initialization")
+                    if proposed["role"] == "project":
+                        invalidate_blocks(root)
                     atomic_json(config_path, proposed)
                     config, config_digest = load_project(root, args.config)
                 else:
@@ -328,7 +338,9 @@ def main(argv=None):
                     atomic_json(local / "repository.json", observed)
                     print(json.dumps(observed, indent=2))
             if args.provision_pilot:
-                receipt = provision.provision_pilot(provision.Gh(), config, args.template, root, execute=not args.dry_run)
+                receipt = provision.provision_pilot(provision.Gh(), config, args.template, root, execute=not args.dry_run,
+                    prior=json.loads((local / "provision.json").read_text()) if (local / "provision.json").exists() else None,
+                    persist=lambda value: atomic_json(local / "provision.json", value))
                 print(json.dumps(receipt, indent=2))
                 if not args.dry_run:
                     atomic_json(local / "provision.json", receipt)

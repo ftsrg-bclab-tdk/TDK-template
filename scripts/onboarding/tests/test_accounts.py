@@ -27,6 +27,16 @@ class AccountsTest(unittest.TestCase):
             state = result["accounts"]
         return state
 
+    def test_public_existence_still_requires_ownership_confirmation(self):
+        state = self.identified()
+        result = accounts.record_check(CATALOG, state, "github", scope="account", outcome="found",
+            method="public_lookup", checked_at=NOW)
+        state = result["accounts"]
+        self.assertEqual(accounts.prompts(CATALOG, state)[0]["field"], "account_attested")
+        self.assertEqual(accounts.status(CATALOG, state)["steps"][0]["next_action"], "confirm_account")
+        state = self.answer(state, "github", "account_attested", True)["accounts"]
+        self.assertFalse(any(p["service"] == "github" for p in accounts.prompts(CATALOG, state)))
+
     def test_new_user_has_all_official_links_and_identifier_prompts(self):
         prompts = accounts.prompts(CATALOG)
         self.assertEqual({p["service"] for p in prompts}, set(IDS))

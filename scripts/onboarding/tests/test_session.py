@@ -14,6 +14,29 @@ class SessionTest(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.path = Path(self.directory.name) / "state.json"
 
+    def test_edit_saved_typo_preserves_other_accounts_and_resets_evidence(self):
+        from scripts.onboarding import accounts
+        now = "2026-11-03T21:00:00Z"
+        state = accounts.apply_answer(self.catalog, {}, "github", "identifier", "typo-name")["accounts"]
+        state = accounts.record_check(self.catalog, state, "github", scope="access", outcome="allowed",
+            method="authenticated_check", checked_at=now, resource="org/repo")["accounts"]
+        state = accounts.apply_answer(self.catalog, state, "zotero", "identifier", "other-name")["accounts"]
+        session.save(self.path, self.catalog, state)
+        answers = iter([False])
+        session.collect(self.path, self.catalog, lambda _: next(answers), lambda _: None)
+        answers = iter(["edit", "correct-name"])
+        def ask(prompt):
+            try:
+                return next(answers)
+            except StopIteration:
+                raise EOFError
+        session.collect(self.path, self.catalog, ask, lambda _: None)
+        result = session.load(self.path, self.catalog)
+        self.assertEqual(result["github"]["identifier"]["value"], "correct-name")
+        self.assertEqual(result["github"]["account"]["status"], "pending")
+        self.assertEqual(result["github"]["access"], [])
+        self.assertEqual(result["zotero"], state["zotero"])
+
     def test_interruption_preserves_accepted_answer(self):
         answers = iter(["student-name"])
         def ask(prompt):

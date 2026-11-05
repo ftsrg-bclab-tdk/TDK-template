@@ -70,6 +70,12 @@ def collect(path, catalog, ask, emit, *, dry_run=False):
             answer = ask(prompt)
         except (EOFError, KeyboardInterrupt):
             return {"interrupted": True, "status": accounts.status(catalog, state)}
+        if prompt["field"] == "account_attested" and answer == "edit":
+            try:
+                answer = ask({**prompt, "field": "identifier", "text": "Enter the corrected identifier.", "kind": accounts.KINDS[prompt["service"]]})
+            except (EOFError, KeyboardInterrupt):
+                return {"interrupted": True, "status": accounts.status(catalog, state)}
+            prompt = {**prompt, "field": "identifier"}
         result = accounts.apply_answer(catalog, state, prompt["service"],
                                        prompt["field"], answer,
                                        checked_at=datetime.now(timezone.utc).isoformat())

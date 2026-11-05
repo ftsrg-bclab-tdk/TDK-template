@@ -189,7 +189,7 @@ def prompts(catalog, existing=None):
     for service, entry in state.items():
         spec = catalog["services"][service]
         field = "identifier" if entry["identifier"] is None else "account_attested"
-        if field == "account_attested" and entry["account"]["status"] in {"manual_attested", "verified"}:
+        if field == "account_attested" and entry["account"]["method"] == "manual_sign_in" and entry["account"]["status"] == "manual_attested":
             continue
         result.append({"service": service, "field": field,
                        "text": spec["prompt"] if field == "identifier" else
@@ -272,7 +272,7 @@ def status(catalog, existing=None):
     result["steps"] = []
     for service, entry in result["accounts"].items():
         action = ("provide_identifier" if entry["identifier"] is None else
-                  "confirm_account" if entry["account"]["status"] not in {"manual_attested", "verified"} else
+                  "confirm_account" if entry["account"]["method"] != "manual_sign_in" or entry["account"]["status"] != "manual_attested" else
                   "account_recorded")
         result["steps"].append({"service": service, "next_action": action,
                                 "format": entry["format"]["status"],

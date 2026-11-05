@@ -126,6 +126,22 @@ def replace_block(original, block):
     return original[:start] + block + original[end + len(END):]
 
 
+def invalidated(original):
+    return replace_block(original, START + "\nProject status pending: regenerate badges for this repository with scripts/readme/badges.py.\n" + END)
+
+
+def invalidate_blocks(root):
+    """Preflight both marked blocks before changing either README."""
+    changes = []
+    for relative in ("README.md", "paper/README.md"):
+        path = root / relative
+        if path.exists():
+            before = path.read_text()
+            changes.append((path, invalidated(before)))
+    for path, after in changes:
+        path.write_text(after)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', required=True, help='actual target owner/name; resolved with gh api')

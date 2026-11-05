@@ -44,6 +44,18 @@ class SetupTest(unittest.TestCase):
             code = setup.main([*args, "--root", str(self.root)])
         return code, output.getvalue()
 
+    def test_init_preserves_raw_tex_until_explicit_replacement(self):
+        path = self.root / "thesis.tex"
+        path.write_text(r"\newcommand{\vikcim}{A \& B}" + "\n")
+        before = path.read_bytes()
+        code, output = self.call("advisor", "--init-config", "org/project", "--apply-metadata")
+        self.assertEqual(code, 0, output)
+        self.assertEqual(path.read_bytes(), before)
+        config = json.loads((self.root / "project.json").read_text())
+        config["metadata"]["vikcim"]["value"] = "New & title"
+        setup.metadata(self.root, config, apply=True)
+        self.assertIn(r"{New \& title}", path.read_text())
+
     def test_advisor_dry_run_has_no_writes(self):
         before = self.git("status", "--porcelain")
         code, output = self.call("advisor", "--init-config", "org/project", "--dry-run")

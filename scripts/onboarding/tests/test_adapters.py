@@ -30,6 +30,9 @@ class FakeGithub:
         self.calls = []
         self.interrupt = False
         self.two_factor = True
+        self.receipt = None
+        self.template_head = "a" * 40
+        self.files = {p: (SCRIPTS.parent / p).read_text() for p in ("README.md", "paper/README.md", "paper/draft.tex")}
 
     def request(self, method, endpoint, body=None):
         self.calls.append((method, endpoint, body))
@@ -41,6 +44,19 @@ class FakeGithub:
             return 200, {"two_factor_requirement_enabled": self.two_factor}
         if endpoint == "repos/FTSRG-BCLab-TDK/TDK-template":
             return 200, {"is_template": True}
+        if "/commits/" in endpoint:
+            return 200, {"sha": self.template_head}
+        if "/git/trees/" in endpoint:
+            return 200, {"truncated": False, "tree": [{"path": path, "mode": "100644", "type": "blob", "sha": "paper"} for path in ("paper/draft.tex", "project.json", "README.md", "paper/README.md")]}
+        if "/contents/" in endpoint and not endpoint.endswith("/contents/project.json"):
+            path = endpoint.split("/contents/")[1].split("?")[0]
+            if path == "project.json":
+                text = json.dumps(self.source)
+            else:
+                if method == "PUT":
+                    self.files[path] = base64.b64decode(body["content"]).decode()
+                text = (SCRIPTS.parent / path).read_text() if "?ref=" in endpoint else self.files[path]
+            return 200, {"encoding": "base64", "sha": "blob", "content": base64.b64encode(text.encode()).decode()}
         if endpoint.endswith("/generate"):
             self.target = {"id": 2, "full_name": "FTSRG-BCLab-TDK/" + body["name"], "private": body["private"],
                            "owner": {"login": "FTSRG-BCLab-TDK"},
@@ -112,6 +128,61 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             workspace.apply(plan, setup.atomic_json)
 
+    def test_actual_cli_init_then_provision_and_retry(self):
+        import contextlib
+        import io
+        for path in ("README.md", "paper/README.md", "paper/draft.tex"):
+            dest = self.root / path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((SCRIPTS.parent / path).read_text())
+        (self.root / "project.json").write_text(json.dumps(self.config))
+        (self.root / ".gitignore").write_text("/.onboarding/\n")
+        for argv in (["init", "-q"], ["add", "."], ["-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "fixture"]):
+            subprocess.run(["git", "-C", str(self.root), *argv], check=True, capture_output=True)
+        fake = FakeGithub(self.config)
+        fake.interrupt = True
+        args = ["advisor", "--root", str(self.root), "--skip-accounts"]
+        with patch.object(setup.provision, "Gh", return_value=fake), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(setup.main(args + ["--init-config", "FTSRG-BCLab-TDK/onboarding-pilot-example"]), 0)
+            initialized = json.loads((self.root / "project.json").read_text())
+            self.assertEqual(len(initialized["metadata"]), 7)
+            self.assertEqual(setup.main(args + ["--provision-pilot"]), 2)
+            fake.template_head = "b" * 40  # Moving main must not replace the saved source.
+            self.assertEqual(setup.main(args + ["--provision-pilot"]), 0)
+            self.assertEqual(setup.main(args + ["--provision-pilot"]), 0)
+        receipt = json.loads((self.root / ".onboarding/provision.json").read_text())
+        self.assertEqual(receipt["template_baseline_sha"], "a" * 40)
+        self.assertEqual(sum(endpoint == "repos/FTSRG-BCLab-TDK/TDK-template/commits/main" for _, endpoint, _ in fake.calls), 1)
+        self.assertEqual(sum(method == "POST" for method, _, _ in fake.calls), 1)
+        for path in ("README.md", "paper/README.md"):
+            from readme.badges import invalidated
+            original = (SCRIPTS.parent / path).read_text()
+            self.assertEqual((self.root / path).read_text(), invalidated(original))
+            self.assertEqual(fake.files[path], invalidated(original))
+
+    def test_provision_preflight_and_generation_drift_block_writes(self):
+        fake = FakeGithub(self.config)
+        desired = copy.deepcopy(self.config)
+        desired["repository"] = "FTSRG-BCLab-TDK/onboarding-pilot-example"
+        desired["metadata"] = {"vikcim": {"expected": "wrong", "value": "wrong"}}
+        with self.assertRaisesRegex(ValueError, "Metadata expectation"):
+            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root,
+                execute=True, persist=lambda value: setattr(fake, "receipt", value))
+        self.assertFalse(any(method != "GET" for method, _, _ in fake.calls))
+        desired["metadata"] = {}
+        original = fake.request
+        def drift(method, endpoint, body=None):
+            code, value = original(method, endpoint, body)
+            if "/git/trees/" in endpoint and "/onboarding-pilot-" in endpoint:
+                value["tree"][0]["sha"] = "different-generated-source"
+            return code, value
+        fake.request = drift
+        with self.assertRaisesRegex(ValueError, "captured template baseline"):
+            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root,
+                execute=True, persist=lambda value: setattr(fake, "receipt", value))
+        self.assertFalse(any(method == "PUT" for method, _, _ in fake.calls))
+        self.assertEqual(fake.receipt["template_baseline_sha"], "a" * 40)
+
     def test_provision_preview_never_calls_api(self):
         fake = FakeGithub(self.config)
         desired = copy.deepcopy(self.config)
@@ -120,7 +191,7 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(result["role"], "project")
         self.assertFalse(fake.calls)
         with self.assertRaises(ValueError):
-            provision.provision_pilot(fake, self.config, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
+            provision.provision_pilot(fake, self.config, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
         self.assertFalse(fake.calls)
 
     def test_provision_retry_observes_created_repo_and_initializes_project_role(self):
@@ -129,15 +200,15 @@ class AdapterTests(unittest.TestCase):
         desired = copy.deepcopy(self.config)
         desired["repository"] = "FTSRG-BCLab-TDK/onboarding-pilot-example"
         with self.assertRaises(TimeoutError):
-            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
-        result = provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
+            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
+        result = provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
         self.assertEqual(result["status"], "verified")
         self.assertEqual(fake.config["role"], "project")
         self.assertEqual(fake.config["repository"], desired["repository"])
         self.assertEqual(sum(method == "POST" for method, _, _ in fake.calls), 1)
         self.assertEqual(fake.config["components"], self.config["components"])
-        provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
-        self.assertEqual(sum(method == "PUT" for method, _, _ in fake.calls), 1)
+        provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
+        self.assertEqual(sum(method == "PUT" for method, _, _ in fake.calls), 3)
 
     def test_provision_2fa_and_remote_edit_fail_closed(self):
         fake = FakeGithub(self.config)
@@ -145,14 +216,14 @@ class AdapterTests(unittest.TestCase):
         desired["repository"] = "FTSRG-BCLab-TDK/onboarding-pilot-example"
         fake.two_factor = False
         with self.assertRaises(ValueError):
-            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
+            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
         self.assertFalse(any(m != "GET" for m, _, _ in fake.calls))
         fake.two_factor = True
-        provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
+        provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
         fake.config["metadata"] = {"vikcim": {"expected": "Old", "value": "Student"}}
         before = len(fake.calls)
         with self.assertRaises(ValueError):
-            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True)
+            provision.provision_pilot(fake, desired, "FTSRG-BCLab-TDK/TDK-template", self.root, execute=True, prior=fake.receipt, persist=lambda value: setattr(fake, "receipt", value))
         self.assertFalse(any(m != "GET" for m, _, _ in fake.calls[before:]))
 
     def test_2fa_missing_field_is_not_verified(self):

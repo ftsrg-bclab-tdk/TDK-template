@@ -29,7 +29,10 @@ GitHub or ORCID.
 Setup asks only for these identifiers and a confirmation that you can sign in
 to the account. Enter passwords, tokens and recovery codes only where the
 service itself requires them, never into an account identifier prompt. Setup
-keeps accepted identifiers locally so you can stop and resume. A missing or
+keeps accepted identifiers locally so you can stop and resume. At the sign-in
+confirmation, enter `edit` to correct a saved identifier. A changed identifier resets
+that account and its access evidence, preserving the other services. A public
+account lookup records existence; it still requires your sign-in confirmation. A missing or
 invalid answer leaves that step pending; reuse an existing answer unless you
 need to correct it.
 

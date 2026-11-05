@@ -138,8 +138,23 @@ python3 scripts/setup.py advisor --invite-pilot STUDENT_USERNAME
 ```
 
 Before the first command, `project.json` must name the disposable destination.
-Use unchanged template component/metadata configuration for provisioning; populate
-and apply paper metadata locally afterward. The provisioner authenticates the
+Keep template component settings unchanged for provisioning. Initialization may add
+metadata expectations that describe the unchanged template source; apply explicit
+paper metadata replacements locally afterward. Unchanged expectations preserve raw
+TeX bytes, including commands and escaped characters. To replace a field, set its
+`value` to the new plain text and review `--apply-metadata --dry-run`.
+
+Initialization invalidates the marked status blocks in both READMEs while preserving
+surrounding prose. Provisioning does the same remotely; regenerate repository badges
+with `scripts/readme/badges.py` after checking the actual project workflows.
+
+Before creating a repository, provisioning checks configuration and saves the immutable
+`template_baseline_sha` in private `.onboarding/provision.json`. Keep this receipt
+across interruptions: retries use its source commit and compare generated files and
+modes against that baseline before changing project identity. A moving template that
+generates different contents blocks initialization; it is not silently relabeled as
+the captured baseline. Older receipts without a baseline require manual provenance
+review. The provisioner authenticates the
 advisor, verifies organization-owner authority, creates a private repository from
 the configured template, and writes `role: project` and the correct repository
 identity into its shared config. Readback is mandatory. A lost creation response
