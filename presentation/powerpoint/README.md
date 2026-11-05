@@ -164,11 +164,38 @@ CI verifies hashes, internal relationships, native object structure, placeholder
 inheritance, chart/workbook consistency, and reproducibility from the builder.
 It also checks font relationships, family/style mappings, embedding flags and
 the complete embedded font bytes against the licensed static sources.
+The cover checks require editable advisor fields and non-overlapping author,
+advisor and event rows. Background checks keep warm ivory on content slides and
+the original overlays on the cover, closing and section masters.
 It is not a complete Office Open XML schema or accessibility validator.
-Ten regression tests exercise lost title semantics and capitalization,
+Twenty regression tests exercise lost title semantics and capitalization,
 overlapping cover title/subtitle boxes, an invisible table type, inherited
 hanging indents in plain text, stale chart values, an external workbook link,
-disabled embedding, missing font styles and corrupt embedded font data.
+disabled embedding, missing font styles, corrupt embedded font data, missing or
+overlapping advisor fields, incorrect background colors, PDF font substitution,
+missing text/pages, canvas sizing and a wrong QR destination.
+
+The **PowerPoint templates** workflow runs on relevant pull requests and pushes,
+and has a manual dispatch entry. Its package job runs the checks above. Separate
+PPTX and POTX jobs render the checked-in deliverables with LibreOffice in fresh
+profiles, with Fontconfig restricted to Liberation fallback fonts. They check
+fourteen pages, the slide size, every native slide-text paragraph in the exported
+PDF, the intended embedded font weights, and all four project QRs at 1280 × 720.
+The jobs retain PDFs, PNG previews, extracted text, font reports, command logs and
+`result.json` as workflow artifacts for 14 days, including available evidence
+when a check fails. These checks do not establish pixel-perfect visual matching
+or replace the native PowerPoint check below.
+
+To run the same rendering checks locally, install LibreOffice Impress,
+Fontconfig, Liberation fonts, Poppler and zbar-tools, then run:
+
+```sh
+python3 presentation/powerpoint/tools/check_render.py --format pptx
+python3 presentation/powerpoint/tools/check_render.py --format potx
+```
+
+Each invocation creates a fresh evidence directory under
+`presentation/dist/powerpoint/ci/`. It never saves over the template files.
 
 All fourteen examples were rendered and inspected with LibreOffice. A separate
 test restricted Fontconfig to Liberation fonts and used fresh LibreOffice

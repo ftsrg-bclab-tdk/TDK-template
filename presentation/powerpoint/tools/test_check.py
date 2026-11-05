@@ -63,6 +63,26 @@ class BrokenTemplates(unittest.TestCase):
             data = z.read(part)
         self.damaged(part, data, data[:-1] + bytes([data[-1] ^ 1]), "payload differs")
 
+    def test_warm_overlay_leaking_onto_cover(self):
+        self.damaged("ppt/slideMasters/slideMaster2.xml", b'val="101010"', b'val="806459"', "original graph overlay changed")
+
+    def test_cold_content_background(self):
+        self.damaged("ppt/theme/theme1.xml", b'val="F4EFE7"', b'val="E6E6E6"', "Content background")
+
+    def test_advisor_field_removed(self):
+        self.damaged("ppt/slides/slide13.xml", b'name="Advisor(s)"', b'name="Unused"', "Missing editable advisor")
+
+    def test_advisor_row_overlaps_event(self):
+        from xml.etree import ElementTree as ET
+        from check import NS
+        part = "ppt/slideLayouts/slideLayout14.xml"
+        with zipfile.ZipFile(ROOT / "templates/ftsrg-current.pptx") as z:
+            layout = ET.fromstring(z.read(part))
+        positions = {s.find("p:nvSpPr/p:cNvPr", NS).get("name"): s.find("p:spPr/a:xfrm/a:off", NS).get("y")
+                     for s in layout.findall(".//p:sp", NS)}
+        self.damaged(part, f'y="{positions["Event and date"]}"'.encode(),
+                     f'y="{positions["Advisor(s)"]}"'.encode(), "Overlapping advisor row")
+
 
 if __name__ == "__main__":
     unittest.main()

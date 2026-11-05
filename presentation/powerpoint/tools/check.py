@@ -109,6 +109,20 @@ def inspect(path):
         slides = [prs[e.get("{" + NS["r"] + "}id")][1] for e in p.findall("p:sldIdLst/p:sldId", NS)]
         require(len(slides) == 14, "Missing example slide")
         require(len(p.findall("p:sldMasterIdLst/p:sldMasterId", NS)) == 3, "Expected three shared masters")
+        theme = ET.fromstring(z.read("ppt/theme/theme1.xml"))
+        require(theme.find(".//a:clrScheme/a:lt2/a:srgbClr", NS).get("val") == "F4EFE7",
+                "Content background must retain warm ivory")
+        content_master = ET.fromstring(z.read("ppt/slideMasters/slideMaster1.xml"))
+        require(content_master.find("p:cSld/p:bg/p:bgPr/a:solidFill/a:schemeClr", NS).get("val") == "lt2",
+                "Content master must use the warm background theme color")
+        for number, color, opacity in ((2, "101010", "42000"), (3, "24122A", "50000")):
+            master = ET.fromstring(z.read(f"ppt/slideMasters/slideMaster{number}.xml"))
+            overlay = [s for s in master.findall(".//p:sp", NS)
+                       if s.find("p:nvSpPr/p:cNvPr", NS).get("name") == "Artwork contrast overlay"]
+            require(len(overlay) == 1, "Missing original graph overlay")
+            fill = overlay[0].find("p:spPr/a:solidFill/a:srgbClr", NS)
+            require(fill is not None and fill.get("val") == color and fill.find("a:alpha", NS).get("val") == opacity,
+                    "Only content backgrounds may be warmed; original graph overlay changed")
         layout_names = set()
         for i, part in enumerate(slides, 1):
             slide = ET.fromstring(z.read(part))
@@ -138,6 +152,17 @@ def inspect(path):
                 require(bottom <= int(subtitle_pos.find("a:off", NS).get("y")),
                         f"Cover title overlaps subtitle on {i}")
             shapes = slide.find("p:cSld/p:spTree", NS)
+            if i in (1, 13, 14):
+                advisor = [s for s in shapes.findall("p:sp", NS)
+                           if s.find("p:nvSpPr/p:cNvPr", NS).get("name") == "Advisor(s)"]
+                require(len(advisor) == 1 and advisor[0].find(".//p:ph[@type='body'][@idx='7']", NS) is not None
+                        and bool("".join(advisor[0].itertext()).strip()), f"Missing editable advisor field on cover {i}")
+                rows = {s.find("p:nvSpPr/p:cNvPr", NS).get("name"): s.find("p:spPr/a:xfrm", NS)
+                        for s in layout.findall(".//p:sp", NS)}
+                for before, after in (("Authors", "Advisor(s)"), ("Advisor(s)", "Event and date")):
+                    require(before in rows and after in rows, f"Missing cover row on {i}")
+                    bottom = int(rows[before].find("a:off", NS).get("y")) + int(rows[before].find("a:ext", NS).get("cy"))
+                    require(bottom <= int(rows[after].find("a:off", NS).get("y")), f"Overlapping advisor row on cover {i}")
             titles = [s for s in shapes if any(ph.get("type") in ("title", "ctrTitle") for ph in s.findall(".//p:ph", NS))]
             require(len(titles) == 1 and shapes[2] is titles[0], f"Title missing or not first in reading order on {i}")
             ids = [s.get("id") for s in slide.findall(".//p:cNvPr", NS)]

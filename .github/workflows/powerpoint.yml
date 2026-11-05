@@ -5,14 +5,19 @@ on:
       - 'presentation/powerpoint/**'
       - 'presentation/assets/**'
       - '.github/workflows/powerpoint.yml'
+      - 'template-ownership.json'
   push:
     paths:
       - 'presentation/powerpoint/**'
       - 'presentation/assets/**'
       - '.github/workflows/powerpoint.yml'
+      - 'template-ownership.json'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: powerpoint-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 jobs:
   package:
     runs-on: ubuntu-latest
@@ -26,3 +31,33 @@ jobs:
           python-version: '3.x'
       - run: python presentation/powerpoint/tools/check.py
       - run: python -m unittest discover -s presentation/powerpoint/tools -p 'test_*.py'
+  render:
+    name: Render ${{ matrix.format }}
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        format: [pptx, potx]
+    steps:
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+      - name: Install rendering and inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-impress fontconfig fonts-liberation poppler-utils zbar-tools
+      - name: Check rendering without installed template fonts
+        run: python presentation/powerpoint/tools/check_render.py --format '${{ matrix.format }}'
+      - name: Preserve render evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@main
+        with:
+          name: powerpoint-${{ matrix.format }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: presentation/dist/powerpoint/ci/
+          retention-days: 14
+          if-no-files-found: warn
