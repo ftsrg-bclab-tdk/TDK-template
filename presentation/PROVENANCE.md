@@ -17,14 +17,18 @@ an editable PowerPoint version.
   relicense the entire legacy presentation as new material.
 - `powerpoint/templates/ftsrg-current.pptx` and `.potx` are newly authored native
   Office Open XML versions of the current `theme/bme.css` design. They reuse the
-  existing graph artwork and logos unchanged. The twelve layouts use larger
-  editable text areas, native table/chart examples, and a connected native
-  workflow diagram. They are a PowerPoint adaptation, not a synchronized export
+  existing graph artwork and logos unchanged. The twelve layouts follow the
+  BPM 2026 talk at `6f1b07b`, including its inline closing styles, font weights,
+  tracking, compact header, cover author block and closing panels. They include
+  native table/chart examples and a connected native workflow diagram.
+  They are a PowerPoint adaptation, not a synchronized export
   of `slides.md`. The examples are instructional; the chart data are synthetic.
 - `powerpoint/assets/workflow.png` is a raster copy of `figures/workflow.svg` for
   the picture-placeholder example. The separate native diagram stays editable.
 - `powerpoint/fonts/` contains static instances of the already supplied Montserrat
-  and JetBrains Mono variable fonts, produced with FontTools 4.67.0. Their OFL
+  and JetBrains Mono variable fonts, produced with FontTools 4.67.0. Montserrat
+  Light, Medium and SemiBold are exposed as separate Office font families to
+  preserve the BPM weight hierarchy. Their OFL
   notices are retained. The new PowerPoint files do not embed these fonts.
 
 The scoped license policy below applies to original reusable tooling and prose.

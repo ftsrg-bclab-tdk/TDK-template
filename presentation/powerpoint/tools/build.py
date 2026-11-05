@@ -110,9 +110,15 @@ def paragraph_style(pp, style, level=0):
     if style.get("bullets"):
         pp.set("marL", emu(28 + level * 30))
         pp.set("indent", emu(-22))
+    else:
+        # buNone alone does not clear the master body's hanging indent.
+        pp.set("marL", "0")
+        pp.set("indent", "0")
     sp = sub(pp, "a:lnSpc")
-    sub(sp, "a:spcPct", val=style.get("line", 125000))
-    sub(sub(pp, "a:spcAft"), "a:spcPts", val=style.get("after", 1200))
+    # Fixed leading matches CSS line-height; percentage leading depends on the
+    # application's font metrics and made the first revision much too loose.
+    sub(sp, "a:spcPts", val=round(style.get("leading", style.get("size", 23) * 1.4) * 75))
+    sub(sub(pp, "a:spcAft"), "a:spcPts", val=style.get("after", 0))
     if style.get("bullets"):
         solid_dummy = sub(pp, "a:buClr")
         sub(solid_dummy, "a:schemeClr", val="accent1")
@@ -124,7 +130,7 @@ def paragraph_style(pp, style, level=0):
     rp = sub(pp, "a:defRPr", sz=round((style.get("size", 28) - level * 2) * 75),
              b=int(style.get("bold", False)), kern=1200)
     if style.get("tracking"):
-        rp.set("spc", str(style["tracking"]))
+        rp.set("spc", str(round(style["tracking"] * 75)))
     solid(rp, style.get("color", "tx1"))
     sub(rp, "a:latin", typeface=style.get("font", "+mn-lt"))
 
@@ -150,7 +156,10 @@ def shape(t, name, box=None, text="", style=None, ph=None, fill=None, border=Non
         else:
             sub(sp, "a:noFill")
         ln = sub(sp, "a:ln", w=emu(1 if border else 0))
-        solid(ln, border) if border else sub(ln, "a:noFill")
+        if border:
+            solid(ln, *border) if isinstance(border, tuple) else solid(ln, border)
+        else:
+            sub(ln, "a:noFill")
     text_body(s, text, style, inherited=box is None)
     return s
 
@@ -229,7 +238,7 @@ def theme():
     fs = sub(te, "a:fontScheme", name="Montserrat")
     for role in ("majorFont", "minorFont"):
         f = sub(fs, "a:" + role)
-        sub(f, "a:latin", typeface="Montserrat")
+        sub(f, "a:latin", typeface="Montserrat Medium" if role == "majorFont" else "Montserrat")
         sub(f, "a:ea", typeface="")
         sub(f, "a:cs", typeface="")
     fmt = sub(te, "a:fmtScheme", name="FTSRG")
@@ -268,13 +277,16 @@ def make_master(pkg, number, name, layouts):
     t = tree(cs)
     rels = [("rId1", "theme", "../theme/theme1.xml")]
     if number == 1:
-        shape(t, "Header rule", (64, 37, 1152, 1), fill="A8A8A8", deco=True)
-        shape(t, "Project label — edit on master", (64, 12, 760, 21), "RESEARCH PROJECT",
-              dict(size=14, color="555555", after=0, tracking=120))
-        for file, x, h in [("ftsrg-grey.png", 1105, 20), ("bme-wordmark-grey.png", 1165, 15)]:
+        shape(t, "Header rule", (64, 27, 1152, 1.5), fill="8A8A8A", deco=True)
+        shape(t, "Project label (edit on master)", (64, 14, 174, 20), "RESEARCH PROJECT",
+              dict(size=13, leading=20, color="4A4A4A", font="Montserrat Medium", tracking=1.56), fill="lt2")
+        shape(t, "Event and authors (edit on master)", (481.5, 14, 317, 20), "TDK CONFERENCE · STUDENT NAME",
+              dict(size=13, leading=20, color="4A4A4A", font="Montserrat Medium", tracking=1.56, align="ctr"), fill="lt2")
+        shape(t, "Header logo backing", (1113.2, 17, 102.8, 20), fill="lt2", deco=True)
+        for file, x, y, h in [("ftsrg-grey.png", 1125.2, 17, 20), ("bme-wordmark-grey.png", 1176.25, 19.5, 15)]:
             p = ASSETS / "logos" / file
-            picture(pkg, t, rels, p, png_box(p, x, 15, h), file, deco=True)
-        s = shape(t, "Automatic slide number", (1229, 13, 36, 22), "1", dict(size=14, color="555555", after=0), ph=("sldNum", 90))
+            picture(pkg, t, rels, p, png_box(p, x, y, h), file, deco=True)
+        s = shape(t, "Automatic slide number", (1232, 15, 34, 20), "1", dict(size=13, leading=20, color="7A7A7A", font="Montserrat Medium", tracking=1.04), ph=("sldNum", 90))
         p = s.find("p:txBody/a:p", NS)
         p.remove(p.find("a:r", NS))
         field = node("a:fld", id="{" + str(uuid.uuid5(uuid.NAMESPACE_URL, name)) + "}", type="slidenum")
@@ -287,7 +299,7 @@ def make_master(pkg, number, name, layouts):
         shape(t, "Artwork contrast overlay", (0, 0, 1280, 720), fill=("24122A", .50) if number == 3 else ("101010", .42), deco=True)
         if number == 2:
             p = ASSETS / "logos/bme-vik-mit-ftsrg-white.png"
-            picture(pkg, t, rels, p, png_box(p, 64, 650, 44), "BME VIK MIT FTSRG", deco=True)
+            picture(pkg, t, rels, p, png_box(p, 64, 648, 44), "BME VIK MIT FTSRG", deco=True)
     sub(m, "p:clrMap", **CMAP)
     ids = sub(m, "p:sldLayoutIdLst")
     for i in layouts:
@@ -296,8 +308,8 @@ def make_master(pkg, number, name, layouts):
         rels.append((rid, "slideLayout", f"../slideLayouts/slideLayout{i}.xml"))
     sub(m, "p:hf", hdr=0, ftr=0, dt=0, sldNum=int(number == 1))
     ts = sub(m, "p:txStyles")
-    for kind, style in [("titleStyle", dict(size=36, color="accent1", align="ctr", font="+mj-lt")),
-                        ("bodyStyle", dict(size=28, bullets=True)), ("otherStyle", dict(size=24))]:
+    for kind, style in [("titleStyle", dict(size=30, leading=36, color="accent1", align="ctr", font="+mj-lt", tracking=2.1)),
+                        ("bodyStyle", dict(size=23, leading=32.2, bullets=True)), ("otherStyle", dict(size=23))]:
         st = sub(ts, "p:" + kind)
         for level in range(9):
             paragraph_style(sub(st, f"a:lvl{level+1}pPr"), style, min(level, 2))
@@ -311,63 +323,100 @@ def placeholder(name, kind, idx, box, text, **style):
 
 
 def layouts():
-    title = lambda text: placeholder("Slide title", "title", 0, (64, 72, 1152, 100), text, size=36, color="accent1", align="ctr", font="+mj-lt", after=0)
-    caption = lambda text: placeholder("Caption / source", "body", 10, (64, 619, 1152, 64), text, size=20, color="555555", align="ctr", after=0)
+    # CSS pixels on the BPM deck's 1280 x 720 canvas. The cover and closing
+    # positions also follow the talk's inline CSS, not only the shared theme.
+    title = lambda text, y=91.625: placeholder("Slide title", "title", 0, (64, y, 1152, 48), text, size=30, leading=36, color="accent1", align="ctr", font="+mj-lt", tracking=2.1)
+    caption = lambda text, y=560: placeholder("Caption / source", "body", 10, (100, y, 1080, 64), text, size=18, leading=25.2, color="3D3D3D", align="ctr")
     body = lambda name, idx, box, text, **kw: placeholder(name, "body", idx, box, text, **kw)
+    eyebrow = lambda text: body("Section / topic", 11, (64, 70, 1152, 19), text.upper(), size=12.5, leading=15.625, font="Montserrat SemiBold", color="4A4A4A", tracking=2.75, align="ctr")
+    label = lambda name, idx, box, text, color="accent1": body(name, idx, box, text, size=12, leading=17.4, bold=True, tracking=2.4, color=color)
     return [
         dict(name="01 Cover", master=2, kind="title", items=[
-            placeholder("Presentation title", "ctrTitle", 0, (90, 190, 1100, 115), "YOUR RESEARCH TITLE", size=44, color="FFFFFF", align="ctr", font="+mj-lt", bold=True, tracking=180),
-            placeholder("Subtitle", "subTitle", 1, (110, 315, 1060, 82), "The problem and your contribution", size=32, color="FFFFFF", align="ctr"),
-            body("Author and event", 2, (160, 445, 960, 110), "Student name\nTDK conference · Presentation date", size=24, color="FFFFFF", align="ctr"),
-            body("Affiliation", 3, (760, 650, 456, 46), "Critical Systems Research Group · BME", size=16, color="FFFFFF", align="r")],
-             notes="Start here. Save a working copy with your own filename. Replace the title, subtitle, author, event and affiliation. Keep titles short; use a second line rather than reducing the font. View > Slide Master controls the shared artwork and logos. The PPTX and POTX contain the same editable examples."),
+            placeholder("Presentation title", "ctrTitle", 0, (90, 184.4, 1100, 51), "YOUR RESEARCH TITLE", size=38, leading=49.4, color="FFFFFF", align="ctr", font="Montserrat SemiBold", tracking=4.56),
+            placeholder("Subtitle", "subTitle", 1, (90, 233.8, 1100, 104), "THE PROBLEM AND\nYOUR CONTRIBUTION", size=32, leading=49, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.8),
+            body("Authors", 2, (160, 396, 960, 24), "STUDENT NAME · COAUTHOR NAME", size=16, leading=22.4, color="E8E6E1", align="ctr", tracking=3.2),
+            body("Event and date", 3, (160, 418.4, 960, 24), "TDK CONFERENCE · PRESENTATION DATE", size=13, leading=18.2, color="E3C6CB", align="ctr", tracking=3.64),
+            body("Presenter name", 4, (630, 613.6, 380, 23), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
+            body("Presenter affiliation", 5, (630, 637.6, 380, 33), "Critical Systems Research Group\nBudapest University of Technology and Economics", size=11.5, leading=15.525, color="D8D6D1", align="r"),
+            body("Presenter link", 6, (630, 673.6, 380, 20), "Your project URL", size=12, leading=16.8, font="JetBrains Mono", tracking=.24, color="FFFFFF", align="r"),
+            placeholder("Optional presenter photo", "pic", 20, (1028, 611, 82, 82), "", size=12),
+            placeholder("Optional contact QR", "pic", 21, (1128, 608, 88, 88), "", size=12)],
+             panels=[(510, 367, 260, 1, "D9B9BE")],
+             notes="Save a copy with your own filename. Replace the title, two-line subtitle, authors, event and presenter details. The composition follows the BPM 2026 cover. Optional picture placeholders at bottom right accept your portrait and a QR code whose destination you have checked; leave them empty if unneeded. Select the photo and use Crop > Crop to Shape > Oval. The PPTX and POTX contain the same examples."),
         dict(name="02 Section divider", master=3, kind="secHead", items=[
-            placeholder("Section title", "title", 0, (100, 285, 1080, 145), "MAKE THE ASSUMPTIONS EXPLICIT", size=44, color="FFFFFF", align="ctr", font="+mj-lt"),
-            body("Section label", 1, (120, 225, 1040, 40), "01 / METHOD", size=18, color="FFFFFF", align="ctr", tracking=160),
-            body("Section summary", 2, (200, 460, 880, 95), "Describe the system, propose a rule, then try to break it.", size=28, color="FFFFFF", align="ctr")],
-             notes="Use a divider only when the audience needs a change of topic. Edit the section label and the short transition sentence. Background contrast and artwork are inherited from the Section master."),
-        dict(name="03 Title and text", master=1, kind="tx", items=[title("STATE A QUESTION YOU CAN TEST"),
-            body("Main points", 1, (100, 210, 1080, 360), "What changes when a completed job is retried?\nState the assumptions behind your answer.\nName the evidence that could disprove it.", size=30, bullets=True)],
-             notes="Home > New Slide > Title and text adds this layout. Use the title placeholder so the slide has an accessible title. Enter creates another bullet; Tab / Shift+Tab changes level. Use Home > Reset to restore placeholder geometry and inherited formatting. Change the project label once on the Content master."),
-        dict(name="04 Two columns", master=1, kind="twoObj", items=[title("A RETRY CAN REPEAT A COMPLETED JOB"),
-            body("Left column", 1, (86, 220, 517, 300), "Example scenario\nA worker completes a job, but its acknowledgement is lost. The queue sends the same job again.", size=28),
-            body("Right column", 2, (677, 220, 517, 300), "Why it matters\nRunning a payment twice may change the result. The system needs an explicit rule for retries.", size=28),
-            caption("Illustrative example only; replace it with your own research context.")], panels=[(64, 195, 561, 370, "FFFFFF"), (655, 195, 561, 370, "FDEBD6")],
-             notes="Reading order is title, left column, right column, caption. The colored panels live on the layout; the text remains editable in Normal view. Duplicate the slide for a second comparison rather than shrinking the text."),
-        dict(name="05 Three columns", master=1, kind="cust", items=[title("CONNECT EACH STEP TO AN OUTPUT"),
-            body("Model", 1, (86, 220, 331, 330), "Model\nState which messages can be lost and what storage survives.", size=27),
-            body("Rule", 2, (474, 220, 331, 330), "Rule\nRecord job completion together with its effect.", size=27),
-            body("Check", 3, (862, 220, 331, 330), "Check\nExplore a retry before, during and after completion.", size=27),
-            caption("Each step should produce something another researcher can inspect.")], panels=[(64 + i * 388, 195, 376, 390, "FFFFFF") for i in range(3)],
-             notes="Use this layout for three short, genuinely parallel ideas. Do not add a third item just to fill the template. Use the two-column layout for two ideas. Read left to right."),
-        dict(name="06 Figure and caption", master=1, kind="picTx", items=[title("SHOW THE SYSTEM YOU ARE REASONING ABOUT"),
-            placeholder("Research figure", "pic", 1, (160, 215, 960, 330), "Insert your figure", size=30, align="ctr"),
-            caption("Replace the example figure and describe its main point. Add the source.")], special="figure",
-             notes="The example image is attached to a picture placeholder. Right-click > Change Picture replaces it; Crop > Fit preserves the full figure. On a new slide, use the picture icon. Add meaningful Alt Text describing the figure's conclusion, not its filename. Avoid screenshots of text. The source of this example is presentation/figures/workflow.svg."),
-        dict(name="07 Code and explanation", master=1, kind="twoObj", items=[title("A COMPLETION RECORD IS PART OF THE RULE"),
-            body("Editable code", 1, (86, 220, 730, 330), "within one atomic transaction:\n  if job.id is completed:\n    return its stored result\n  result = apply the effect\n  record completion and result", size=24, font="JetBrains Mono", line=145000, after=0),
-            body("Explanation", 2, (878, 220, 310, 330), "Assumption\nThe effect and completion record share a transaction. An external effect needs a different protocol.", size=27),
-            caption("Pseudocode for discussion, not a production implementation.")], panels=[(64, 195, 774, 390, "FFFFFF"), (856, 195, 360, 390, "FDEBD6")],
-             notes="Code is editable text in JetBrains Mono, not an image. Keep lines short enough for the placeholder. Split a long listing across slides. The explanation follows the code in reading order. Replace the fictional mechanism with your own and make assumptions explicit."),
-        dict(name="08 Table and caption", master=1, kind="tbl", items=[title("MAKE THE EXPECTED EVIDENCE VISIBLE"),
-            placeholder("Editable table", "tbl", 1, (64, 210, 1152, 320), "Insert a table", size=26),
-            caption("Evaluation plan only. Replace it with your results and cite their source.")], special="table",
-             notes="This is a native PowerPoint table with a header row and no merged cells. Use Table Layout to add rows or columns. Keep the header descriptive, include units, and use a caption for the source. On a new slide use the table placeholder, then apply a high-contrast header. Do not present these planned observations as measured results."),
-        dict(name="09 Chart and caption", master=1, kind="chart", items=[title("ILLUSTRATIVE CHART — REPLACE THE DATA"),
-            placeholder("Editable chart", "chart", 1, (130, 190, 1020, 385), "Insert a chart", size=26),
-            caption("Synthetic values for editing practice. No experiment is claimed.")], special="chart",
-             notes="This native chart has an embedded workbook. Right-click > Edit Data changes both categories and values. Rename the axis units and series, describe the measurement conditions, and add uncertainty where appropriate. The illustrative values (12, 18, 9 ms) are synthetic. Replace the Alt Text with the conclusion of your real chart. No external workbook link is used."),
-        dict(name="10 Title only / diagram", master=1, kind="titleOnly", items=[title("KEEP THE MECHANISM EDITABLE")], special="diagram",
-             notes="The example uses native shapes and connected arrows. Drag a box: the connectors remain attached. Edit the labels, then inspect connector routes. Give the complete diagram a concise description in the notes. The example reads: Model leads to Rule, which leads to Evidence. Use this layout for diagrams or other native objects."),
+            placeholder("Section title", "title", 0, (120, 305, 1040, 115), "ASSUMPTIONS\nAND METHOD", size=44, leading=52.8, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.4),
+            body("Section label", 1, (120, 264, 1040, 24), "01 / METHOD", size=14, leading=19.6, font="Montserrat Medium", color="E3C6CB", align="ctr", tracking=4.9),
+            body("Section summary", 2, (260, 466, 760, 64), "Describe the system, propose a rule,\nthen try to break it.", size=20, leading=29, color="F0E4EE", align="ctr")],
+             panels=[(618, 433, 44, 1, "D9B9BE")],
+             notes="This optional divider comes from the BPM/AVM shared CSS; the final BPM 2026 talk itself does not use a divider. Edit the section label and transition sentence. The purple graph artwork and overlay are shared on the Section master. Keep the title to two lines and the summary short."),
+        dict(name="03 Title and text", master=1, kind="tx", items=[title("ASSUMPTIONS AND LIMITATIONS"), eyebrow("Research scope"),
+            body("Main points", 1, (64, 165, 1152, 290), "A stable identifier must refer to the same logical job.\nA database transaction does not automatically cover an external service.\nA successful test covers the tested execution; a proof depends on its model.", size=23, leading=32.2, after=430, bullets=True),
+            label("Note label", 2, (86, 465, 1108, 20), "NEXT EXPERIMENT"),
+            body("Supporting note", 3, (86, 494, 1108, 72), "Introduce an external notification and inspect the gap between sending it and recording completion.", size=20.7, leading=30.015)],
+             panels=[(64, 447, 1152, 137, "FFFFFF")],
+             notes="Home > New Slide > Title and text adds this layout. Titles, topic labels and body text inherit their formatting from the layout. Enter creates another bullet; Tab / Shift+Tab changes level. Home > Reset restores geometry. Edit the project label and centered event/author line on the Content master."),
+        dict(name="04 Two columns", master=1, kind="twoObj", items=[title("A RETRY CAN REPEAT A COMPLETED JOB"), eyebrow("Running example"),
+            label("Left column label", 12, (86, 178, 517, 21), "EXAMPLE SCENARIO"),
+            body("Left column", 1, (86, 207, 517, 135), "A worker completes a job, but its acknowledgement is lost. The queue sends the same job again.", size=20.7, leading=30.015),
+            label("Right column label", 13, (677, 178, 517, 21), "WHY IT MATTERS", "A85E08"),
+            body("Right column", 2, (677, 207, 517, 135), "Running a payment twice may change the result. The system needs an explicit rule for retries.", size=20.7, leading=30.015),
+            body("Discussion question", 3, (88, 386, 1104, 49), "What happens when the same request arrives twice?", size=21.16, leading=29.624, align="ctr", color="3D3D3D"),
+            caption("Illustrative example only. Replace it with your own research context.", 462)],
+             panels=[(64, 160, 561, 201, "FFFFFF"), (655, 160, 561, 201, "FDEBD6"), (64, 374, 1152, 1, "A8A8A8"), (64, 442, 1152, 1, "A8A8A8")],
+             notes="The two-column layout uses the BPM CSS's 30 px column gap, 22 px card padding and compact label/body hierarchy. Every label and paragraph is editable. The panels and discussion rules are on the layout. Read left to right. Replace the fictional scenario before using it as evidence."),
+        dict(name="05 Three columns", master=1, kind="cust", items=[title("MODEL, RULE AND EVIDENCE"), eyebrow("Research method"),
+            label("Model label", 12, (86, 178, 325.33, 21), "MODEL"),
+            body("Model", 1, (86, 207, 325.33, 165), "State which messages can be lost and what storage survives.", size=20.7, leading=30.015),
+            label("Rule label", 13, (477.33, 178, 325.33, 21), "RULE"),
+            body("Rule", 2, (477.33, 207, 325.33, 165), "Record job completion together with its effect.", size=20.7, leading=30.015),
+            label("Check label", 14, (868.67, 178, 325.33, 21), "CHECK"),
+            body("Check", 3, (868.67, 207, 325.33, 165), "Explore a retry before, during and after completion.", size=20.7, leading=30.015),
+            caption("Each step produces something another researcher can inspect.", 420)],
+             panels=[(64 + i * (1174/3), 160, 1108/3, 230, "FFFFFF") for i in range(3)],
+             notes="The three columns follow the BPM CSS's 22 px gap, 22 px horizontal padding and separate compact labels. Use this layout for parallel material. Use two columns when there are only two ideas. Keep labels short and replace the example text with your own method."),
+        dict(name="06 Figure and caption", master=1, kind="picTx", items=[title("SYSTEM MODEL"), eyebrow("Research method"),
+            placeholder("Research figure", "pic", 1, (80, 155, 1120, 400), "Insert your figure", size=23, align="ctr"),
+            caption("Replace the example figure and describe its main point. Add the source.", 578)], special="figure",
+             notes="The full-width figure area follows the BPM talk's diagram slides. Right-click > Change Picture replaces the example; Crop > Fit preserves the whole image. Use the picture icon on a new slide. Add meaningful Alt Text. The example comes from presentation/figures/workflow.svg; the separate native diagram is editable."),
+        dict(name="07 Code and explanation", master=1, kind="twoObj", items=[title("A COMPLETION RECORD IS PART OF THE RULE"), eyebrow("Mechanism"),
+            body("Editable code", 1, (82, 174, 1120, 155), "within one atomic transaction:\n    if job.id is already completed:\n        return its stored result\n    result = apply the job's effect\n    record completion and result", size=18.5, leading=25.9, font="JetBrains Mono"),
+            label("Assumption label", 12, (86, 368, 1108, 21), "ASSUMPTION", "A85E08"),
+            body("Explanation", 2, (86, 397, 1108, 75), "The effect and the completion record share a transaction. An external side effect needs a different protocol.", size=20.7, leading=30.015),
+            caption("Pseudocode for discussion, not a production implementation.", 516)],
+             panels=[(64, 160, 1152, 175, "FFFFFF"), (64, 350, 1152, 137, "FDEBD6")],
+             notes="The full-width white code block uses the BPM CSS's 18.5 px JetBrains Mono and 25.9 px leading. The assumption follows below in an orange panel. Code stays editable. Replace the pseudocode and assumption together; no production behavior or measured result is claimed."),
+        dict(name="08 Table and caption", master=1, kind="tbl", items=[title("EVALUATION PLAN", 72),
+            placeholder("Editable table", "tbl", 1, (100, 140, 1080, 216), "Insert a table", size=18.86),
+            caption("Evaluation plan only. Replace it with your results and cite their source.", 384)], special="table",
+             notes="The native table follows BPM's compact red header and white rows. Header text is Montserrat SemiBold; body text is regular. Use Table Layout to edit rows and columns. Keep units and a source caption. Duplicate the example to retain its formatting. The rows are planned observations, not measured results."),
+        dict(name="09 Chart and caption", master=1, kind="chart", items=[title("LATENCY BY SCENARIO"), eyebrow("Illustrative data"),
+            placeholder("Editable chart", "chart", 1, (130, 155, 1020, 400), "Insert a chart", size=23),
+            caption("Synthetic values for editing practice. No experiment is claimed.", 578)], special="chart",
+             notes="This additional layout uses BPM typography and colors for a native chart with an embedded workbook. Right-click > Edit Data changes categories and values. Update units, conditions, uncertainty and Alt Text for your data. The example values (12, 18, 9 ms) are synthetic and require no external file."),
+        dict(name="10 Title only / diagram", master=1, kind="titleOnly", items=[title("MODEL, RULE AND EVIDENCE"), eyebrow("Research method")], special="diagram",
+             notes="The diagram uses native boxes and attached arrows, with the BPM palette and compact text. Drag a box and inspect the connector route. The example reads: Model leads to Rule, which leads to Evidence. Replace the labels and give a short explanation of your actual mechanism."),
         dict(name="11 Closing", master=2, kind="cust", items=[
-            placeholder("Closing title", "title", 0, (90, 180, 1100, 150), "YOUR SUPPORTED CONCLUSION", size=44, color="FFFFFF", align="ctr", font="+mj-lt"),
-            body("Take-home statement", 1, (160, 360, 960, 100), "State the answer, the evidence and the main limitation.", size=30, color="FFFFFF", align="ctr"),
-            body("Author / project contact", 2, (240, 490, 800, 105), "Student name\nProject URL or contact", size=24, color="FFFFFF", align="ctr")],
-             notes="Leave this slide visible during questions. Replace the instructional sentence with your supported conclusion. Enter your real project URL and add a hyperlink with Insert > Link. This starter has no live placeholder contact link."),
-        dict(name="12 References / backup", master=1, kind="tx", items=[title("SOURCES AND REPRODUCIBILITY"),
-            body("References and evidence", 1, (90, 200, 1100, 380), "[1] Author. Verified title. Venue, year. DOI or URL.\n[2] Dataset or artifact. Version and persistent identifier.\nReproduction: revision, configuration, commands and inputs.", size=27),
-            caption("These are prompts, not citations. Replace them with verified sources.")],
-             notes="Keep this and other backup slides after the close. Use actual source titles and persistent links. Cite borrowed figures on their own slides as well. Do not add an AI answer to the bibliography; follow the paper's AI-use declaration rules. Remove any unused example or prompt before sharing."),
+            placeholder("Closing title", "title", 0, (64, 127, 1152, 44), "YOUR RESEARCH CONTRIBUTION", size=30, leading=42, color="FFFFFF", align="ctr", font="Montserrat SemiBold", tracking=2.4),
+            body("Take-home statement", 1, (64, 169, 1152, 91), "THE ANSWER TO YOUR QUESTION\nWITH ITS EVIDENCE AND LIMITATIONS", size=30, leading=42, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=2.4),
+            *[item for i, (heading, text) in enumerate([
+                ("RESULT", "The contribution supported by your evidence."),
+                ("BOUNDARY", "The assumptions under which the result holds."),
+                ("OPEN QUESTION", "The uncertainty that remains after this work."),
+                ("NEXT STEP", "The next experiment or proof to investigate.")])
+              for item in [
+                body(f"Closing label {i+1}", 12+i, (79+i*291.5, 318, 247.5, 22), heading, size=13, leading=17.55, font="Montserrat SemiBold", tracking=2.6, color="E3C6CB"),
+                body(f"Closing detail {i+1}", 22+i, (79+i*291.5, 338, 247.5, 108), text, size=18, leading=24.3, color="F3EFEA")]],
+            body("Invitation", 2, (64, 462.5, 1152, 40), "Your project link and invitation to discuss", size=22, leading=30.8, font="Montserrat SemiBold", color="FFFFFF", align="ctr"),
+            body("Contact name", 3, (730, 610.4, 360, 24), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
+            body("Contact details", 4, (730, 634.4, 360, 50), "Your email address\nYour project URL", size=14, leading=19.6, color="D8D6D1", align="r"),
+            placeholder("Optional project QR", "pic", 30, (1114, 594, 96, 96), "", size=12)],
+             panels=[(64+i*291.5, 304.7, 277.5, 146.7, ("0C0C0E", .55), ("FFFFFF", .16)) for i in range(4)] + [(64+i*291.5, 304.7, 277.5, 3, "D9B9BE") for i in range(4)],
+             notes="This layout follows the actual BPM 2026 closing slide's three-line statement, four compact panels, invitation and bottom-right contact block. Replace the prompts with your supported conclusion and useful next questions. Delete unused panels and their text in Slide Master. The optional picture placeholder accepts a verified project QR. Leave the slide visible during questions."),
+        dict(name="12 References / backup", master=1, kind="tx", items=[title("SOURCES AND REPRODUCIBILITY", 72),
+            body("Backup tag", 11, (64, 72, 130, 20), "BACKUP", size=12, leading=16.8, bold=True, tracking=2.4, color="555555"),
+            body("References and evidence", 1, (100, 150, 1080, 320), "[1] Author. Verified title. Venue, year. DOI or URL.\n[2] Dataset or artifact. Version and persistent identifier.\nReproduction: revision, configuration, commands and inputs.", size=23, leading=32.2, after=600),
+            caption("These are prompts, not citations. Replace them with verified sources.", 520)],
+             notes="The backup tag and 30 px title follow the BPM talk's backup pages. Use actual source titles and persistent links. Cite borrowed figures on their slides too. Follow the paper's AI declaration rules. Remove unused prompts and keep detailed evidence after the close."),
     ]
 
 
@@ -392,23 +441,23 @@ def slide_number(t, number):
 
 
 def add_table(t):
-    data = frame(t, "Evaluation plan table", (64, 210, 1152, 320), ("tbl", 1), "Evaluation plan with columns for scenario, evaluation question and evidence to record.")
+    data = frame(t, "Evaluation plan table", (100, 140, 1080, 216), ("tbl", 1), "Evaluation plan with columns for scenario, evaluation question and evidence to record.")
     data.set("uri", "http://schemas.openxmlformats.org/drawingml/2006/table")
     tbl = sub(data, "a:tbl")
     sub(tbl, "a:tblPr", firstRow=1, bandRow=0)
     grid = sub(tbl, "a:tblGrid")
-    for w in (300, 420, 432):
+    for w in (280, 400, 400):
         sub(grid, "a:gridCol", w=emu(w))
     rows = [["Scenario", "Evaluation question", "Evidence to record"],
             ["No retry", "Does a job complete?", "Result and record"],
             ["Retry after completion", "Is the effect repeated?", "State before and after"],
             ["Failure during commit", "Are effect and record consistent?", "Trace or counterexample"]]
     for i, row in enumerate(rows):
-        tr = sub(tbl, "a:tr", h=emu(80))
+        tr = sub(tbl, "a:tr", h=emu(54))
         for value in row:
             tc = sub(tr, "a:tc")
-            text_body(tc, value, dict(size=25, color="FFFFFF" if i == 0 else "tx1", bold=i == 0, after=0), tag="a:txBody")
-            props = sub(tc, "a:tcPr", marL=emu(16), marR=emu(14), marT=emu(12), marB=emu(10), anchor="ctr")
+            text_body(tc, value, dict(size=18.86, leading=26.404, color="FFFFFF" if i == 0 else "tx1", font="Montserrat SemiBold" if i == 0 else "+mn-lt", tracking=.7544 if i == 0 else 0), tag="a:txBody")
+            props = sub(tc, "a:tcPr", marL=emu(14), marR=emu(14), marT=emu(8), marB=emu(8), anchor="ctr")
             for edge in ("lnL", "lnR", "lnT", "lnB"):
                 line = sub(props, "a:" + edge, w=emu(1))
                 solid(line, "lt2") if edge == "lnB" else sub(line, "a:noFill")
@@ -439,7 +488,7 @@ def workbook():
     return out.getvalue()
 
 
-def chart_text(parent, text, size=22):
+def chart_text(parent, text, size=18):
     tx = sub(parent, "c:tx")
     rich = text_body(tx, text, dict(size=size, after=0), tag="c:rich")
     for r in rich.findall(".//a:rPr", NS):
@@ -449,14 +498,14 @@ def chart_text(parent, text, size=22):
 
 def chart_font(parent):
     body = text_body(parent, "", tag="c:txPr")
-    rp = sub(body.find("a:p/a:pPr", NS), "a:defRPr", sz=1650)
+    rp = sub(body.find("a:p/a:pPr", NS), "a:defRPr", sz=1350)
     solid(rp, "dk1")
     sub(rp, "a:latin", typeface="Montserrat")
-    body.find("a:p/a:endParaRPr", NS).set("sz", "1650")
+    body.find("a:p/a:endParaRPr", NS).set("sz", "1350")
 
 
 def add_chart(pkg, t, rels):
-    data = frame(t, "Illustrative latency chart", (130, 190, 1020, 385), ("chart", 1), "Synthetic example: A is 12 ms, B is 18 ms, C is 9 ms. Replace with real measurements.")
+    data = frame(t, "Illustrative latency chart", (130, 155, 1020, 400), ("chart", 1), "Synthetic example: A is 12 ms, B is 18 ms, C is 9 ms. Replace with real measurements.")
     data.set("uri", NS["c"])
     rid = "rId" + str(len(rels) + 1)
     sub(data, "c:chart", **{f"{{{NS['r']}}}id": rid})
@@ -534,8 +583,8 @@ def add_chart(pkg, t, rels):
 def add_diagram(t):
     ids = []
     for i, (label, text) in enumerate([("Model", "Failures and state"), ("Rule", "Completion and effect"), ("Evidence", "Tests or proofs")]):
-        s = shape(t, label, (90 + i * 405, 280, 290, 180), label + "\n" + text,
-                  dict(size=27, align="ctr", after=1200), fill="lt1", border="accent1")
+        s = shape(t, label, (90 + i * 405, 230, 290, 140), label + "\n" + text,
+                  dict(size=23, leading=32.2, align="ctr", after=900), fill="lt1", border="accent1")
         ids.append(s.find("p:nvSpPr/p:cNvPr", NS).get("id"))
     for i in range(2):
         c = sub(t, "p:cxnSp")
@@ -546,12 +595,12 @@ def add_diagram(t):
         sub(pr, "a:endCxn", id=ids[i+1], idx=1)
         sub(nv, "p:nvPr")
         sp = sub(c, "p:spPr")
-        xfrm(sp, (380+i*405, 370, 115, 0))
+        xfrm(sp, (380+i*405, 300, 115, 0))
         sub(sub(sp, "a:prstGeom", prst="line"), "a:avLst")
         ln = sub(sp, "a:ln", w=emu(3))
         solid(ln, "accent1")
         sub(ln, "a:tailEnd", type="triangle", w="med", len="med")
-    shape(t, "Diagram explanation", (120, 530, 1040, 100), "Each arrow connects an explicit input to an inspectable output.", dict(size=28, align="ctr"))
+    shape(t, "Diagram explanation", (120, 420, 1040, 75), "Each arrow connects an explicit input to an inspectable output.", dict(size=18, leading=25.2, align="ctr"))
 
 
 def notes_master(pkg):
@@ -577,8 +626,8 @@ def build(output):
     for i, spec in enumerate(specs, 1):
         layout = node("p:sldLayout", type=spec["kind"], preserve=1)
         lt = tree(sub(layout, "p:cSld", name=spec["name"]))
-        for x, y, w, h, color in spec.get("panels", []):
-            shape(lt, "Shared panel", (x, y, w, h), fill=color, deco=True)
+        for x, y, w, h, color, *border in spec.get("panels", []):
+            shape(lt, "Shared panel", (x, y, w, h), fill=color, border=border[0] if border else None, deco=True)
         for ph in spec["items"]:
             shape(lt, **ph)
         if spec["master"] == 1:
@@ -599,10 +648,23 @@ def build(output):
                     add_chart(pkg, st, rels)
                 elif spec.get("special") == "figure":
                     image = ROOT / "assets/workflow.png"
-                    picture(pkg, st, rels, image, png_fit(image, (160, 215, 960, 330)), "Example workflow figure",
+                    picture(pkg, st, rels, image, png_fit(image, (80, 155, 1120, 400)), "Example workflow figure",
                             "A system model leads to a candidate rule, then to evidence from tests or proofs.", ph=("pic", 1))
+                else:
+                    shape(st, ph["name"], text="", ph=ph["ph"])
             else:
-                shape(st, ph["name"], text=ph["text"], ph=ph["ph"])
+                s = shape(st, ph["name"], text=ph["text"], ph=ph["ph"])
+                if i == 1 and ph["name"] == "Authors":
+                    p = s.find("p:txBody/a:p", NS)
+                    r = p.find("a:r", NS)
+                    first, separator, rest = ph["text"].partition(" · ")
+                    r.find("a:rPr", NS).set("b", "1")
+                    solid(r.find("a:rPr", NS), "FFFFFF")
+                    r.find("a:t", NS).text = first
+                    tail = node("a:r")
+                    sub(tail, "a:rPr", lang="en-US")
+                    sub(tail, "a:t").text = separator + rest
+                    p.insert(list(p).index(r) + 1, tail)
         if spec.get("special") == "diagram":
             add_diagram(st)
         if spec["master"] == 1:
@@ -635,7 +697,7 @@ def build(output):
         rels.append((rid, "slide", f"slides/slide{i}.xml"))
     sub(pres, "p:sldSz", cx=emu(1280), cy=emu(720), type="screen16x9")
     sub(pres, "p:notesSz", cx=emu(720), cy=emu(960))
-    paragraph_style(sub(sub(pres, "p:defaultTextStyle"), "a:lvl1pPr"), dict(size=28))
+    paragraph_style(sub(sub(pres, "p:defaultTextStyle"), "a:lvl1pPr"), dict(size=23, leading=32.2))
     pkg.rels("ppt/presentation.xml", rels)
     pkg.rels("", [("rId1", "officeDocument", "ppt/presentation.xml"),
                   ("rId2", "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties", "docProps/core.xml"),

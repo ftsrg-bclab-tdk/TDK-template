@@ -72,6 +72,10 @@ def inspect(path):
             phs = layout.findall(".//p:ph", NS)
             layout_phs = {(ph.get("type", "obj"), ph.get("idx", "0")) for ph in phs}
             require(len(layout_phs) == len(phs), f"Duplicate layout placeholder on {i}")
+            for style in layout.findall(".//a:lstStyle/*", NS):
+                if style.find("a:buNone", NS) is not None:
+                    require(style.get("marL") == "0" and style.get("indent") == "0",
+                            f"Non-bullet layout text inherits a hanging indent on {i}")
             shapes = slide.find("p:cSld/p:spTree", NS)
             titles = [s for s in shapes if any(ph.get("type") in ("title", "ctrTitle") for ph in s.findall(".//p:ph", NS))]
             require(len(titles) == 1 and shapes[2] is titles[0], f"Title missing or not first in reading order on {i}")
@@ -111,7 +115,8 @@ def inspect(path):
         require(chart.find(".//c:val/c:numRef/c:f", NS).text == "Data!$B$2:$B$4", "Chart formula points outside example data")
         require(chart.find(".//c:valAx/c:scaling/c:min", NS).get("val") == "0", "Bar chart must start at zero")
         theme = ET.fromstring(z.read("ppt/theme/theme1.xml"))
-        require(all(e.get("typeface") == "Montserrat" for e in theme.findall(".//a:fontScheme/*/a:latin", NS)), "Wrong theme fonts")
+        for role, family in (("majorFont", "Montserrat Medium"), ("minorFont", "Montserrat")):
+            require(theme.find(f".//a:fontScheme/a:{role}/a:latin", NS).get("typeface") == family, "Wrong theme fonts")
 
 
 def main():

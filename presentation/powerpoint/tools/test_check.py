@@ -27,6 +27,9 @@ class BrokenTemplates(unittest.TestCase):
     def test_lost_title_semantics(self):
         self.damaged("ppt/slides/slide3.xml", b'type="title"', b'type="body"', "Title missing")
 
+    def test_inherited_hanging_indent(self):
+        self.damaged("ppt/slideLayouts/slideLayout4.xml", b' marL="0" indent="0"', b'', "inherits a hanging indent")
+
     def test_stale_chart_cache(self):
         self.damaged("ppt/charts/chart1.xml", b'<c:v>12</c:v>', b'<c:v>99</c:v>', "values disagree")
 

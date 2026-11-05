@@ -11,8 +11,9 @@ Students can use PowerPoint without building the Markdown presentation.
 ## Start a presentation
 
 1. Install the static `.ttf` files in [fonts/](fonts/) and restart PowerPoint.
-   They provide Montserrat regular, bold, italic and bold italic, plus JetBrains
-   Mono for code. Keep the font licenses when redistributing them. These fonts
+   They provide Montserrat Light, Medium and SemiBold as well as regular, bold,
+   italic and bold italic, plus JetBrains Mono for code. Keep the font licenses
+   when redistributing them. These fonts
    are supplied separately, **not embedded in the new presentation**. The static
    files avoid relying on variable-font support in Office.
 2. Open the PPTX or POTX in desktop PowerPoint. Save your talk under a new name,
@@ -21,7 +22,8 @@ Students can use PowerPoint without building the Markdown presentation.
 3. Choose **Home > New Slide** and select a named layout. Replace the example
    content and remove unused slides. Each example's speaker notes explain how
    to edit it. The chart data are synthetic; the table is an evaluation plan.
-4. Choose **View > Slide Master** to change the shared project label, branding
+4. Choose **View > Slide Master** to change the shared project label, centered
+   event/author line, branding
    or typography. Edit your title, author and contact in Normal view. Use
    **Home > Layout** to switch layouts and **Home > Reset** to restore a moved
    placeholder. Avoid pasting text with formatting from another presentation.
@@ -45,8 +47,9 @@ closing, and references/backup. Every example has a real title placeholder.
 
 Text geometry and styles live on layouts, so new slides inherit them and Reset
 can restore them. Body lists have three useful levels; keep deeper detail in
-backup slides. Titles have space for two lines. Shorten crowded content instead
-of reducing the type. Content slides have automatic slide-number fields; cover,
+backup slides. Content titles use one short line with a separate topic label
+above it. Cover subtitles and divider titles have two lines. Shorten crowded
+content instead of reducing the type. Content slides have automatic slide-number fields; cover,
 divider and closing slides omit them.
 
 - **Figures:** use the picture placeholder or right-click **Change Picture**.
@@ -65,9 +68,44 @@ divider and closing slides omit them.
 - **Code:** edit the text directly in JetBrains Mono. Keep long listings in
   an appendix or repository. The example is pseudocode, not a verified result.
 
+The cover includes optional picture placeholders for a portrait and a contact
+QR code. The closing includes one for a project QR code. Empty placeholders do
+not appear in Slide Show; select the picture icon in Normal view to fill them.
+For a portrait, use **Picture Format > Crop > Crop to Shape > Oval**. Use a QR
+image only after checking its destination and testing it on a phone. The
+template supplies no portrait or working QR code for someone else's identity.
+
 The PNG/JPEG artwork and the example figure remain images. Slide text, tables,
 chart data and the native diagram remain editable. The PowerPoint files do not
 automatically synchronize with `slides.md` or `metadata.json`.
+
+## BPM design reference
+
+The visual reference is Martin's BPM 2026 talk at revision `6f1b07b`, including
+both `theme/bme.css` and the closing styles inside `slides.md`. The cover follows
+page 1; the header, topic labels and content titles follow the main talk pages;
+the closing follows page 27; and the compact table and backup tag follow the
+backup pages. The artwork and logos are the same source files.
+
+| Element | BPM size on the 1280 × 720 canvas | PowerPoint size |
+| --- | --- | --- |
+| Cover title / subtitle | 38 / 32 px | 28.5 / 24 pt |
+| Content title | 30 px | 22.5 pt |
+| Body / card text | 23 / 20.7 px | 17.25 / 15.525 pt |
+| Header / topic label | 13 / 12.5 px | 9.75 / 9.375 pt |
+| Code | 18.5 px | 13.875 pt |
+| Closing statement | 30 px | 22.5 pt |
+
+The layouts retain BPM's font weights, tracking, header rule at 27 px, 64 px
+side margins, column gaps and compact labels. The cover has separate author
+and event lines plus a presenter block at the bottom right. The closing has
+four translucent panels and a contact block in the same position as the talk.
+Text positions were checked against the rendered BPM slides.
+
+The examples use student prompts instead of the talk's research claims and
+personal details. The optional purple divider comes from the shared BPM/AVM
+CSS; the final BPM talk does not use it. The native chart is an additional
+layout using the same typography and colors.
 
 ## Legacy option
 
@@ -102,8 +140,9 @@ into `powerpoint/templates/`, update `SHA256SUMS`, and run the check again.
 CI verifies hashes, internal relationships, native object structure, placeholder
 inheritance, chart/workbook consistency, and reproducibility from the builder.
 It is not a complete Office Open XML schema or accessibility validator.
-Four regression tests exercise lost title semantics, an invisible table type,
-stale chart values and an external workbook link.
+Five regression tests exercise lost title semantics, an invisible table type,
+inherited hanging indents in plain text, stale chart values and an external
+workbook link.
 
 The initial release was rendered with LibreOffice, and every example slide was
 visually inspected. Structural and geometry checks also passed. **Microsoft
