@@ -41,6 +41,7 @@ M.RULES = {
   companion = { "refs", "Companion papers are named, not cited" },
   code = { "refs", "Listings are captioned and ASCII-safe" },
   links = { "refs", "Every link answers" },
+  zenodo = { "refs", "Zenodo records are cited by their concept DOI" },
   checkcites = { "refs", "Uncited entries and missing keys" },
   ["bibtex-log"] = { "refs", "BibTeX warnings" },
 
@@ -53,9 +54,11 @@ M.RULES = {
   lacheck = { "language", "lacheck" },
 
   stock = { "form", "No text of the faculty template" },
+  squeeze = { "form", "Cut to the budget, not squeezed" },
   pages = { "form", "30--35 pages of main text" },
   aidecl = { "form", "AI declaration filled in" },
   titlepage = { "form", "Title page filled in" },
+  portal = { "form", "Title and abstracts match the portal" },
   ["pdf-file"] = { "form", "The PDF file" },
   ["pdf-font"] = { "form", "Body font" },
   ["pdf-spacing"] = { "form", "Line spacing" },

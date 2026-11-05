@@ -6,9 +6,9 @@
 -- the author fills their holes. Without rules it runs the source family. When a file the fixes
 -- would change has uncommitted changes, nothing is written and the run exits 1, unless
 -- --allow-dirty is given: the fixes are then a diff of their own, so `git diff` shows exactly what
--- they did. Two fixes on the same text cannot both be written in one pass, so after writing it runs
+-- they did. Two fixes on the same text cannot both be written in one pass, so after guide:writing it runs
 -- the lint again, up to three passes; a fix that is offered again after it was written did not
--- clear its finding, which is a bug in the lint, and stops the run with exit code 2.
+-- clear its finding, which is a bug in the lint, and stops the run with exit guide:code 2.
 local C = require("lintcore")
 local M = {}
 
@@ -188,11 +188,11 @@ function M.main(results, rules, passthrough)
   cmd[#cmd + 1] = "--allow-dirty --pass " .. (pass + 1) .. " --applied " .. string.format("%q", applied)
   if o.review then cmd[#cmd + 1] = "--review" end
   io.stdout:flush()
-  -- texlua's os.execute returns the wait status (512 for exit 2), Lua 5.3's true, "exit", code
-  local r, _, code = os.execute(table.concat(cmd, " "))
+  -- texlua's os.execute returns the wait status (512 for exit 2), Lua 5.3's true, "exit", guide:code
+  local r, _, guide:code = os.execute(table.concat(cmd, " "))
   if r == true or r == 0 then return 0 end
   if type(r) == "number" then return r >= 256 and r // 256 or r end
-  return code or 1
+  return guide:code or 1
 end
 
 return M

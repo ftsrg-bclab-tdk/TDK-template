@@ -18,12 +18,14 @@ lint-checks.tex
 *.lot
 *.out
 *.synctex.gz
+*.synctex(busy)
 *.tdo
 *.thm
 *.toc
 *.xdv
 _minted/
 _minted-*/
+_*.data.minted
 svg-inkscape/
 draft.pdf
 final.pdf

@@ -28,6 +28,68 @@ function M.run_quiet(cmd) local h = io.popen(cmd .. " 2>/dev/null"); if not h th
 function M.have(tool) local s = M.run("command -v " .. tool); return s ~= nil and s:match("%S") ~= nil end
 function M.escape(s) return (s:gsub("%p", "%%%0")) end
 function M.trim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
+-- a JSON document as Lua values (null is nil), or nil and the reason; enough for the TDK portal's API
+function M.json_decode(s)
+  local pos = 1
+  local function ws() pos = s:find("[^ \t\r\n]", pos) or #s + 1 end
+  local value
+  local function str()
+    local out, i = {}, pos + 1
+    while true do
+      local c = s:sub(i, i)
+      if c == "" then error("unterminated string") end
+      if c == '"' then pos = i + 1; return table.concat(out) end
+      if c == "\\" then
+        local e = s:sub(i + 1, i + 1)
+        if e == "u" then
+          local cp = tonumber(s:sub(i + 2, i + 5), 16); i = i + 6
+          if cp >= 0xD800 and cp <= 0xDBFF and s:sub(i, i + 1) == "\\u" then
+            local lo = tonumber(s:sub(i + 2, i + 5), 16); cp = 0x10000 + (cp - 0xD800) * 0x400 + (lo - 0xDC00); i = i + 6
+          end
+          out[#out + 1] = utf8.char(cp)
+        else
+          out[#out + 1] = ({ b = "\b", f = "\f", n = "\n", r = "\r", t = "\t" })[e] or e; i = i + 2
+        end
+      else
+        local j = s:find('["\\]', i) or #s + 1
+        out[#out + 1] = s:sub(i, j - 1); i = j
+      end
+    end
+  end
+  function value()
+    ws()
+    local c = s:sub(pos, pos)
+    if c == "{" then
+      local t = {}; pos = pos + 1; ws()
+      if s:sub(pos, pos) == "}" then pos = pos + 1; return t end
+      while true do
+        ws(); local k = str(); ws(); pos = pos + 1 -- the colon
+        t[k] = value(); ws()
+        local d = s:sub(pos, pos); pos = pos + 1
+        if d == "}" then return t elseif d ~= "," then error("bad object at " .. pos) end
+      end
+    elseif c == "[" then
+      local t = {}; pos = pos + 1; ws()
+      if s:sub(pos, pos) == "]" then pos = pos + 1; return t end
+      while true do
+        t[#t + 1] = value(); ws()
+        local d = s:sub(pos, pos); pos = pos + 1
+        if d == "]" then return t elseif d ~= "," then error("bad array at " .. pos) end
+      end
+    elseif c == '"' then return str()
+    elseif s:sub(pos, pos + 3) == "true" then pos = pos + 4; return true
+    elseif s:sub(pos, pos + 4) == "false" then pos = pos + 5; return false
+    elseif s:sub(pos, pos + 3) == "null" then pos = pos + 4; return nil
+    else
+      local num = s:match("^-?%d+%.?%d*[eE]?[-+]?%d*", pos)
+      if not num or num == "" then error("unexpected " .. c .. " at " .. pos) end
+      pos = pos + #num; return tonumber(num)
+    end
+  end
+  local ok, v = pcall(value)
+  if ok then return v end
+  return nil, v
+end
 function M.count(s, pat) return select(2, s:gsub(pat, "")) end
 
 -- the content files are the ones draft.tex reaches through \include, \input and
@@ -45,7 +107,7 @@ M.ROLE_LABEL = { intro = "ch:intro", background = "ch:background", approach = "c
 M.ROLE_NAME = { intro = "introduction", background = "background chapter", approach = "approach chapter", implementation = "implementation chapter", evaluation = "evaluation chapter", related = "related-work chapter", conclusion = "conclusion" }
 M.MANDATORY = { "intro", "approach", "evaluation", "related", "conclusion" }
 -- the roles in reading order, and the review-sheet criteria each role's chapters carry, as the
--- head of the role's section in guide/05-chapter-by-chapter.tex (app:chapters:<role>) names them;
+-- head of the role's section in guide/05-chapter-by-chapter.tex (guide:chapters:<role>) names them;
 -- criterion A is scored on the whole paper and belongs to no role. The skim reads them from
 -- --json; `lint.lua criteria` fails when the guide names other criteria
 M.ROLE_SEQ = { "intro", "background", "approach", "implementation", "evaluation", "related", "conclusion" }
@@ -155,8 +217,8 @@ function M.guide_criteria(file)
   local s = M.readfile(file or "guide/05-chapter-by-chapter.tex")
   if not s then return nil end
   local out, cuts = {}, {}
-  -- a role's section runs to the next \section; its subsections carry app:chapters:<name> labels too
-  for pos, role in s:gmatch("()\\section%b{}%s*\\label{app:chapters:(%a+)}") do cuts[#cuts + 1] = { pos = pos, role = role } end
+  -- a role's section runs to the next \section; its subsections carry guide:chapters:<name> labels too
+  for pos, role in s:gmatch("()\\section%b{}%s*\\label{guide:chapters:(%a+)}") do cuts[#cuts + 1] = { pos = pos, role = role } end
   for i, c in ipairs(cuts) do
     local body = s:sub(c.pos, cuts[i + 1] and cuts[i + 1].pos - 1 or #s)
     for arg in body:gmatch("\\textbf(%b{})") do
@@ -293,9 +355,22 @@ function M.setting(name)
   end
   return value
 end
+-- the phase the calendar has reached: the lifecycle's dates (guide, guide:tab:lifecycle) in the year of
+-- today's date, or of LINT_DATE (YYYY-MM-DD) in the tests. From 30 October the paper is being
+-- submitted, whatever draft.tex says; before 1 October the calendar asks nothing
+M.PHASE_DATES = { { "10-01", "draft" }, { "10-22", "polish" }, { "10-30", "submit" } }
+function M.calendar_phase()
+  local today = os.getenv("LINT_DATE")
+  if not (today and today:match("^%d%d%d%d%-%d%d%-%d%d$")) then today = os.date("%Y-%m-%d") end
+  local md, phase, since = today:sub(6), nil, nil
+  for _, d in ipairs(M.PHASE_DATES) do if md >= d[1] then phase, since = d[2], d[1] end end
+  return phase, since
+end
 -- the manual phase: --phase, else LINT_PHASE, else \lintphase in draft.tex, else plan. A value
 -- that is none of the seven (final included: the lint has no aliases) is an error, never read as
--- plan: lint.lua stops on it before any rule
+-- plan: lint.lua stops on it before any rule. A phase from draft.tex or the default is raised to
+-- the calendar's: a \lintphase left at polish does not keep a submitted paper out of the submit
+-- checks. --phase and LINT_PHASE are taken as given
 function M.resolve_phase()
   local p, src = M.opts.phase, "--phase"
   if not p then
@@ -310,8 +385,18 @@ function M.resolve_phase()
   if not p then p, src = "plan", "the default" end
   M.opts.phase, M.opts.phase_source = p, src
   if not M.PHASES[p] then return nil, string.format("unknown phase '%s' from %s: use one of %s", p, src, table.concat(M.PHASE_ORDER, ", ")) end
+  if src ~= "--phase" and src ~= "LINT_PHASE" then
+    local cal, since = M.calendar_phase()
+    if cal and M.PHASES[cal] > M.PHASES[p] then
+      M.opts.phase, M.opts.phase_source = cal, string.format("the date, %s since %d October; %s says %s", cal, tonumber(since:sub(4)), src, p)
+      p = cal
+    end
+  end
   return p
 end
+-- the draft build: draft.tex prints the guide, the todos and the beats, which the reviewer build
+-- hides, so what it shows of them, and its page count, is not what a reviewer gets
+function M.draft_build() return M.opts.doc == "draft" end
 function M.phase()
   if not M.opts.phase_source then M.resolve_phase() end
   return M.opts.phase

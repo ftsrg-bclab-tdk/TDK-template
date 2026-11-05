@@ -38,7 +38,8 @@ rule("frame", "source", "check", "always", "the template's frame is still there:
   -- without one; the fix numbers such a run one file after the other
   local last, want = -1, -1
   for _, f in ipairs(CONTENT) do
-    if f ~= C.FILES.glossary then
+    -- a figure or table body \input from figures/ or tables/ is part of a chapter, not one of its files
+    if f ~= C.FILES.glossary and not f:match("^figures/") and not f:match("^tables/") then
       local nn = f:match("([^/]+)%.tex$"):match("^(%d%d)%-")
       if not nn then
         warn(f, nil, "content files are named NN-name.tex in reading order, " .. string.format("%02d", last + 1) .. "-<name>.tex here", renumber_fix(f, want + 1))
@@ -152,6 +153,30 @@ local function role_of(text)
   end
   return n == 1 and found or nil
 end
+-- every role a title names, in reading order: "System design and implementation" names two
+local function roles_named(text)
+  local hit, out = {}, {}
+  for w in text:lower():gmatch("%a+") do if ROLE_WORDS[w] then hit[ROLE_WORDS[w]] = true end end
+  for _, r in ipairs(C.ROLE_SEQ) do if hit[r] then out[#out + 1] = r end end
+  return out
+end
+-- the roles no chapter has yet that the reading order leaves room for between f's neighbours
+local function roles_by_place(f)
+  local seq = {}
+  for i, r in ipairs(C.ROLE_SEQ) do seq[r] = i end
+  local lo, hi, past = 0, #C.ROLE_SEQ + 1, false
+  for _, g in ipairs(main_chapters()) do
+    if g == f then past = true
+    else
+      for r in pairs(C.ROLES_OF[g] or {}) do
+        if past then hi = math.min(hi, seq[r]) else lo = math.max(lo, seq[r]) end
+      end
+    end
+  end
+  local out = {}
+  for i = lo + 1, hi - 1 do if not C.ROLES[C.ROLE_SEQ[i]] then out[#out + 1] = C.ROLE_SEQ[i] end end
+  return out
+end
 -- the first \chapter of a file that is not a comment: its line, its text, its title
 local function chapter_line(f)
   for n, raw in ipairs(C.raw_lines(f)) do
@@ -166,9 +191,11 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
     n = n + 1
     if not C.ROLES_OF[f] then
       local lab = ((C.readfile(f) or ""):gsub("%%[^\n]*", "")):match("\\label{(ch:[^}]*)}")
+      local _, _, heading = chapter_line(f)
+      local place = roles_by_place(f)
       if lab then
         local fix
-        local role = role_of(lab:sub(4))
+        local role = role_of(lab:sub(4)) or (heading and role_of(heading)) or place[1]
         local edits = role and rename_edits(lab, "ch:" .. role)
         if edits then fix = C.fix("review", "rename the label to ch:" .. role .. " and its references", table.unpack(edits)) end
         fail(f, 1, "the chapter label " .. lab .. " names no role", "use ch:<role> or ch:<role>:<name> (intro, background, approach, implementation, evaluation, related, conclusion)", fix)
@@ -176,9 +203,15 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
         -- the label goes right after the \chapter, which is not on line 1; a role guessed from the
         -- title is a review fix, a role the title does not name or a label already taken a placeholder
         local fix
+        local help = "give the chapter \\label{ch:<role>} or \\label{ch:<role>:<name>}"
         local ln, cmd, title = chapter_line(f)
         if ln then
-          local role = role_of(title)
+          -- the title first; a title that names no role is read by the chapter's place in the order
+          local role = role_of(title) or roles_named(title)[1]
+          if not role and place[1] then
+            role = place[1]
+            help = "by its place it reads as the " .. C.ROLE_NAME[role] .. (place[2] and " (or the " .. C.ROLE_NAME[place[2]] .. ")" or "") .. ": the label is yours to choose, and it is all the lint reads"
+          end
           if role and not label_defined("ch:" .. role) then
             fix = C.fix("review", "label the chapter ch:" .. role, C.replace_at(f, ln, cmd, cmd .. "\\label{ch:" .. role .. "}"))
           elseif role then
@@ -187,7 +220,29 @@ rule("roles", "source", "check", "draft", "every chapter has a role: its label i
             fix = C.fix("placeholder", "label the chapter with its role", C.replace_at(f, ln, cmd, cmd .. "\\label{ch:<role>}"))
           end
         end
-        fail(f, 1, "no role label", "give the chapter \\label{ch:<role>} or \\label{ch:<role>:<name>}", fix)
+        fail(f, 1, "no role label", help, fix)
+      end
+    end
+  end
+  -- a role no chapter carries: the chapter whose title names it, or else the last one before its
+  -- place, may be doing that work too. A second label says so, and references to ch:<role> then resolve
+  local seq = {}
+  for i, r in ipairs(C.ROLE_SEQ) do seq[r] = i end
+  for _, role in ipairs(C.ROLE_SEQ) do
+    if not C.ROLES[role] and n > 0 then
+      local host, why
+      for _, f in ipairs(main_chapters()) do
+        local _, _, title = chapter_line(f)
+        for _, r in ipairs(title and roles_named(title) or {}) do if r == role then host, why = f, "its title names it" end end
+        local before = false
+        for r in pairs(C.ROLES_OF[f] or {}) do if seq[r] < seq[role] then before = true end end
+        if before and not why then host = f end
+      end
+      if host then
+        local ln, cmd = chapter_line(host)
+        note(host, ln, string.format("no %s; %s stands where it goes (%s)", C.ROLE_NAME[role], host, why or "by the order of the chapters"),
+          "if this chapter also does that work, give it a second label; if the paper has none, leave it",
+          ln and C.fix("review", "also label the chapter ch:" .. role, C.replace_at(host, ln, cmd, cmd .. "\\label{ch:" .. role .. "}")) or nil)
       end
     end
   end
@@ -275,7 +330,8 @@ rule("chapters", "source", "check", "always", "one chapter per file: no file hol
       if l:match("\\chapter{") then n = n + 1; if n == 2 then fail(f, ln, "a second chapter in one file", "each chapter is its own content/NN-name.tex") end end
       for arg in l:gmatch("\\input%s*(%b{})") do
         local p = arg:sub(2, -2)
-        if not p:match("^include/") then warn(f, ln, "\\input{" .. p .. "} pulls part of the chapter from another file", "keep the chapter in one file") end
+        -- a TikZ picture or a table generated from the results is not text of the chapter
+        if not (p:match("^include/") or p:match("^figures/") or p:match("^tables/")) then warn(f, ln, "\\input{" .. p .. "} pulls part of the chapter from another file", "keep the chapter in one file") end
       end
     end)
   end
@@ -356,7 +412,7 @@ rule("spine", "source", "advice", "always", "the chapters follow the spine: the 
   if appr and eval and eval < appr then warn(mains[eval], 1, "the evaluation comes before the approach it evaluates") end
 end)
 
-rule("build", "source", "check", "always", "the build log: undefined references and citations, multiply defined labels, missing files, missing fonts, TeX errors", function()
+rule("build", "source", "check", "always", "the build log: undefined references and citations, multiply defined labels, missing files, missing fonts and characters, TeX errors", function()
   local log = C.bpath(C.opts.doc .. ".log")
   if not C.exists(log) then fail(nil, nil, "no " .. log .. ": build first"); return end
   local pats = {
@@ -365,6 +421,8 @@ rule("build", "source", "check", "always", "the build log: undefined references 
     { "Label `([^']*)' multiply defined", "label %s multiply defined" },
     { "File `([^']*)' not found", "file %s not found" },
     { "Font ([^%s]*) not found", "font %s not found" },
+    -- a character the font lacks prints as nothing: a check mark typed as ✓ in Termes, say
+    { "Missing character: There is no (.-) in font", "%s is missing from the font, so the PDF leaves it out" },
   }
   local seen = {}
   for _, l in ipairs(C.lines(log)) do
@@ -407,7 +465,14 @@ rule("overfull", "source", "check", "always", "overfull boxes of a point or more
       local file, line = files[i], tonumber(from)
       if file and not C.exists(file) then file, line = nil, nil end
       local where = from and (to ~= "" and ("at lines " .. from .. "-" .. to) or ("at line " .. from)) or ("near log line " .. i)
-      fail(file, line, string.format("overfull by %spt %s: %s", pt, where, sample:sub(1, 60)), "shorten the line, let the table or listing break, or lint-ignore it with a reason")
+      -- a table wider than the text: an alignment in the log, or a tabular in the lines it names
+      local is_table = l:match("in alignment") ~= nil
+      if file and line then
+        local src = C.lines(file)
+        for k = line, math.max(line, tonumber(to) or line) do if (src[k] or ""):match("\\begin{tabular") or (src[k] or ""):match("&") then is_table = true end end
+      end
+      local help = is_table and "set the table as tabularx{\\linewidth} with X columns, so its cells wrap inside the margins" or "shorten the line, let the table or listing break, or lint-ignore it with a reason"
+      fail(file, line, string.format("overfull by %spt %s: %s", pt, where, sample:sub(1, 60)), help)
     elseif l:match("^Overfull \\hbox") and not pt then fail(nil, nil, l) end
   end
 end)
@@ -434,15 +499,19 @@ end
 rule("pages", "source", "check", "submit", "main text, from the first numbered chapter to the page before the back matter (read from the .toc), is 30-35 pages", function()
   local p, s, e = main_pages()
   if not p then fail(nil, nil, "no numbered chapter followed by an unnumbered one in " .. C.opts.doc .. ".toc (build first; pdf-pages counts from the outline instead)"); return end
-  if p < 30 or p > 35 then fail(C.ROLE.intro, 2, string.format("main text is %d pages (%d-%d); the call asks for 30-35, about 1 point off per 3 pages", p, s, e))
-  else note(nil, nil, string.format("main text %d pages (%d-%d)", p, s, e)) end
+  if p < 30 or p > 35 then
+    local msg = string.format("main text is %d pages (%d-%d); the call asks for 30-35, about 1 point off per 3 pages", p, s, e)
+    -- the draft's todos and beats take room the reviewer build does not print: count that one
+    if C.draft_build() then warn(C.ROLE.intro, 2, msg .. ", counted on the draft with its notes", "run make check-submit: the reviewer build's count is the one that matters")
+    else fail(C.ROLE.intro, 2, msg) end
+  else note(nil, nil, string.format("main text %d pages (%d-%d)%s", p, s, e, C.draft_build() and ", counted on the draft with its notes" or "")) end
   return string.format("pages=%d", p)
 end)
 
 -- the argument ---------------------------------------------------------------------------
 -- what a paper must contain, and whether it is used where the argument needs it, is the
 -- essentials rule (rules-essentials.lua); here only the outline's own conventions
-rule("outline", "source", "check", "draft", "the outline is final: chapters renamed where the template says so, no TODO heading, no third level of headings, every chapter file has its \\chapter", function()
+rule("outline", "source", "check", "draft", "the outline is final: chapters renamed where the template says so, no TODO heading, no third level of headings, no lone subdivision (a chapter with sections has at least two, a section with subsections or paragraphs at least two), every chapter file has its \\chapter", function()
   if #MAIN == 0 then fail(nil, nil, "no chapter files"); return end
   for _, f in ipairs(MAIN) do
     if not C.file_has(f, "\\chapter") then fail(f, 1, "no \\chapter in a chapter file") end
@@ -465,14 +534,46 @@ rule("outline", "source", "check", "draft", "the outline is final: chapters rena
     if t and t:match("TODO") then fail(file, n, "heading still a TODO: " .. t) end
     if l:match("\\subsubsection") then warn(file, n, "a subsubsection: three levels of headings in 35 pages is one too many") end
   end)
+  -- a subdivision divides: one child of a heading is the heading again, and that holds for a
+  -- \paragraph too, under whichever heading it sits
+  local LEVELS = { section = 1, subsection = 2, subsubsection = 3, paragraph = 4 }
+  for _, f in ipairs(MAIN) do
+    local count, first, names, parent = {}, {}, {}, {}
+    local current = "chapter"
+    local function close(from)
+      for d = from, 4 do
+        if count[d] == 1 then warn(f, first[d], "a lone \\" .. names[d] .. ": a " .. parent[d] .. " divided at all has at least two", "add a second one, or drop the heading") end
+        count[d] = 0
+      end
+    end
+    C.each_line({ f }, function(_, n, l)
+      local cmd = l:match("\\(%a+)%*?%s*[%[{]")
+      if cmd == "chapter" then close(1); current = "chapter"
+      elseif LEVELS[cmd] then
+        local d = LEVELS[cmd]
+        close(d + 1)
+        count[d] = (count[d] or 0) + 1
+        if count[d] == 1 then first[d], names[d], parent[d] = n, cmd, current end
+        if cmd ~= "paragraph" then current = cmd end
+      end
+    end)
+    close(1)
+  end
 end)
 
 rule("figures", "source", "check", "always", "every figure, table, listing, algorithm and numbered equation is referenced from the text; floats have captions and labels; raster images are flagged", function()
   if #MAIN == 0 then fail(nil, nil, "no chapter files"); return end
   local labels, refs = C.collect_labels_and_refs(MAIN)
+  -- an \autoref is not a reference the template counts: the crefs rule asks for \cref, and the
+  -- float's own finding says so too
+  local auto = {}
+  C.each_line(MAIN, function(_, _, l) for keys in l:gmatch("\\autoref{([^}]*)}") do for key in keys:gmatch("[^,%s]+") do auto[key] = true end end end)
   for key, at in pairs(labels) do
     if key:match("^fig:") or key:match("^tab:") or key:match("^lst:") or key:match("^alg:") or key:match("^eq:") then
-      if (refs[key] or 0) == 0 and not at.sub then fail(at.file, at.line, key .. " is never referenced from the text") end
+      if (refs[key] or 0) == 0 and not at.sub then
+        if auto[key] then fail(at.file, at.line, key .. " is referenced only with \\autoref", "write \\cref{" .. key .. "}")
+        else fail(at.file, at.line, key .. " is never referenced from the text") end
+      end
     end
   end
   C.each_line(MAIN, function(f, n, l)
@@ -553,14 +654,15 @@ rule("axes", "source", "advice", "polish", "every pgfplots axis label carries a 
         else
           v = v:sub(#k + 1):gsub("^%s*=%s*", ""):sub(2, -2)
           local dimensionless = v:match("[Cc]ount") or v:match("[Nn]umber") or v:match("[Rr]ate") or v:match("%%") or v:match("[Ss]ize") or v:match("[Ss]essions") or v:match("[Ii]ssuers") or v:match("%$n%$") or v:match("[Rr]atio") or v:match("[Ss]core")
-          if not v:match("%[.+%]") and not dimensionless then warn(f, n, k .. " without a unit in brackets: " .. v) end
+          -- a count is named as one: "Number of proof steps", not "Proof steps"
+          if not v:match("%[.+%]") and not dimensionless and not v:match("\\#") then warn(f, n, k .. " without a unit in brackets: " .. v, "add the unit, Latency [ms]; or, for a count, say so: Number of " .. v:sub(1, 1):lower() .. v:sub(2)) end
         end
       end
     end
   end)
 end)
 
-rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vertical lines, no \\hline, and fit the text width", function()
+rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vertical lines and no \\hline (a table wider than the text fails overfull and pdf-margins)", function()
   for _, f in ipairs(MAIN) do
     local ls = C.lines(f); local intab, start, hasrule = false, 0, false
     for n, raw in ipairs(ls) do
@@ -578,22 +680,22 @@ rule("tables", "source", "advice", "polish", "tables use booktabs rules, no vert
           intab = false
         end
       end
-      if l:match("\\begin{tabular}") and not l:match("\\begin{tabularx}") and (raw:match("X") == nil) then
-        local cols = l:match("\\begin{tabular}(%b{})") or ""
-        local nc = C.count(cols, "[lcrp]"); if nc >= 6 then warn(f, n, "a wide tabular", "use tabularx with \\linewidth so it cannot overflow") end
-      end
+      -- a table wider than the text is an overfull alignment, which the overfull rule fails at its
+      -- line and pdf-margins on its page; a count of its columns only guessed at that
     end
   end
 end)
 
-rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:), so references read right and the lint can trace them", function()
+rule("labels", "source", "check", "always", "label prefixes match their environments (fig:, tab:, lst:, alg:, eq:, def:, thm:, lem:, ch:, sec:, subsec: or par:, and guide: for the headings after \\appendix), so references read right and the lint can trace them", function()
   local envpref = { figure = "fig", table = "tab", sidewaystable = "tab", listing = "lst", lstlisting = "lst", algorithm = "alg", equation = "eq", align = "eq", definition = "def", theorem = "thm", lemma = "lem", proposition = "prop", corollary = "cor", invariant = "inv", property = "prty", claim = "claim", remark = "rem", notation = "not", example = "ex", subfigure = "fig", subtable = "tab" }
   local listpref = { contributions = "c", requirements = "req", derivedrequirements = "dr", assumptions = "asm", guarantees = "g", threats = "thr", limitations = "lim", rqlist = "rq" }
+  local appendix = false -- after \appendix, a heading's label may say guide:, the paper's appendix prefix (the guide's own labels say guide:)
   for _, f in ipairs(MAIN) do
     local stack = {}
     local lastheading
     for n, raw in ipairs(C.lines(f)) do
       local l = C.strip_comment(raw)
+      if l:match("\\appendix%f[^%a]") then appendix = true end
       for e in l:gmatch("\\begin{([%a%*]+)}") do stack[#stack + 1] = e:gsub("%*", "") end
       if l:match("\\chapter") then lastheading = "ch" elseif l:match("\\section") or l:match("\\subsection") then lastheading = "sec" elseif l:match("\\paragraph") then lastheading = "par" end
       local lab = l:match("\\lstlisting%[.-label%s*=%s*{?([^},%]]+)") ; if lab and not lab:match("^lst:") then warn(f, n, "listing label should start with lst: " .. lab) end
@@ -606,7 +708,8 @@ rule("labels", "source", "check", "always", "label prefixes match their environm
         if key:match("^page:") then expect = nil end
         if expect and pref ~= expect then
           -- subsec: and subsubsec: are common enough for subsections to count as sec:
-          if not (expect == "sec" and (pref == "ch" or pref == "subsec" or pref == "subsubsec")) and not (expect == "fig" and pref == "fig") then
+          if not (expect == "sec" and (pref == "ch" or pref == "subsec" or pref == "subsubsec")) and not (expect == "fig" and pref == "fig")
+            and not (appendix and pref == "app" and (expect == "ch" or expect == "sec")) then
             -- the label gets the expected prefix on its own name (fig:x in a table is tab:x, x in a
             -- section is sec:x), and so does every reference to it
             local fix
@@ -758,22 +861,55 @@ local function typed_references(f, n, l)
   local key = typed_tags(code, l)
   if key then warn(f, n, "a tag typed by hand", "write \\cref{" .. key .. ":...}; a typed tag does not follow renumbering") end
 end
+-- whether line n of a file starts a sentence: a source line usually continues the sentence of the
+-- line before it. It starts one after a blank line, a line that ends in . ? or !, or a heading or
+-- environment boundary with nothing after it; lines that are only a comment are skipped. A table
+-- row is not a sentence.
+local SENTENCE_BREAK = { begin = true, ["end"] = true, item = true, chapter = true, section = true, subsection = true, subsubsection = true, paragraph = true, label = true }
+local function line_opens_sentence(f, ls, n)
+  if ls[n]:match("&") then return false end
+  local raw = C.raw_lines(f)
+  for m = n - 1, 1, -1 do
+    if not (raw[m] or ""):match("%S") then return true end
+    local p = (ls[m] or ""):gsub("%s+$", "")
+    if p:match("%S") then
+      if p:match("\\\\$") or p:match("rule$") or p:match("rule%b{}$") then return false end
+      local cmd = p:match("^%s*\\(%a+)")
+      if SENTENCE_BREAK[cmd] and (p:match("[%]}]$") or p:match("^%s*\\item$")) then return true end
+      return p:match("[%.%?!][%)%]}'\"]*$") ~= nil
+    end
+  end
+  return true
+end
 
 -- the printed lines only, and nothing inside \verb, \lstinline or a link: a Figure~\ref in a code
 -- listing is the program's text, and no fix touches it (lintcore.lua, M.literal_spans)
 rule("crefs", "source", "check", "always", "references go through \\cref: no 'Figure~\\ref', no \\autoref, \\Cref at the start of a sentence, and no bare \\ref outside table cells", function()
+  local lines_of = {}
   C.each_editable_line(MAIN, function(f, n, l)
     typed_references(f, n, l)
     if l:match("[Ff]igure~?\\ref") or l:match("[Tt]able~?\\ref") or l:match("[Ss]ection~?\\ref") or l:match("[Cc]hapter~?\\ref") or l:match("[Ll]isting~?\\ref") then fail(f, n, "a typed reference with \\ref", "write \\cref{...}", cref_fix(l, "(%a+)~?\\ref{([^}]*)}", function(w) return TYPED_REF[w:lower()] end)) end
     if l:match("\\autoref") then fail(f, n, "\\autoref", "the template uses cleveref, write \\cref", cref_fix(l, "\\(auto)ref{([^}]*)}", function() return true end)) end
     if l:match("\\figref") or l:match("\\tabref") or l:match("\\sectref") or l:match("\\listref") then fail(f, n, "the faculty template's \\figref family", "write \\cref", cref_fix(l, "\\(%a+)ref{([^}]*)}", function(w) return FACULTY_REF[w] end)) end
-    if l:match("^%s*\\cref") or l:match("[%.%?!]%s+\\cref") then
-      warn(f, n, "\\cref at the start of a sentence", "use \\Cref", C.loads("cleveref") and C.fix("safe", "write \\Cref", table.unpack(C.matches(l, "\\cref{", function(_, s, code) if opens_sentence(code, s) then return "\\Cref{" end end))) or nil)
+    lines_of[f] = lines_of[f] or C.editable_lines(f)
+    local starts = l:match("^%s*\\cref") and line_opens_sentence(f, lines_of[f], n)
+    if starts or l:match("[%.%?!]%s+\\cref") then
+      warn(f, n, "\\cref at the start of a sentence", "use \\Cref", C.loads("cleveref") and C.fix("safe", "write \\Cref", table.unpack(C.matches(l, "\\cref{", function(_, s, code)
+        local before = code:sub(1, s - 1)
+        if (starts and before:match("^%s*$")) or before:match("[%.%?!]%s+$") then return "\\Cref{" end
+      end))) or nil)
     end
     if l:match("\\ref{") and not l:match("&") and not l:match("\\ref{req:") and not l:match("\\ref{g:") and not l:match("\\ref{c:") and not l:match("\\ref{asm:") and not l:match("\\ref{thr:") and not l:match("\\ref{dr:") then warn(f, n, "bare \\ref in prose", "\\cref names the kind of thing for you", ref_fix(l)) end
     if l:match("\\pageref") then note(f, n, "\\pageref: rarely needed with hyperlinks") end
   end)
 end)
+
+-- all-caps words that are names or plain words, not abbreviations to declare; add to it when a
+-- product name trips the acronyms rule
+local NOT_ABBREVIATIONS = {
+  "AND", "NOT", "XOR", "NAND", "NOR", "README", -- words
+  "LTS", "WSL", "HOL", "RISC",                   -- parts of product names: Ubuntu LTS, WSL, Isabelle/HOL, RISC Zero
+}
 
 rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key is declared in content/glossary.tex or the common glossary, every abbreviation the paper declares is used, none is typed by hand (common ones included), every all-caps word is declared, and every symbol of a definition has a notation entry", function()
   local G = C.FILES.glossary or "content/glossary.tex"
@@ -858,17 +994,23 @@ rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key
     end
   end
   -- a definition that introduces a symbol should have a notation entry: look for $...$ in definition environments
+  -- one notice per file, at the first such line: a formal chapter has dozens, and the question is
+  -- the same for all of them
   for _, f in ipairs(MAIN) do
-    local indef = false
+    local indef, first, count = false, nil, 0
     for n, raw in ipairs(C.lines(f)) do
       local l = C.strip_comment(raw)
       if l:match("\\begin{definition}") or l:match("\\begin{notation}") then indef = true end
-      if indef and l:match("%$") and not l:match("\\gls") and not l:match("TODO") then note(f, n, "a definition with math and no \\gls", "does it introduce a symbol that belongs in the notation table?") end
+      if indef and l:match("%$") and not l:match("\\gls") and not l:match("TODO") then first = first or n; count = count + 1 end
       if l:match("\\end{definition}") or l:match("\\end{notation}") then indef = false end
     end
+    if first then note(f, first, count == 1 and "a definition with math and no \\gls" or string.format("%d lines of definitions with math and no \\gls, the first here", count), "does it introduce a symbol that belongs in the notation table?") end
   end
-  -- undeclared all-caps words that look like acronyms, counted once each
+  -- undeclared all-caps words that look like acronyms, counted once each. NOT_ABBREVIATIONS holds
+  -- the all-caps words that are not: the logic operators, a repository's README, and the parts of
+  -- product names a paper names but never expands (Ubuntu 22.04 LTS, WSL, Isabelle/HOL, RISC Zero)
   local seen = {}
+  for _, w in ipairs(NOT_ABBREVIATIONS) do seen[w] = true end
   C.each_prose_line(MAIN, function(f, n, l)
     for w in C.prose(l):gmatch("%f[%w][%u][%u%d]+[%u]%f[%W]") do
       if not short[w] and not seen[w] and #w >= 2 and #w <= 6 and not w:match("^RQ") and not w:match("^TODO") and not w:match("^[IVXLC]+$") then
@@ -931,6 +1073,15 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
   local function generated(b) return b:match("zotero%.bib$") ~= nil end
   local function efail(b, ln, msg, fx) fail(b, ln, msg, not generated(b) and fx or nil) end
   local function ewarn(b, ln, msg, fx) warn(b, ln, msg, not generated(b) and fx or nil) end
+  -- that library is the whole research group's: an entry this paper does not cite prints nowhere,
+  -- and its defects are not this paper's. \nocite{*} prints them all
+  local cited = {}
+  C.each_cite(CONTENT, function(_, _, k) cited[k] = true end)
+  local nocited = { "draft.tex" }
+  for _, f in ipairs(CONTENT) do nocited[#nocited + 1] = f end
+  C.each_call(nocited, function(name) return name == "nocite" end, function(_, _, _, arg)
+    for k in arg:gmatch("[^,%s]+") do cited[k] = true end
+  end)
   for _, b in ipairs(C.BIB) do
     local s = C.readfile(b) or ""
     local text, line, prev = "\n" .. s, 0, 1
@@ -952,13 +1103,21 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
       local k = kind:lower()
       if key and k ~= "comment" and k ~= "string" and k ~= "preamble" then
         keys[key] = true
+        if generated(b) and not (cited[key] or cited["*"]) then goto next_entry end
         local function has(fld) return body:lower():match("\n%s*" .. fld .. "%s*=") ~= nil end
         if not has("title") then efail(b, line, key .. ": no title") end
         if not has("year") and not has("date") then efail(b, line, key .. ": no year", add("  year = {<year>},", "the year")) end
         if not (has("author") or has("editor") or k == "misc" or k == "manual" or k == "online") then efail(b, line, key .. ": no author") end
-        local hasdate = has("urldate") or (body:match("\n%s*note%s*=%s*[{\"][^}\"]*[Aa]ccessed") ~= nil)
-        if has("url") and not has("doi") and not hasdate then ewarn(b, line, key .. ": a web source needs its access date (urldate); Zotero records it, the faculty's guideline asks for it", add("  urldate = {<YYYY-MM-DD>},", "the day you read it")) end
-        if (k == "misc" or k == "online") and has("url") and not has("author") then ewarn(b, line, key .. ": a web source names the page's owner as author, in double braces", add("  author = {{<the page's owner>}},", "the owner")) end
+        -- the note as a whole, braces and all: a \url{} or \texttt{} before "accessed" ends no field
+        local note = body:match("\n%s*[nN][oO][tT][eE]%s*=%s*(%b{})") or body:match("\n%s*[nN][oO][tT][eE]%s*=%s*(\"[^\"]*\")") or ""
+        local hasdate = has("urldate") or note:match("[Aa]ccessed") ~= nil
+        -- a paper with a link is not a web source: one published at a venue or by a publisher, or a
+        -- preprint in an archive that keeps every version (arXiv, the IACR ePrint archive)
+        local paper = has("booktitle") or has("journal") or has("publisher") or has("institution") or has("school")
+          or body:lower():match("\n%s*url%s*=%s*[{\"]%s*https?://[%w.]*arxiv%.org/") ~= nil
+          or body:lower():match("\n%s*url%s*=%s*[{\"]%s*https?://eprint%.iacr%.org/") ~= nil
+        if has("url") and not has("doi") and not hasdate and not paper then ewarn(b, line, key .. ": a web source needs its access date (urldate); Zotero records it, the faculty's guideline asks for it", add("  urldate = {<YYYY-MM-DD>},", "the day you read it")) end
+        if (k == "misc" or k == "online") and has("url") and not (has("author") or has("editor")) then ewarn(b, line, key .. ": a web source names the page's owner as author, in double braces", add("  author = {{<the page's owner>}},", "the owner")) end
         local doi = body:match("\n%s*[dD][oO][iI]%s*=%s*[{\"]([^}\"]*)")
         -- the doi field's own line: the first line of the entry that starts it
         local doiline
@@ -1032,6 +1191,7 @@ rule("bib", "source", "check", "always", "the bibliography: every cited key exis
           end
         end
       end
+      ::next_entry::
     end
   end
   C.each_cite(MAIN, function(f, n, k) if not keys[k] then fail(f, n, "cited key " .. k .. " is in no .bib file") end end)
@@ -1041,7 +1201,7 @@ end)
 -- are each other's companion paper. Each is reviewed on its own while the other is unpublished,
 -- so neither cites or links the other: the text says "a companion paper", and what this paper
 -- needs from it is restated in the background (the guide's
--- app:tdk:companion). A TDK paper of an earlier year is on the portal and is cited like any
+-- guide:tdk:companion). A TDK paper of an earlier year is on the portal and is cited like any
 -- other source; so is this year's once a thesis builds on it (LINT_PROFILE=thesis).
 local TDK_NAMES = { "%f[%a]o?tdk%f[%A]", "tudom%S*nyos%s+di%S*kk%S*ri", "scientific%s+students?%f[%A]",
   "students?%S*%s+scientific%s+conference", "students?%S*%s+scientific%s+association" }
@@ -1085,7 +1245,10 @@ rule("companion", "source", "check", "always", "a TDK paper of the same year is 
       -- Zotero writes accents as {\'a}: drop the commands and braces before matching the names
       local plain = e.body:lower():gsub("\\%p", ""):gsub("\\%a+%s?", ""):gsub("[{}]", "")
       local tdk = false
-      for _, p in ipairs(TDK_NAMES) do if plain:find(p) then tdk = true end end
+      -- an archived artifact, a Zenodo record in its doi or url, is code or data and no TDK
+      -- paper, even when its release is named after the TDK ("release TDK-Scalability")
+      local archived = e.body:lower():match("[,%s]doi%s*=%s*[{\"]?%s*10%.5281/zenodo%.%d") or e.body:lower():match("[,%s]url%s*=%s*[{\"]?%s*https?://[^%s{}\"]*zenodo")
+      if not archived then for _, p in ipairs(TDK_NAMES) do if plain:find(p) then tdk = true end end end
       local ey = tonumber(e.body:match("[,%s][yY][eE][aA][rR]%s*=%s*[{\"]?%s*(%d%d%d%d)") or e.body:match("[,%s][dD][aA][tT][eE]%s*=%s*[{\"]?%s*(%d%d%d%d)"))
       local cited = string.format("cited %d time%s", times[k], times[k] == 1 and "" or "s")
       if tdk and (not ey or ey >= year) then
@@ -1249,6 +1412,39 @@ rule("code", "source", "check", "always", "listings: \\lstinline is ASCII (XeLaT
   end
 end)
 
+-- the ways a paper is squeezed into the page budget instead of cut: each changes the page the
+-- call describes, and a reviewer sees it as cramped text. The pattern, and what to say about it
+local SQUEEZE_LENGTHS = {}
+for w in ("parskip baselineskip abovedisplayskip belowdisplayskip abovedisplayshortskip belowdisplayshortskip abovecaptionskip belowcaptionskip smallskipamount medskipamount bigskipamount theorempreskipamount theorempostskipamount itemsep parsep topsep partopsep floatsep textfloatsep intextsep dblfloatsep dbltextfloatsep textheight textwidth topmargin oddsidemargin evensidemargin headheight headsep footskip"):gmatch("%a+") do SQUEEZE_LENGTHS[w] = true end
+-- commands whose patching changes the page: the headings, and the language switch that sets
+-- \parskip; a patch elsewhere (\printlists, say) is the author's business
+local SQUEEZE_PATCHED = { ["@makechapterhead"] = true, ["@makeschapterhead"] = true, chapter = true, section = true, subsection = true, ["@startsection"] = true, selectenglish = true }
+local SQUEEZE = {
+  { "\\setlength%s*{?\\(%a+)}?", "a changed \\%s", SQUEEZE_LENGTHS }, { "\\addtolength%s*{?\\(%a+)}?", "a changed \\%s", SQUEEZE_LENGTHS },
+  { "\\geometry%s*(){", "a changed page geometry" }, { "\\newgeometry%s*(){", "a changed page geometry" },
+  { "\\(linespread)%s*{", "\\%s" }, { "\\renewcommand%s*{?\\(baselinestretch)}?", "a changed \\%s" },
+  { "\\(tolerance)%s*=?%s*%d", "a raised \\%s" }, { "\\(emergencystretch)%s*=?%s*%d", "\\%s" }, { "\\(looseness)%s*=?%s*%-", "a negative \\%s" },
+  { "\\(vspace%*?)%s*{%s*%-", "negative \\%s" }, { "\\(enlargethispage%*?)", "\\%s" },
+  { "\\(titlespacing%*?)", "\\%s" }, { "\\patchcmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED },
+  { "\\apptocmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED }, { "\\pretocmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED },
+  { "\\(DeclareMathSizes)", "\\%s" }, { "\\setlist%s*%b[]%s*{[^}]-(%a*sep)%s*=", "list spacing (\\%s)" }, { "\\setlist%s*{[^}]-(%a*sep)%s*=", "list spacing (\\%s)" },
+}
+
+rule("squeeze", "source", "check", "draft", "the page budget is met by cutting, not by squeezing: no tightened skips, separations, margins or line spacing, no raised \\tolerance, negative \\vspace, \\enlargethispage or patched headings in include/macros.tex, draft.tex or the chapters", function()
+  local files = { "draft.tex" }
+  if C.exists("include/macros.tex") then files[#files + 1] = "include/macros.tex" end
+  for _, f in ipairs(CONTENT) do files[#files + 1] = f end
+  C.each_line(files, function(f, n, l)
+    for _, s in ipairs(SQUEEZE) do
+      local what = l:match(s[1])
+      if what and (not s[3] or s[3][what]) then
+        fail(f, n, string.format(s[2], what) .. ": the template's spacing is the call's page", "cut content to fit the budget (the guide's section on cutting); keep the template's spacing")
+        break
+      end
+    end
+  end)
+end)
+
 rule("preamble", "source", "check", "always", "include/macros.tex does not fight the template: no package it loads again with other options, no amssymb, amsfonts or amsthm, no second definition of its theorem environments", function()
   local M = "include/macros.tex"
   if not C.exists(M) then return end
@@ -1324,10 +1520,12 @@ local function is_range(code, s, e) return not code:sub(s - 1, s - 1):match("[%w
 -- doubled words that are grammar, not a slip: "the protocol that that process uses", "had had"
 local DOUBLED_OK = { that = true, had = true }
 
-rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words, \\eg and \\ie macros, no manual line breaks in prose", function()
+rule("typography", "source", "advice", "polish", "the small things the reviewer sees: number ranges with --, a thin space before units, no straight quotes, no doubled words or sentences, \\eg and \\ie macros, no manual line breaks in prose, no ~ for \"about\"", function()
   C.each_prose_line(MAIN, function(f, n, l)
     local p = C.word_lines(f)[n] or ""
     local seen = {}
+    -- ~ is a tie in LaTeX: "costs ~5,600 cycles" prints "costs 5,600 cycles", an exact-looking number
+    if l:match("^~%d") or l:match("[%s%(]~%d") then warn(f, n, "~ before a number prints a space, not 'about', so the number reads as exact", "write about 5,600 or $\\approx$5,600") end
     -- a range stands alone: BLS12-381 and i7-9750H are names, not ranges
     local ranges = {}
     for s, a, b, e in p:gmatch("()(%d+)%-(%d+)()") do
@@ -1376,8 +1574,9 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
       end))
     end
     if l:match("\\\\%s*$") and not l:match("&") and not l:match("\\\\%[") and not l:match("^%s*\\\\") then
-      if not (l:match("\\end{") or l:match("\\hline") or l:match("rule")) then
-        note(f, n, "manual line break at the end of a prose line", not in_grid(f, n) and typo_fix(f, n, seen, "break", "delete the \\\\", 1, "%s*\\\\(%s*)$", function(_, _, _, trail) return trail end, "review") or nil)
+      -- a table row's last cell, on a line of its own, ends with \\ too: that is the row's end
+      if not (l:match("\\end{") or l:match("\\hline") or l:match("rule") or in_grid(f, n)) then
+        note(f, n, "manual line break at the end of a prose line", typo_fix(f, n, seen, "break", "delete the \\\\", 1, "%s*\\\\(%s*)$", function(_, _, _, trail) return trail end, "review"))
       end
     end
     if p:match("%.%.%.") then
@@ -1389,27 +1588,67 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
     if l:match("\\footnote") and l:match("%s\\footnote%f[^%a]") then -- not \footnotesize
       warn(f, n, "space before \\footnote", "the mark should sit on the word or the punctuation", typo_fix(f, n, seen, "footnote", "delete the space", C.nmatch(l, "%s+\\footnote%f[^%a]"), "%s+\\footnote%f[^%a]", function() return "\\footnote" end))
     end
-    if l:match("\\cite") and not l:match("~\\cite") and not l:match("{\\cite") and not l:match("\\citet") and not l:match("\\cite[tp]") and not l:match("^%s*\\cite") and not l:match("&%s*\\cite") and not l:match("\\\\%s*\\cite") then
+    if l:match("\\cite") and not l:match("~\\cite") and not l:match("{\\cite") and not l:match("\\citet") and not l:match("\\cite[tp]") and not l:match("^%s*\\cite") and not l:match("&%s*\\cite") and not l:match("\\\\%s*\\cite") and not l:match("\\newline%s*\\cite") then
       warn(f, n, "\\cite without a tie", "write text~\\cite{...} so the number cannot start a line", typo_fix(f, n, seen, "cite", "write a tie, ~", C.nmatch(l, "%S%s+\\cite"), "(%S)%s+\\cite", function(_, _, _, c)
         if c ~= "&" then return c .. "~\\cite" end
       end))
     end
   end)
+  -- a sentence that repeats the one before it, or its end: what a merge or a large cut leaves
+  -- behind. Short ones can be meant, and the prose reader has blanked out what could make two
+  -- long ones differ
+  for _, f in ipairs(MAIN) do
+    local prev
+    local text = C.prose(table.concat(C.prose_lines(f), "\n")):gsub("%s+", " ")
+    for sentence in text:gmatch("[^%.%?!]+[%.%?!]") do
+      sentence = C.trim(sentence)
+      if prev and C.count(sentence, "%a+") >= 6 and (prev == sentence or prev:sub(-#sentence - 1) == " " .. sentence) then
+        warn(f, nil, "the same sentence twice in a row: " .. sentence:sub(1, 80), "keep one")
+      end
+      prev = sentence
+    end
+  end
 end)
 
-rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist, and British and American spellings of the known pairs are not mixed", function()
+-- one spelling of a compound the field writes several ways; Martin's choice where it varies
+local PREFERRED_TERMS = {
+  { use = "dataset", not_ = { "data set", "data-set" } },
+}
+
+rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist (a hyphenated modifier before its noun, as in private-input recovery, is the open noun's own form), and British and American spellings of the known pairs are not mixed", function()
   local text = {}
   for _, f in ipairs(MAIN) do text[#text + 1] = C.prose(table.concat(C.prose_lines(f), "\n")) end
   local all = table.concat(text, "\n")
   local hyph = {}
-  for a, b in all:gmatch("%f[%a](%l%l+)%-(%l%l+)%f[%A]") do hyph[a .. "-" .. b] = true end
+  -- whole two-part compounds only: test-and-set and peer-to-peer are one word each, and 95th-percentile
+  -- starts with a number
+  for w in all:gmatch("[%w%-]+") do
+    local a, b = w:match("^(%l%l+)%-(%l%l+)$")
+    if a then hyph[a .. "-" .. b] = true end
+  end
   local n = 0
   for h in pairs(hyph) do
     local a, b = h:match("^(.-)%-(.*)$")
     local open = select(2, all:gsub("%f[%a]" .. a .. " " .. b .. "%f[%A]", ""))
     local closed = select(2, all:gsub("%f[%a]" .. a .. b .. "%f[%A]", ""))
     local hy = select(2, all:gsub("%f[%a]" .. a .. "%-" .. b .. "%f[%A]", ""))
+    -- the hyphenated uses standing as a noun: not before a word, which makes them a modifier
+    -- (private-input recovery next to the private input), and not inside a longer chain
+    -- (state-of-the-art, peer-to-peer). A noun before a verb (the read-set grows) reads as a modifier
+    -- and goes unreported: this advice has no parts of speech, and silence costs less than noise
+    local noun = 0
+    for at, after in all:gmatch("()%f[%a]" .. a .. "%-" .. b .. "%f[%A]()") do
+      if all:sub(at - 1, at - 1) ~= "-" and not all:match("^%-", after) and not all:match("^%s+%l", after) then noun = noun + 1 end
+    end
+    if noun == 0 then open = 0 end
     if open > 0 or closed > 0 then n = n + 1; warn(nil, nil, string.format("%s (%d) also appears as %s%s", h, hy, open > 0 and string.format("'%s %s' (%d)", a, b, open) or "", closed > 0 and string.format("%s'%s%s' (%d)", open > 0 and " and " or "", a, b, closed) or ""), "pick one") end
+  end
+  -- compounds with one accepted spelling, whatever else the paper does
+  for _, t in ipairs(PREFERRED_TERMS) do
+    for _, bad in ipairs(t.not_) do
+      local c = select(2, all:gsub("%f[%a][" .. bad:sub(1, 1):upper() .. bad:sub(1, 1) .. "]" .. C.escape(bad:sub(2)) .. "s?%f[%A]", ""))
+      if c > 0 then n = n + 1; warn(nil, nil, string.format("'%s' (%d): the term is '%s'", bad, c, t.use), "write " .. t.use) end
+    end
   end
   -- British/American pairs that a spell checker would not catch together
   local pairs_ = { { "modelling", "modeling" }, { "colour", "color" }, { "behaviour", "behavior" }, { "analyse", "analyze" }, { "optimise", "optimize" }, { "optimisation", "optimization" }, { "formalisation", "formalization" }, { "formalise", "formalize" }, { "centre", "center" }, { "licence", "license" }, { "catalogue", "catalog" }, { "parametrised", "parameterized" }, { "synchronise", "synchronize" }, { "realise", "realize" }, { "serialisation", "serialization" }, { "authorisation", "authorization" } }
@@ -1436,11 +1675,18 @@ end)
 rule("numbers", "source", "advice", "polish", "the headline numbers of the abstract and the conclusion appear in the evaluation, so the paper agrees with itself", function()
   if not C.roles_ok({ "conclusion", "evaluation", "intro" }) then return end
   local eval = C.prose(C.role_text("evaluation"))
+  -- a number that is part of a name is no result: BLS12-381, SHA-256, Ed25519, RFC 0104
+  local function name_part(p, s, num)
+    local before = p:sub(math.max(1, s - 24), s - 1)
+    return before:match("%a$") or before:match("%a[%w]*%-$") or num:match("^0%d")
+  end
   local function nums(file)
     local out = {}
-    local p = C.prose(table.concat(C.prose_lines(file), "\n"))
-    for num in p:gmatch("%f[%d](%d+%.?%d*)%s*[%%×x]") do out[#out + 1] = num end
-    for num in p:gmatch("%f[%d](%d+%.?%d*)%s*\\?,?%s*%a?%a?%a?%f[%W]") do if tonumber(num) and (tonumber(num) >= 20 or num:match("%.")) then out[#out + 1] = num end end
+    -- the running example's boxes hold the scenario's own numbers (a payment at 70 minutes), not results
+    local box = C.example_box():gsub("%p", "%%%0")
+    local p = C.prose((table.concat(C.prose_lines(file), "\n"):gsub("\\begin{" .. box .. "}.-\\end{" .. box .. "}", "")))
+    for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*[%%×x]") do if not name_part(p, s, num) then out[#out + 1] = num end end
+    for s, num in p:gmatch("()%f[%d](%d+%.?%d*)%s*\\?,?%s*%a?%a?%a?%f[%W]") do if tonumber(num) and (tonumber(num) >= 20 or num:match("%.")) and not name_part(p, s, num) then out[#out + 1] = num end end
     return out
   end
   local missing = 0
@@ -1461,14 +1707,67 @@ rule("aidecl", "source", "check", "submit", "the AI declaration is filled in: ex
   local marked = C.count(body, "\\aiboxmarked")
   if marked == 0 then fail(f, nil, "no box marked in the AI declaration", "mark one with \\aiboxmarked")
   elseif marked > 1 then fail(f, nil, "two boxes marked in the AI declaration") end
-  local used = body:match("\\aiboxmarked\\enspace Használtam") ~= nil
+  -- the skeleton's English translation, or the faculty's Hungarian form in a paper that kept it
+  local used = (body:match("\\aiboxmarked\\enspace Használtam") or body:match("\\aiboxmarked\\enspace I used")) ~= nil
   if used then
     local blank = C.count(body, "\\aiuse{")
     if blank >= 9 then fail(f, nil, "AI use declared but every row is still the blank \\aiuse row") end
-    if body:match("Összesített százalékos érték[^\n]*&%s*%-%-") then fail(f, nil, "the overall share is still --") end
-    if body:match("indoklása:}%s*TODO") then fail(f, nil, "the justification of the overall share is still TODO") end
+    if body:match("Összesített százalékos érték[^\n]*&%s*%-%-") or body:match("Overall percentage[^\n]*&%s*%-%-") then fail(f, nil, "the overall share is still --") end
+    if body:match("indoklása:}%s*TODO") or body:match("overall value:}%s*TODO") then fail(f, nil, "the justification of the overall share is still TODO") end
   end
   if s:match("\\todo") then warn(f, nil, "the declaration's instructions todo is still in the file") end
+  -- the numbers the declaration states must agree with each other and with the paper
+  local lines = C.lines(f)
+  local function pcts(t)
+    local out = {}
+    for l in (t .. "\n"):gmatch("([^\n]*)\n") do
+      for x in C.strip_comment(l):gmatch("(%d+[,.]?%d*)\\?%%") do out[#out + 1] = (x:gsub(",", ".")) end
+    end
+    return out
+  end
+  local function last(t) local p = pcts(t); return p[#p] end
+  local overall_line
+  for n, l in ipairs(lines) do if l:match("Overall percentage") or l:match("Összesített százalékos") then overall_line = n end end
+  -- each row's share against the share its explanation arrives at: the last percentage before the next row
+  local function is_row(l)
+    l = C.strip_comment(l)
+    if l:match("^%s*\\[re]*n?e?w?command") or l:match("^%s*\\def") then return false end -- a row macro's definition
+    return l:match("\\aiused") or (l:match("&") and l:match("\\?%%%s*\\\\"))
+  end
+  local n = 1
+  while overall_line and n < overall_line do
+    if is_row(lines[n]) then
+      local value, m, expl = last(lines[n]), n + 1, {}
+      while m < overall_line and not is_row(lines[m]) do expl[#expl + 1] = lines[m]; m = m + 1 end
+      local said = last(table.concat(expl, "\n"))
+      if value and said and tonumber(value) ~= tonumber(said) then warn(f, n, string.format("the row says %s%%, its explanation arrives at %s%%", value, said), "make the row and its explanation agree") end
+      n = m
+    else n = n + 1 end
+  end
+  if overall_line then
+    local overall = last(lines[overall_line])
+    local rest = {}
+    for m = overall_line + 1, #lines do
+      if lines[m]:match("Attention:") or lines[m]:match("Figyelem:") then break end
+      rest[#rest + 1] = lines[m]
+    end
+    local said = pcts(table.concat(rest, "\n"))
+    local agrees = #said == 0
+    for _, x in ipairs(said) do if overall and tonumber(x) == tonumber(overall) then agrees = true end end
+    if overall and not agrees then warn(f, overall_line, string.format("the overall share is %s%%, its justification says %s%%", overall, table.concat(said, "%, ")), "make them agree") end
+  end
+  -- a count of the paper's sources against its bibliography
+  local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))
+  if bbl then
+    local items = C.count(bbl, "\\bibitem")
+    for k, l in ipairs(lines) do
+      for _, word in ipairs({ "sources", "references", "cited works", "forrás" }) do
+        for num in C.strip_comment(l):gmatch("(%d+)%s+" .. word) do
+          if tonumber(num) ~= items then warn(f, k, string.format("%s %s here, %d entries in the bibliography", num, word, items), "count them again") end
+        end
+      end
+    end
+  end
 end)
 
 rule("titlepage", "source", "check", "submit", "the title page variables are filled in: title, author, year, the second author where there is one", function()
@@ -1491,12 +1790,34 @@ rule("placeholders", "source", "count", "submit", "what the template left for yo
   for _, f in ipairs(CONTENT) do files[#files + 1] = f end
   files[#files + 1] = "draft.tex"
   for _, b in ipairs(C.BIB) do files[#files + 1] = b end
+  -- the skeleton's gap matrix cites lamport1978time and w3c2025vcdm for its sample approaches; a
+  -- paper may cite either for what it is, so only a citation inside the gap matrix's float is left over
+  local function matrix_span(f)
+    local ls = C.lines(f)
+    for n, l in ipairs(ls) do
+      if C.strip_comment(l):match("\\label%s*{guide:tab:related}") then
+        local a, b = n, n
+        while a > 1 and not ls[a]:match("\\begin%s*{table") do a = a - 1 end
+        while b < #ls and not ls[b]:match("\\end%s*{table") do b = b + 1 end
+        return a, b
+      end
+    end
+  end
   for _, f in ipairs(files) do
-    local t, p, first = 0, 0, nil
+    local t, p, first, infloat = 0, 0, nil, false
+    local ma, mb = matrix_span(f)
     C.each_line({ f }, function(_, n, l)
       local c = C.count(l, "TODO"); if c > 0 then t = t + c; first = first or n end
-      if l:match("[Pp]laceholder") then p = p + 1 end
-      if l:match("lamport1978time") or l:match("w3c2025vcdm") then warn(f, n, "sample citation from the template still used") end
+      -- a placeholder figure or table says so inside its float; the word in prose is prose
+      if l:match("\\begin{figure") or l:match("\\begin{table") then infloat = true end
+      if infloat and l:match("[Pp]laceholder") then p = p + 1 end
+      if l:match("\\end{figure") or l:match("\\end{table") then infloat = false end
+      -- the sample keys whole: w3c2025vcdm2 is a paper's own entry, not the sample
+      if ma and n >= ma and n <= mb then
+        for _, k in ipairs({ "lamport1978time", "w3c2025vcdm" }) do
+          if l:match("%f[%w:]" .. k .. "%f[^%w:]") then warn(f, n, "sample citation from the template still used in the gap matrix"); break end
+        end
+      end
     end)
     todo, ph = todo + t, ph + p
     if t + p > 0 then warn(f, first, string.format("%d TODO, %d placeholder figure or table", t, p)) end
@@ -1515,9 +1836,19 @@ end)
 
 rule("burndown", "source", "count", "always", "one line of JSON with the counts a draft drives to zero, for CI to collect over time", function()
   local function count(files, pat) local c = 0; C.each_line(files, function(_, _, l) c = c + C.count(l, pat) end); return c end
+  -- placeholder figures and tables say so inside their float, as the placeholders rule counts them
+  local function placeholder_floats()
+    local c, infloat = 0, false
+    C.each_line(CONTENT, function(_, _, l)
+      if l:match("\\begin{figure") or l:match("\\begin{table") then infloat = true end
+      if infloat and l:match("[Pp]laceholder") then c = c + 1 end
+      if l:match("\\end{figure") or l:match("\\end{table") then infloat = false end
+    end)
+    return c
+  end
   local j = string.format('{"date":"%s","pages":%d,"todo":%d,"beats":%d,"notes":%d,"placeholders":%d,"citations":%d,"figures":%d}',
     os.date("!%Y-%m-%d"), main_pages() or 0, count(CONTENT, "TODO"), count(MAIN, "\\beat{"), count(MAIN, "\\a?d?v?i?s?o?r?todo%["),
-    count(CONTENT, "[Pp]laceholder"), count(MAIN, "\\cite[tp]?{"), count(MAIN, "\\label{fig:"))
+    placeholder_floats(), count(MAIN, "\\cite[tp]?{"), count(MAIN, "\\label{fig:"))
   if not C.quiet() then io.write(j, "\n") end -- --json carries it as the counts
   return j
 end)

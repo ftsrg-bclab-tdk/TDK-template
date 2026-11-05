@@ -186,7 +186,7 @@ the sources give positions and cross-checks.
 - **Mentions and links**: every printed tag, `Figure N.M`, `Table N.M` and `Theorem N` is checked
   against the PDF's internal link annotations, whose named destinations resolve through the `.aux`
   to labels. A range (`AS1–AS3`) counts for each tag.
-- **Chains**: the correctness table is `tab:correctness`, the gap matrix `tab:related`; without
+- **Chains**: the correctness table is `guide:tab:correctness`, the gap matrix `guide:tab:related`; without
   those labels, a table whose caption says "correct", or "gap matrix", "related work" or "closest
   approaches". A row means the tag appears in the table. "Restated in the conclusion" means the tag
   appears there; failing that, most words of the contribution's short name, shown as
