@@ -467,8 +467,12 @@ end
 rule("pages", "source", "check", "submit", "main text, from the first numbered chapter to the page before the back matter (read from the .toc), is 30-35 pages", function()
   local p, s, e = main_pages()
   if not p then fail(nil, nil, "no numbered chapter followed by an unnumbered one in " .. C.opts.doc .. ".toc (build first; pdf-pages counts from the outline instead)"); return end
-  if p < 30 or p > 35 then fail(C.ROLE.intro, 2, string.format("main text is %d pages (%d-%d); the call asks for 30-35, about 1 point off per 3 pages", p, s, e))
-  else note(nil, nil, string.format("main text %d pages (%d-%d)", p, s, e)) end
+  if p < 30 or p > 35 then
+    local msg = string.format("main text is %d pages (%d-%d); the call asks for 30-35, about 1 point off per 3 pages", p, s, e)
+    -- the draft's todos and beats take room the reviewer build does not print: count that one
+    if C.draft_build() then warn(C.ROLE.intro, 2, msg .. ", counted on the draft with its notes", "run make check-submit: the reviewer build's count is the one that matters")
+    else fail(C.ROLE.intro, 2, msg) end
+  else note(nil, nil, string.format("main text %d pages (%d-%d)%s", p, s, e, C.draft_build() and ", counted on the draft with its notes" or "")) end
   return string.format("pages=%d", p)
 end)
 

@@ -312,6 +312,9 @@ function M.resolve_phase()
   if not M.PHASES[p] then return nil, string.format("unknown phase '%s' from %s: use one of %s", p, src, table.concat(M.PHASE_ORDER, ", ")) end
   return p
 end
+-- the draft build: thesis.tex prints the guide, the todos and the beats, which the reviewer build
+-- hides, so what it shows of them, and its page count, is not what a reviewer gets
+function M.draft_build() return M.opts.doc == "thesis" end
 function M.phase()
   if not M.opts.phase_source then M.resolve_phase() end
   return M.opts.phase

@@ -240,7 +240,8 @@ rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PD
   stop = stop or #d.pages
   local n = stop - start + 1
   local msg = string.format("main text is %d PDF pages (%d-%d by the outline); the %s asks for %d-%d", n, start, stop, p.name, p.pages[1], p.pages[2])
-  if n < p.pages[1] or n > p.pages[2] then if p.pages_gate then fail(nil, nil, msg) else warn(nil, nil, msg) end else note(nil, nil, msg) end
+  if C.draft_build() then msg = msg .. ", counted on the draft with its notes; make check-submit counts the reviewer build" end
+  if n < p.pages[1] or n > p.pages[2] then if p.pages_gate and not C.draft_build() then fail(nil, nil, msg) else warn(nil, nil, msg) end else note(nil, nil, msg) end
   return string.format("pages=%d", n)
 end)
 
@@ -264,8 +265,10 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   for _, m in ipairs({ "TBD", "XXX", "FIXME" }) do
     if text:find("%f[%w]" .. m .. "%f[%W]") then fail(nil, nil, m .. " is printed in the PDF: a placeholder left in the text") end
   end
+  -- the draft prints its todos and beats on purpose; only the reviewer build must be clean of them
+  local report = C.draft_build() and note or fail
   if text:find("TODO", 1, true) then
-    local n = C.count(text, "TODO"); fail(nil, nil, n .. " TODO still printed in the PDF")
+    local n = C.count(text, "TODO"); report(nil, nil, n .. " TODO still printed in the PDF" .. (C.draft_build() and " (the draft shows them; the reviewer build must not)" or ""))
   end
-  if text:find("Beat%.") or text:find("Establishes:") then fail(nil, nil, "beats are printed: this is the draft, not the reviewer build") end
+  if text:find("Beat%.") or text:find("Establishes:") then report(nil, nil, C.draft_build() and "beats are printed, as the draft does; the reviewer build must not" or "beats are printed: this is the draft, not the reviewer build") end
 end)
