@@ -51,6 +51,7 @@ M.RULES = {
   lacheck = { "language", "lacheck" },
 
   stock = { "form", "No text of the faculty template" },
+  squeeze = { "form", "Cut to the budget, not squeezed" },
   pages = { "form", "30--35 pages of main text" },
   aidecl = { "form", "AI declaration filled in" },
   titlepage = { "form", "Title page filled in" },

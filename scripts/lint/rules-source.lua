@@ -1220,6 +1220,39 @@ rule("code", "source", "check", "always", "listings: \\lstinline is ASCII (XeLaT
   end
 end)
 
+-- the ways a paper is squeezed into the page budget instead of cut: each changes the page the
+-- call describes, and a reviewer sees it as cramped text. The pattern, and what to say about it
+local SQUEEZE_LENGTHS = {}
+for w in ("parskip baselineskip abovedisplayskip belowdisplayskip abovedisplayshortskip belowdisplayshortskip abovecaptionskip belowcaptionskip smallskipamount medskipamount bigskipamount theorempreskipamount theorempostskipamount itemsep parsep topsep partopsep floatsep textfloatsep intextsep dblfloatsep dbltextfloatsep textheight textwidth topmargin oddsidemargin evensidemargin headheight headsep footskip"):gmatch("%a+") do SQUEEZE_LENGTHS[w] = true end
+-- commands whose patching changes the page: the headings, and the language switch that sets
+-- \parskip; a patch elsewhere (\printlists, say) is the author's business
+local SQUEEZE_PATCHED = { ["@makechapterhead"] = true, ["@makeschapterhead"] = true, chapter = true, section = true, subsection = true, ["@startsection"] = true, selectenglish = true }
+local SQUEEZE = {
+  { "\\setlength%s*{?\\(%a+)}?", "a changed \\%s", SQUEEZE_LENGTHS }, { "\\addtolength%s*{?\\(%a+)}?", "a changed \\%s", SQUEEZE_LENGTHS },
+  { "\\geometry%s*(){", "a changed page geometry" }, { "\\newgeometry%s*(){", "a changed page geometry" },
+  { "\\(linespread)%s*{", "\\%s" }, { "\\renewcommand%s*{?\\(baselinestretch)}?", "a changed \\%s" },
+  { "\\(tolerance)%s*=?%s*%d", "a raised \\%s" }, { "\\(emergencystretch)%s*=?%s*%d", "\\%s" }, { "\\(looseness)%s*=?%s*%-", "a negative \\%s" },
+  { "\\(vspace%*?)%s*{%s*%-", "negative \\%s" }, { "\\(enlargethispage%*?)", "\\%s" },
+  { "\\(titlespacing%*?)", "\\%s" }, { "\\patchcmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED },
+  { "\\apptocmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED }, { "\\pretocmd%s*{?\\(@?%a+)}?", "a patched \\%s", SQUEEZE_PATCHED },
+  { "\\(DeclareMathSizes)", "\\%s" }, { "\\setlist%s*%b[]%s*{[^}]-(%a*sep)%s*=", "list spacing (\\%s)" }, { "\\setlist%s*{[^}]-(%a*sep)%s*=", "list spacing (\\%s)" },
+}
+
+rule("squeeze", "source", "check", "draft", "the page budget is met by cutting, not by squeezing: no tightened skips, separations, margins or line spacing, no raised \\tolerance, negative \\vspace, \\enlargethispage or patched headings in include/macros.tex, thesis.tex or the chapters", function()
+  local files = { "thesis.tex" }
+  if C.exists("include/macros.tex") then files[#files + 1] = "include/macros.tex" end
+  for _, f in ipairs(CONTENT) do files[#files + 1] = f end
+  C.each_line(files, function(f, n, l)
+    for _, s in ipairs(SQUEEZE) do
+      local what = l:match(s[1])
+      if what and (not s[3] or s[3][what]) then
+        fail(f, n, string.format(s[2], what) .. ": the template's spacing is the call's page", "cut content to fit the budget (the guide's section on cutting); keep the template's spacing")
+        break
+      end
+    end
+  end)
+end)
+
 rule("preamble", "source", "check", "always", "include/macros.tex does not fight the template: no package it loads again with other options, no amssymb, amsfonts or amsthm, no second definition of its theorem environments", function()
   local M = "include/macros.tex"
   if not C.exists(M) then return end
