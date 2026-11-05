@@ -26,6 +26,10 @@ an editable PowerPoint version.
   of `slides.md`. The examples are instructional; the chart data are synthetic.
 - `powerpoint/assets/workflow.png` is a raster copy of `figures/workflow.svg` for
   the picture-placeholder example. The separate native diagram stays editable.
+- `powerpoint/assets/qr-project.png` was generated with `qrencode` for
+  `https://github.com/ftsrg-bclab-tdk/TDK-template`, which Martin selected as the
+  replaceable project example. The covers and closing use this code beside the
+  editable URL. It does not reuse the BPM talk's personal or artifact QR links.
 - `powerpoint/fonts/` contains static instances of the already supplied Montserrat
   and JetBrains Mono variable fonts, produced with FontTools 4.67.0. Montserrat
   Light, Medium and SemiBold are exposed as separate Office font families to

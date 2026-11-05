@@ -18,6 +18,8 @@ from font_embedding import FONTS, eot
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT.parent / "assets"
+PROJECT_URL = "https://github.com/ftsrg-bclab-tdk/TDK-template"
+PROJECT_LABEL = PROJECT_URL.removeprefix("https://")
 NS = {
     "p": "http://schemas.openxmlformats.org/presentationml/2006/main",
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
@@ -346,11 +348,11 @@ def layouts():
             body("Event and date", 3, (160, 418.4, 960, 24), "TDK CONFERENCE · PRESENTATION DATE", size=13, leading=18.2, color="E3C6CB", align="ctr", tracking=3.64),
             body("Presenter name", 4, (630, 613.6, 380, 23), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
             body("Presenter affiliation", 5, (630, 637.6, 380, 33), "Critical Systems Research Group\nBudapest University of Technology and Economics", size=11.5, leading=15.525, color="D8D6D1", align="r"),
-            body("Presenter link", 6, (630, 673.6, 380, 20), "Your project URL", size=12, leading=16.8, font="JetBrains Mono", tracking=.24, color="FFFFFF", align="r"),
+            body("Presenter link", 6, (630, 673.6, 380, 20), PROJECT_LABEL, size=12, leading=16.8, font="JetBrains Mono", tracking=.24, color="FFFFFF", align="r"),
             placeholder("Optional presenter photo", "pic", 20, (1028, 611, 82, 82), "", size=12),
-            placeholder("Optional contact QR", "pic", 21, (1128, 608, 88, 88), "", size=12)],
+            placeholder("Project QR", "pic", 21, (1128, 608, 88, 88), "", size=12)],
              panels=[(510, 367, 260, 1, "D9B9BE")],
-             notes="Save a copy with your own filename. Replace the title, two-line subtitle, authors, event and presenter details. The composition follows the BPM 2026 cover. Optional picture placeholders at bottom right accept your portrait and a QR code whose destination you have checked; leave them empty if unneeded. Select the photo and use Crop > Crop to Shape > Oval. The PPTX and POTX contain the same examples."),
+             notes="Save a copy with your own filename. Replace the title, two-line subtitle, authors, event and presenter details. The composition follows the BPM 2026 cover. The optional portrait placeholder stays empty; select the photo and use Crop > Crop to Shape > Oval. The project QR uses the template repository as an editing example. The PPTX and POTX contain the same examples."),
         dict(name="02 Section divider", master=3, kind="secHead", items=[
             placeholder("Section title", "title", 0, (120, 305, 1040, 115), "ASSUMPTIONS\nAND METHOD", size=44, leading=52.8, color="FFFFFF", align="ctr", font="Montserrat Light", tracking=4.4),
             body("Section label", 1, (120, 264, 1040, 24), "01 / METHOD", size=14, leading=19.6, font="Montserrat Medium", color="E3C6CB", align="ctr", tracking=4.9),
@@ -416,26 +418,26 @@ def layouts():
                 body(f"Closing detail {i+1}", 22+i, (79+i*291.5, 338, 247.5, 108), text, size=18, leading=24.3, color="F3EFEA")]],
             body("Invitation", 2, (64, 462.5, 1152, 40), "Your project link and invitation to discuss", size=22, leading=30.8, font="Montserrat SemiBold", color="FFFFFF", align="ctr"),
             body("Contact name", 3, (730, 610.4, 360, 24), "STUDENT NAME", size=15, leading=21, bold=True, tracking=1.8, color="FFFFFF", align="r"),
-            body("Contact details", 4, (730, 634.4, 360, 50), "Your email address\nYour project URL", size=14, leading=19.6, color="D8D6D1", align="r"),
-            placeholder("Optional project QR", "pic", 30, (1114, 594, 96, 96), "", size=12)],
+            body("Contact details", 4, (730, 634.4, 360, 50), "Your email address\n" + PROJECT_LABEL, size=14, leading=19.6, color="D8D6D1", align="r"),
+            placeholder("Project QR", "pic", 30, (1108, 588, 108, 108), "", size=12)],
              panels=[(64+i*291.5, 304.7, 277.5, 146.7, ("0C0C0E", .55), ("FFFFFF", .16)) for i in range(4)] + [(64+i*291.5, 304.7, 277.5, 3, "D9B9BE") for i in range(4)],
-             notes="This layout follows the actual BPM 2026 closing slide's three-line statement, four compact panels, invitation and bottom-right contact block. Replace the prompts with your supported conclusion and useful next questions. Delete unused panels and their text in Slide Master. The optional picture placeholder accepts a verified project QR. Leave the slide visible during questions."),
+             notes="This layout follows the actual BPM 2026 closing slide's three-line statement, four compact panels, invitation and bottom-right contact block. Replace the prompts with your supported conclusion and useful next questions. Delete unused panels and their text in Slide Master. The project QR uses the template repository as an editing example. Leave the slide visible during questions."),
         dict(name="12 References / backup", master=1, kind="tx", items=[title("SOURCES AND REPRODUCIBILITY", 72),
             body("Backup tag", 11, (64, 72, 130, 20), "BACKUP", size=12, leading=16.8, bold=True, tracking=2.4, color="555555"),
             body("References and evidence", 1, (100, 150, 1080, 320), "[1] Author. Verified title. Venue, year. DOI or URL.\n[2] Dataset or artifact. Version and persistent identifier.\nReproduction: revision, configuration, commands and inputs.", size=23, leading=32.2, after=600),
             caption("These are prompts, not citations. Replace them with verified sources.", 520)],
              notes="The backup tag and 30 px title follow the BPM talk's backup pages. Use actual source titles and persistent links. Cite borrowed figures on their slides too. Follow the paper's AI declaration rules. Remove unused prompts and keep detailed evidence after the close."),
     ]
-    # Keep the BPM portrait composition as an explicit choice. With empty picture
-    # slots, it leaves a misleading gap beside the presenter on the default cover.
+    # Keep the BPM portrait composition as an explicit choice. The default
+    # cover places presenter details directly beside the populated project QR.
     portrait = copy.deepcopy(specs[0])
     portrait["name"] = "14 Cover with portrait and QR"
-    specs[0]["items"] = [p for p in specs[0]["items"] if p["ph"][0] != "pic"]
+    specs[0]["items"] = [p for p in specs[0]["items"] if p["name"] != "Optional presenter photo"]
     for item in specs[0]["items"]:
         if item["name"].startswith("Presenter"):
             x, y, w, h = item["box"]
-            item["box"] = (x + 206, y, w, h)
-    specs[0]["notes"] = "The default cover follows BPM's title, subtitle, rule and author hierarchy. It has no empty image slots: the presenter block aligns to the right margin. For a portrait and QR code choose layout 14. For a longer title choose layout 13, keeping the original type size. Title and subtitle use native All Caps formatting, so normal-case editing preserves the visual style. Save a copy and replace the example details."
+            item["box"] = (x + 100, y, w, h)
+    specs[0]["notes"] = "The default cover follows BPM's title, subtitle, rule and author hierarchy. The presenter block sits beside a project QR. For a portrait as well, choose layout 14. For a longer title choose layout 13, keeping the original type size. Title and subtitle use native All Caps formatting, so normal-case editing preserves the visual style. Save a copy and replace the example details."
     long_title = copy.deepcopy(specs[0])
     long_title["name"] = "13 Cover with two-line title"
     for item in long_title["items"]:
@@ -448,6 +450,9 @@ def layouts():
             item["text"] = "Assumptions and evidence\nfor retries and failures"
     long_title["notes"] = "Use this cover when the main research title needs two lines. Insert a deliberate line break at a phrase boundary. The title keeps BPM's 38 px SemiBold type and the subtitle keeps its 32 px Light type. Their separate boxes do not overlap. Keep the main title within two lines and the subtitle within two lines. The fictional job-execution title is an editing example, not a reported finding."
     specs.extend([long_title, portrait])
+    for spec in specs:
+        if any(item["name"] == "Project QR" for item in spec["items"]):
+            spec["notes"] += "\n\nExample project QR destination: " + PROJECT_URL + ". Replace the QR with Change Picture and update the visible URL and Alt Text together. Use a square code with a four-module quiet zone, avoid cropping it, and test it from the exported slide. New slides have an empty picture placeholder; duplicate the example to retain the image."
     return specs
 
 
@@ -674,7 +679,10 @@ def build(output):
         rels = [("rId1", "slideLayout", f"../slideLayouts/slideLayout{i}.xml"), ("rId2", "notesSlide", f"../notesSlides/notesSlide{i}.xml")]
         for ph in spec["items"]:
             if ph["ph"][0] in ("tbl", "chart", "pic"):
-                if spec.get("special") == "table":
+                if ph["name"] == "Project QR":
+                    picture(pkg, st, rels, ROOT / "assets/qr-project.png", ph["box"], "Project QR",
+                            "Example project QR linking to the template repository: " + PROJECT_URL, ph=ph["ph"])
+                elif spec.get("special") == "table":
                     add_table(st)
                 elif spec.get("special") == "chart":
                     add_chart(pkg, st, rels)

@@ -99,6 +99,7 @@
     "paper/tdkieee.bst",
     "presentation/powerpoint/README.md",
     "presentation/powerpoint/SHA256SUMS",
+    "presentation/powerpoint/assets/qr-project.png",
     "presentation/powerpoint/assets/workflow.png",
     "presentation/powerpoint/fonts/JetBrainsMono-Regular.ttf",
     "presentation/powerpoint/fonts/Montserrat-Bold.ttf",

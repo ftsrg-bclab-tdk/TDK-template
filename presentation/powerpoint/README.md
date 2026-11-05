@@ -75,13 +75,20 @@ divider and closing slides omit them.
 - **Code:** edit the text directly in JetBrains Mono. Keep long listings in
   an appendix or repository. The example is pseudocode, not a verified result.
 
-The default cover aligns the presenter details to the right margin without
-reserving empty image slots. Choose **14 Cover with portrait and QR** to use
-the BPM cover's portrait and contact QR arrangement. The closing includes a
-project QR placeholder. Empty placeholders do not appear in Slide Show; select the picture icon in Normal view to fill them.
-For a portrait, use **Picture Format > Crop > Crop to Shape > Oval**. Use a QR
-image only after checking its destination and testing it on a phone. The
-template supplies no portrait or working QR code for someone else's identity.
+The covers and closing include a project QR beside the presenter details,
+following BPM's placement. The example opens
+[this template repository](https://github.com/ftsrg-bclab-tdk/TDK-template).
+To use your own project, right-click **Change Picture** on the QR and update
+the visible URL and Alt Text together. Keep the image square, preserve its white
+quiet zone, avoid cropping it, and test it on a phone from the exported slide.
+Duplicate an example slide to retain the code. **New Slide** creates an empty
+picture placeholder that you can fill with the picture icon.
+
+Choose **14 Cover with portrait and QR** for the BPM cover's portrait
+arrangement as well. The default and two-line covers place the presenter text
+directly beside the QR. The closing uses BPM's larger white QR box. For a
+portrait, use **Picture Format > Crop > Crop to Shape > Oval**. The template
+supplies no portrait for someone else's identity.
 
 The PNG/JPEG artwork and the example figure remain images. Slide text, tables,
 chart data and the native diagram remain editable. The PowerPoint files do not
@@ -186,6 +193,19 @@ pdftoppm -scale-to 1600 -png \
 `assets/workflow.png` is a raster fallback of the existing
 `presentation/figures/workflow.svg`, produced with
 `rsvg-convert -w 1920 -o presentation/powerpoint/assets/workflow.png presentation/figures/workflow.svg`.
+The project QR is a PNG with medium error correction and a four-module quiet
+zone. To regenerate the repository example from the repository root:
+
+```sh
+qrencode --type=PNG --level=M --size=12 --margin=4 \
+  --output=presentation/powerpoint/assets/qr-project.png \
+  'https://github.com/ftsrg-bclab-tdk/TDK-template'
+zbarimg --quiet --raw presentation/powerpoint/assets/qr-project.png
+```
+
+QR decoding was also checked from the rendered cover variants and closing slide
+at 1280 × 720. These optional maintainer tools are not required to use the PPTX.
+
 To regenerate the static fonts from the existing variable fonts, use
 `uv run --with fonttools==4.67.0 python presentation/powerpoint/tools/prepare_fonts.py`.
 FontTools is only needed for that maintainer operation. Keep both OFL notices.
