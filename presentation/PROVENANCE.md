@@ -29,8 +29,10 @@ an editable PowerPoint version.
 - `powerpoint/fonts/` contains static instances of the already supplied Montserrat
   and JetBrains Mono variable fonts, produced with FontTools 4.67.0. Montserrat
   Light, Medium and SemiBold are exposed as separate Office font families to
-  preserve the BPM weight hierarchy. Their OFL
-  notices are retained. The new PowerPoint files do not embed these fonts.
+  preserve the BPM weight hierarchy. Their OFL notices are retained. Both new
+  PowerPoint files embed all eight complete static font faces as uncompressed
+  EOT font parts, preserving the original TTF bytes and embedding permissions.
+  The separate font files remain available for viewers that ignore embedding.
 
 The scoped license policy below applies to original reusable tooling and prose.
 Existing artwork and fonts keep the permissions and licenses recorded here.

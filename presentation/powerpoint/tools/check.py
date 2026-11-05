@@ -7,12 +7,15 @@ Uses only Python's standard library, including in CI.
 import hashlib
 import io
 import posixpath
+import struct
 import subprocess
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
+
+from font_embedding import FONTS
 
 ROOT = Path(__file__).resolve().parents[1]
 NS = {
@@ -34,6 +37,50 @@ def relationships(z, part):
     return {r.get("Id"): (r.get("Type").rsplit("/", 1)[-1],
                           posixpath.normpath(posixpath.join(posixpath.dirname(part), r.get("Target"))))
             for r in ET.fromstring(z.read(name))}
+
+
+def inspect_fonts(z, presentation, rels, content):
+    require(presentation.get("embedTrueTypeFonts") == "1" and presentation.get("saveSubsetFonts") == "0",
+            "Font embedding must be enabled for all characters")
+    entries = presentation.findall("p:embeddedFontLst/p:embeddedFont", NS)
+    families = [entry.find("p:font", NS).get("typeface") for entry in entries]
+    require(len(families) == len(set(families)) and set(families) == set(FONTS), "Missing or duplicate embedded font family")
+    types = {e.get("PartName"): e.get("ContentType") for e in content}
+    embedded_parts = set()
+    for entry, family in zip(entries, families):
+        faces = {child.tag.rsplit("}", 1)[-1]: child for child in entry if child.tag != "{" + NS["p"] + "}font"}
+        require(set(faces) == set(FONTS[family]), f"Missing embedded font style: {family}")
+        for style, filename in FONTS[family].items():
+            typ, part = rels[faces[style].get("{" + NS["r"] + "}id")]
+            require(typ == "font" and types.get("/" + part) == "application/x-fontdata", "Wrong embedded font part type")
+            embedded_parts.add(part)
+            data = z.read(part)
+            source = (ROOT / "fonts" / filename).read_bytes()
+            require(len(data) >= 100, "Truncated embedded font")
+            size, payload_size, version, flags = struct.unpack_from("<4I", data)
+            require((size, payload_size, version, flags) == (len(data), len(source), 0x00020001, 0),
+                    "Invalid embedded font header or subset")
+            require(struct.unpack_from("<HH", data, 32) == (0, 0x504C), "Invalid embedded font permissions or signature")
+            cursor = 80
+            strings = []
+            for _ in range(5):
+                require(cursor + 4 <= len(data) - payload_size, "Truncated embedded font names")
+                padding, length = struct.unpack_from("<HH", data, cursor)
+                require(padding == 0 and length % 2 == 0, "Invalid embedded font name header")
+                cursor += 4
+                strings.append(data[cursor:cursor + length].decode("utf-16le"))
+                cursor += length
+            expected_style = {"regular": "Regular", "bold": "Bold", "italic": "Italic", "boldItalic": "Bold Italic"}[style]
+            require(strings[0] == family and strings[1] == expected_style and strings[4] == "", "Embedded font name mismatch")
+            require(cursor == len(data) - payload_size and data[cursor:] == source,
+                    "Embedded font payload differs from the complete bundled font")
+    require(embedded_parts == {p for t, p in rels.values() if t == "font"}, "Unregistered embedded font part")
+    for name in z.namelist():
+        if name.startswith("ppt/") and name.endswith(".xml"):
+            root = ET.fromstring(z.read(name))
+            for font in root.findall(".//a:latin", NS) + root.findall(".//a:buFont", NS):
+                family = font.get("typeface", "")
+                require(not family or family.startswith("+") or family in FONTS, f"Unbundled text font: {family}")
 
 
 def inspect(path):
@@ -58,6 +105,7 @@ def inspect(path):
         p = ET.fromstring(z.read("ppt/presentation.xml"))
         require(p.find("p:sldSz", NS).attrib == {"cx": "12192000", "cy": "6858000", "type": "screen16x9"}, "Wrong canvas")
         prs = relationships(z, "ppt/presentation.xml")
+        inspect_fonts(z, p, prs, content)
         slides = [prs[e.get("{" + NS["r"] + "}id")][1] for e in p.findall("p:sldIdLst/p:sldId", NS)]
         require(len(slides) == 14, "Missing example slide")
         require(len(p.findall("p:sldMasterIdLst/p:sldMasterId", NS)) == 3, "Expected three shared masters")
@@ -148,7 +196,7 @@ def main():
             require((Path(d) / name).read_bytes() == (ROOT / "templates" / name).read_bytes(), f"Stale generated template: {name}")
     legacy = ROOT / "legacy/ftsrg-montserrat-2025.pptx"
     require(hashlib.sha256(legacy.read_bytes()).hexdigest() == "4b162aaa6eb526f9617181ab1800499c6acf8cabe907a47c1a876218e3750cd9", "Legacy file must remain unchanged")
-    print("PASS: hashes, relationships, layouts, placeholders, notes, native table/chart, workbook, connectors, numbering, and reproducible templates")
+    print("PASS: hashes, embedded full fonts, relationships, layouts, placeholders, notes, native table/chart, workbook, connectors, numbering, and reproducible templates")
 
 
 if __name__ == "__main__":

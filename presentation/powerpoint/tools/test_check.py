@@ -50,6 +50,19 @@ class BrokenTemplates(unittest.TestCase):
     def test_external_workbook(self):
         self.damaged("ppt/charts/_rels/chart1.xml.rels", b'Target="../embeddings/chart-data.xlsx"', b'Target="https://example.org/data.xlsx" TargetMode="External"', "Unexpected external")
 
+    def test_disabled_font_embedding(self):
+        self.damaged("ppt/presentation.xml", b'embedTrueTypeFonts="1"', b'embedTrueTypeFonts="0"', "Font embedding must be enabled")
+
+    def test_wrong_embedded_font_style(self):
+        self.damaged("ppt/presentation.xml", b'<p:boldItalic ', b'<p:missingStyle ', "Missing embedded font style")
+
+    def test_corrupt_embedded_font_payload(self):
+        # Last bytes are inside the full TTF, beyond the EOT names and header.
+        part = "ppt/fonts/Montserrat-Light.fntdata"
+        with zipfile.ZipFile(ROOT / "templates/ftsrg-current.pptx") as z:
+            data = z.read(part)
+        self.damaged(part, data, data[:-1] + bytes([data[-1] ^ 1]), "payload differs")
+
 
 if __name__ == "__main__":
     unittest.main()

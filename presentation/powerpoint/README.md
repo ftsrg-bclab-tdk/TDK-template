@@ -10,13 +10,14 @@ Students can use PowerPoint without building the Markdown presentation.
 
 ## Start a presentation
 
-1. Install the static `.ttf` files in [fonts/](fonts/) and restart PowerPoint.
-   They provide Montserrat Light, Medium and SemiBold as well as regular, bold,
-   italic and bold italic, plus JetBrains Mono for code. Keep the font licenses
-   when redistributing them. These fonts
-   are supplied separately, **not embedded in the new presentation**. The static
-   files avoid relying on variable-font support in Office.
-2. Open the PPTX or POTX in desktop PowerPoint. Save your talk under a new name,
+1. Open the PPTX or POTX in desktop PowerPoint. The current files **embed all
+   eight static font faces, with their complete character sets for editing**:
+   Montserrat Light, Medium and SemiBold; regular, bold, italic and bold italic;
+   and JetBrains Mono for code. This preserves the BPM title's SemiBold/Light
+   contrast without relying on installed fonts or variable-font support.
+   If your viewer ignores embedded fonts, install the `.ttf` files in
+   [fonts/](fonts/) and restart it. Keep the OFL licenses with redistributed fonts.
+2. Save your talk under a new name,
    for example `presentation/my-talk.pptx`, outside `powerpoint/templates/`.
    Those files are maintained starters; template updates can replace them.
 3. Choose **Home > New Slide** and select a named layout. Replace the example
@@ -33,9 +34,10 @@ Students can use PowerPoint without building the Markdown presentation.
    actual display and check the exported audience PDF.
 
 PowerPoint for the web can edit a PPTX, but use desktop PowerPoint for master
-editing and POTX creation. Test fonts on the computer that will present it. If
-sharing an editable deck, include the font folder or enable PowerPoint's font
-embedding with all characters for editing, then reopen the saved file to check.
+editing and POTX creation. Test fonts on the computer that will present it.
+When saving an editable copy, keep **Embed fonts in the file** enabled and
+**Embed all characters** selected in PowerPoint's save settings. Reopen the
+saved copy to check the result; some viewers ignore embedded fonts.
 
 ## Layouts and editable objects
 
@@ -145,13 +147,20 @@ student decks or the legacy file. After reviewing a change, copy the two files
 into `powerpoint/templates/`, update `SHA256SUMS`, and run the check again.
 CI verifies hashes, internal relationships, native object structure, placeholder
 inheritance, chart/workbook consistency, and reproducibility from the builder.
+It also checks font relationships, family/style mappings, embedding flags and
+the complete embedded font bytes against the licensed static sources.
 It is not a complete Office Open XML schema or accessibility validator.
-Seven regression tests exercise lost title semantics and capitalization,
+Ten regression tests exercise lost title semantics and capitalization,
 overlapping cover title/subtitle boxes, an invisible table type, inherited
-hanging indents in plain text, stale chart values and an external workbook link.
+hanging indents in plain text, stale chart values, an external workbook link,
+disabled embedding, missing font styles and corrupt embedded font data.
 
-The initial release was rendered with LibreOffice, and every example slide was
-visually inspected. Structural and geometry checks also passed. **Microsoft
+All fourteen examples were rendered and inspected with LibreOffice. A separate
+test restricted Fontconfig to Liberation fonts and used fresh LibreOffice
+profiles: the previous unembedded file substituted Liberation Sans; the current
+file used its embedded Montserrat weights and JetBrains Mono, confirmed in the
+exported PDF. The cover was also compared with the BPM reference using the same
+title text. Structural and geometry checks passed. **Microsoft
 PowerPoint was not available for a native application check.** Before a release,
 also open both formats in desktop PowerPoint: test New Slide, Reset, Change
 Picture, Edit Data, editing the shared master, and saving/reopening a copy.
@@ -180,6 +189,9 @@ pdftoppm -scale-to 1600 -png \
 To regenerate the static fonts from the existing variable fonts, use
 `uv run --with fonttools==4.67.0 python presentation/powerpoint/tools/prepare_fonts.py`.
 FontTools is only needed for that maintainer operation. Keep both OFL notices.
+The builder stores full, uncompressed EOT font parts following
+[Microsoft's PowerPoint font-part specification](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oe376/1663dabc-5d98-463f-889e-bcd9b77c3d34)
+and the [EOT format](https://www.w3.org/submissions/EOT/).
 
 The implementation follows Microsoft's guidance on
 [masters and reusable POTX templates](https://support.microsoft.com/en-us/powerpoint/create-and-save-a-powerpoint-template),

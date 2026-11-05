@@ -14,6 +14,8 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from font_embedding import FONTS, eot
+
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT.parent / "assets"
 NS = {
@@ -124,7 +126,8 @@ def paragraph_style(pp, style, level=0):
         solid_dummy = sub(pp, "a:buClr")
         sub(solid_dummy, "a:schemeClr", val="accent1")
         sub(pp, "a:buSzPct", val=70000)
-        sub(pp, "a:buFont", typeface="Arial")
+        # Montserrat lacks U+25AA; the bundled mono font supplies the square.
+        sub(pp, "a:buFont", typeface="JetBrains Mono")
         sub(pp, "a:buChar", char="▪" if level == 0 else "–")
     else:
         sub(pp, "a:buNone")
@@ -710,7 +713,7 @@ def build(output):
         path = f"ppt/notesSlides/notesSlide{i}.xml"
         pkg.put(path, notes, PML + "notesSlide+xml")
         pkg.rels(path, [("rId1", "notesMaster", "../notesMasters/notesMaster1.xml"), ("rId2", "slide", f"../slides/slide{i}.xml")])
-    pres = node("p:presentation", saveSubsetFonts=0, autoCompressPictures=0)
+    pres = node("p:presentation", embedTrueTypeFonts=1, saveSubsetFonts=0, autoCompressPictures=0)
     mids = sub(pres, "p:sldMasterIdLst")
     rels = []
     for i in range(1, 4):
@@ -726,6 +729,16 @@ def build(output):
         rels.append((rid, "slide", f"slides/slide{i}.xml"))
     sub(pres, "p:sldSz", cx=emu(1280), cy=emu(720), type="screen16x9")
     sub(pres, "p:notesSz", cx=emu(720), cy=emu(960))
+    embedded = sub(pres, "p:embeddedFontLst")
+    for family, faces in FONTS.items():
+        entry = sub(embedded, "p:embeddedFont")
+        sub(entry, "p:font", typeface=family)
+        for style, filename in faces.items():
+            rid = "rId" + str(len(rels) + 1)
+            target = "fonts/" + filename.replace(".ttf", ".fntdata")
+            sub(entry, "p:" + style, **{f"{{{NS['r']}}}id": rid})
+            rels.append((rid, "font", target))
+            pkg.put("ppt/" + target, eot((ROOT / "fonts" / filename).read_bytes(), family), "application/x-fontdata")
     paragraph_style(sub(sub(pres, "p:defaultTextStyle"), "a:lvl1pPr"), dict(size=23, leading=32.2))
     pkg.rels("ppt/presentation.xml", rels)
     pkg.rels("", [("rId1", "officeDocument", "ppt/presentation.xml"),
