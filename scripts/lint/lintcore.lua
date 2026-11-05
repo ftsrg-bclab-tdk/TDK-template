@@ -293,9 +293,22 @@ function M.setting(name)
   end
   return value
 end
+-- the phase the calendar has reached: the lifecycle's dates (guide, tab:lifecycle) in the year of
+-- today's date, or of LINT_DATE (YYYY-MM-DD) in the tests. From 30 October the paper is being
+-- submitted, whatever thesis.tex says; before 1 October the calendar asks nothing
+M.PHASE_DATES = { { "10-01", "draft" }, { "10-22", "polish" }, { "10-30", "submit" } }
+function M.calendar_phase()
+  local today = os.getenv("LINT_DATE")
+  if not (today and today:match("^%d%d%d%d%-%d%d%-%d%d$")) then today = os.date("%Y-%m-%d") end
+  local md, phase, since = today:sub(6), nil, nil
+  for _, d in ipairs(M.PHASE_DATES) do if md >= d[1] then phase, since = d[2], d[1] end end
+  return phase, since
+end
 -- the manual phase: --phase, else LINT_PHASE, else \lintphase in thesis.tex, else plan. A value
 -- that is none of the seven (final included: the lint has no aliases) is an error, never read as
--- plan: lint.lua stops on it before any rule
+-- plan: lint.lua stops on it before any rule. A phase from thesis.tex or the default is raised to
+-- the calendar's: a \lintphase left at polish does not keep a submitted paper out of the submit
+-- checks. --phase and LINT_PHASE are taken as given
 function M.resolve_phase()
   local p, src = M.opts.phase, "--phase"
   if not p then
@@ -310,6 +323,13 @@ function M.resolve_phase()
   if not p then p, src = "plan", "the default" end
   M.opts.phase, M.opts.phase_source = p, src
   if not M.PHASES[p] then return nil, string.format("unknown phase '%s' from %s: use one of %s", p, src, table.concat(M.PHASE_ORDER, ", ")) end
+  if src ~= "--phase" and src ~= "LINT_PHASE" then
+    local cal, since = M.calendar_phase()
+    if cal and M.PHASES[cal] > M.PHASES[p] then
+      M.opts.phase, M.opts.phase_source = cal, string.format("the date, %s since %d October; %s says %s", cal, tonumber(since:sub(4)), src, p)
+      p = cal
+    end
+  end
   return p
 end
 -- the draft build: thesis.tex prints the guide, the todos and the beats, which the reviewer build

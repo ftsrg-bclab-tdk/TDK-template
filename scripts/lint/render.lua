@@ -290,7 +290,7 @@ function M.checks_page(results)
   for _, m in ipairs(M.MACROS) do w(m) end
   w("\\chapter*{Checks}\\addcontentsline{toc}{chapter}{Checks}")
   local count = #E.ROWS
-  w("\\noindent This page is rebuilt from the sources on every compile. Its first part measures the paper against the \\emph{essentials}, the " .. count .. " elements every paper of this kind contains (\\ifcsname r@app:writing:essentials\\endcsname\\cref{app:writing:essentials}\\else the guide's section on the essentials\\fi{} explains each, and why the review sheet asks for it). Its second part lists the remaining checks of the lint, grouped by what they examine. The phase, set by \\texttt{\\textbackslash lintphase} in \\texttt{thesis.tex}, fixes the level every essential must reach.\\par\\bigskip")
+  w("\\noindent This page is rebuilt from the sources on every compile. Its first part measures the paper against the \\emph{essentials}, the " .. count .. " elements every paper of this kind contains (\\ifcsname r@app:writing:essentials\\endcsname\\cref{app:writing:essentials}\\else the guide's section on the essentials\\fi{} explains each, and why the review sheet asks for it). Its second part lists the remaining checks of the lint, grouped by what they examine. The phase, set by \\texttt{\\textbackslash lintphase} in \\texttt{thesis.tex} and raised by the date (draft from 1 October, polish from 22 October, submit from 30 October), fixes the level every essential must reach.\\par\\bigskip")
   w(phase_line(E))
   if essentials_failed then
     w("\\section*{Essentials unavailable}")

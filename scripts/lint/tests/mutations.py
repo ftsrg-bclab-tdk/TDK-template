@@ -527,6 +527,8 @@ MUTATIONS = [
         tag_line(BG, 7, "lint-ignore: overfull the long identifier stays")), "!overfull by"),
     ("an overfull box under a point is invisible", "overfull", append("reviewer.log", "(./content/02-background.tex\nOverfull \\hbox (0.4pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "!overfull by"),
     # the phase declaration is trimmed wherever it is read
+    ("the date raises a declared phase", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "is still here", {"args": "--doc reviewer", "env": {"LINT_DATE": "2026-10-31"}}),
+    ("--phase is taken as given whatever the date", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc reviewer --phase plan", "env": {"LINT_DATE": "2026-10-31"}}),
     ("a phase with spaces around it is the phase", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ submit }")), "is still here", {"args": "--doc reviewer"}),
     ("a phase with spaces around it keeps the frame", "frame", sub("thesis.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ draft }"), "!no \\lintphase", {"args": "--doc reviewer"}),
 ]
@@ -540,6 +542,8 @@ def lint(d, rule, args=ARGS, env=None):
     The cases read the lint's plain output, so GitHub's variables are kept from it: under
     GITHUB_ACTIONS the lint prints workflow commands instead, with the help on the annotation."""
     cmd = args if args.split()[0] in ("overleaf", "all", "source") else f"{rule} {args}"
+    # a date before October, so the calendar does not raise a declared phase; a case may set its own
+    env = {"LINT_DATE": "2026-06-01", **(env or {})}
     plain = {k: v for k, v in os.environ.items() if not k.startswith("GITHUB_")}
     plain.update(env or {})
     if shutil.which("texlua"):

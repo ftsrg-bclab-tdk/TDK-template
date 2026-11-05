@@ -71,7 +71,8 @@ def snapshot(d):
 
 def run(d, *args, exit=None, env=None):
     clean = {k: v for k, v in os.environ.items() if not k.startswith(("GITHUB_", "LINT_"))}
-    clean.update(LINT_OFFLINE="1", LINT_FIX_STRICT="1")
+    # a date before October: the calendar does not raise the phase the case declares
+    clean.update(LINT_OFFLINE="1", LINT_FIX_STRICT="1", LINT_DATE="2026-06-01")
     clean.update(env or {})
     r = subprocess.run(["texlua", "scripts/lint.lua", *args], cwd=d,
                        capture_output=True, text=True, env=clean)
@@ -297,6 +298,16 @@ for i, decl in enumerate((r"\newcommand* {\lintphase} {submit}", "\\newcommand{\
                           PLAN + "\n" + r"\renewcommand*{\lintphase}{submit}", r"\providecommand{\lintphase}{submit}",
                           r"\def\lintphase{submit}")):
     phase_case(f"supported-phase-{i}", decl, "submit")
+@case("phase-raised-by-the-date")
+def test(d):
+    fixture(d, r"Proving takes \tbd{time}.", phase=PLAN)
+    for date, want in (("2026-09-30", "plan"), ("2026-10-01", "draft"), ("2026-10-22", "polish"), ("2026-10-30", "submit"), ("2026-12-31", "submit")):
+        data = lint(d, "markers", phase=None, exit=1 if want == "submit" else 0, env={"LINT_DATE": date})
+        assert data["phase"] == want, (date, data["phase"], data["phase_source"])
+    data = lint(d, "markers", phase=None, exit=0, env={"LINT_DATE": "2026-10-31", "LINT_PHASE": "plan"})
+    assert data["phase"] == "plan", data
+
+
 phase_case("phase-provide-keeps-existing", PLAN + r"\providecommand{\lintphase}{submit}", "plan")
 phase_case("phase-last-renew", r"\newcommand{\lintphase}{submit}\renewcommand{\lintphase}{plan}", "plan")
 phase_case("phase-comment-environment", "\\begin{comment}\n\\newcommand{\\lintphase}{submit}\n\\end{comment}\n" + PLAN, "plan")
