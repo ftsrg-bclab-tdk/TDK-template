@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 PATH=Path(__file__).resolve().parents[1]/'session/broker.py'
 spec=importlib.util.spec_from_file_location('broker',PATH);broker=importlib.util.module_from_spec(spec);spec.loader.exec_module(broker)
@@ -29,7 +30,7 @@ class GitHub:
 
 
 class Engine:
-    def __init__(self):self.sessions=[];self.stopped=[];self.calls=[];self.fail_after_start=False;self.clean=True
+    def __init__(self):self.sessions=[];self.stopped=[];self.calls=[];self.fail_after_start=False;self.clean=True;self.preparing=False
     def call(self,action,identifier=None,data=None,seconds=None,disk_gib=8):
         self.calls.append((action,identifier))
         if action=='list':return copy.deepcopy(self.sessions)
@@ -38,7 +39,8 @@ class Engine:
             self.sessions.append(item)
             if self.fail_after_start:self.fail_after_start=False;raise RuntimeError('lost response')
             return item
-        if action=='status':return {'ActiveState':'active'}
+        if action=='status':
+            return {'ActiveState':'activating','phase':'preparing'} if self.preparing else {'ActiveState':'active'}
         if action=='stop':
             self.stopped.append(identifier)
             if self.clean:self.sessions=[s for s in self.sessions if s['id']!=identifier]
@@ -92,6 +94,26 @@ class BrokerTests(unittest.TestCase):
         restarted=broker.Broker(self.config,self.path,self.github,self.engine);restarted.tick()
         self.assertEqual(self.github.created,1)
         self.assertEqual(next(iter(restarted.state['sessions'].values()))['profile'],paper)
+
+    def test_idle_timeout_starts_after_long_preparation_and_survives_restart(self):
+        with patch.object(broker.time,'time',return_value=1000):self.subject.tick()
+        identifier=next(iter(self.subject.state['sessions'].values()))['session_id']
+        self.engine.preparing=True
+        with patch.object(broker.time,'time',return_value=1500):self.subject.tick()
+        self.assertNotIn('idle_since',next(iter(self.subject.state['sessions'].values())))
+        self.engine.preparing=False
+        with patch.object(broker.time,'time',return_value=1501):self.subject.tick()
+        self.assertEqual(self.engine.stopped,[])
+        self.assertEqual(self.github.created,1)
+        restarted=broker.Broker(self.config,self.path,self.github,self.engine)
+        self.assertEqual(next(iter(restarted.state['sessions'].values()))['idle_since'],1501)
+        with patch.object(broker.time,'time',return_value=1670):restarted.tick()
+        self.assertEqual(self.engine.stopped,[])
+        again=broker.Broker(self.config,self.path,self.github,self.engine)
+        self.assertEqual(next(iter(again.state['sessions'].values()))['idle_since'],1501)
+        with patch.object(broker.time,'time',return_value=1682):again.tick()
+        self.assertEqual(self.engine.stopped,[identifier])
+        self.assertEqual(self.github.deleted,[1]);self.assertEqual(self.github.created,2)
 
 
 if __name__=='__main__':unittest.main()

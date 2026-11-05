@@ -182,8 +182,13 @@ class Broker:
             runner=next((r for r in registrations[repo] if r['id']==entry['runner_id']),None)
             if runner is None:
                 self.finish(name,entry);continue
-            if not entry.get('job_id') and not (runner or {}).get('busy') and time.time()-entry['created_at']>180:
-                self.finish(name,entry)
+            if not entry.get('job_id') and status['ActiveState']=='active':
+                if 'idle_since' not in entry:
+                    # Image preparation is not idle listener time. Persist the
+                    # first observation so retries cannot reset this allowance.
+                    entry['idle_since']=time.time();self.save()
+                if not runner.get('busy') and time.time()-entry['idle_since']>180:
+                    self.finish(name,entry)
         self.save()
         for repo,items in jobs.items():
             queued=[job for job in items if self.eligible(job)]
