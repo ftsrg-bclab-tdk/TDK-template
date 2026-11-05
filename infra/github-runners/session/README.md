@@ -68,14 +68,16 @@ runtime identity and a SHA-256 over the installed source filenames and contents.
 Host helper package versions are recorded separately in acceptance evidence.
 
 Runner startup, disk setup and cleanup add fixed overhead; CPU work is native.
-There is no measured whole-paper or proof throughput claim. The runner image is
+The full configured paper workload has passed on this VM; its timings are observations,
+not a controlled hosted-versus-BME throughput comparison. The runner image is
 warm; writable workspaces are never shared across jobs. The paper class also has
 a root-selected, immutable cache of the public TeX image. Its latest tag is resolved
 on each admission. Each job gets its own OverlayFS upper/work directories on its
 private disk. Root idmaps the read-only lower tree to the fresh job identity;
 writes copy up into that job's disk. The guest cannot access the upper/work backing
 directories directly. This avoids repeated extraction without sharing job writes.
-See [live acceptance evidence](evidence-2026-11-05.md).
+See [automatic admission and paper evidence](evidence-automatic-2026-11-06.md)
+and the earlier [cancellation/deadline evidence](evidence-2026-11-05.md).
 
 ## Install and launch
 
@@ -180,6 +182,12 @@ The unit loads it through systemd credentials, outside all guest mounts. Then ru
 `systemctl enable --now tdk-isolation-broker.service`. An alternative trusted
 external controller can use `--host bclab-runner` and local `gh` authentication;
 never run both controllers simultaneously. Broker restarts preserve job units.
+The existing VM now runs this service with a fine-grained PAT selecting only
+`TDK-template` and `tdk-runner-isolation-pilot`. Its file and controller journal
+are root-owned mode 0600. The service keeps `UMask=0077`; only public image inputs
+and non-secret bootstrap metadata receive explicit read/traversal permissions.
+Repository Administration write is GitHub's permission for JIT registration and
+removal; it is broader than runner-only authority. No organization permission was added.
 
 The broker reacts to observed completed jobs/runs. GitHub may delay reporting a
 cancellation; the independent root deadline still kills the job, and administrators
@@ -218,10 +226,11 @@ in `receipts`. Disk files live in `disks`; root-only JIT staging is removed afte
 systemd loads it. The timer uses a lock to serialize cleanup with admission.
 Failure to clean a session consumes its slot rather than reusing its state.
 
-To remove this deployment, stop admitting sessions, call `stop --id` for each
+To remove this deployment, disable and stop `tdk-isolation-broker.service`, call `stop --id` for each
 listed session, and verify their receipts show disk/cgroup/account and image-mount removal.
 Then disable `tdk-isolation-reap.timer`, remove its two unit files and the installed
-helper directory, and reload systemd. The read-only official-image cache may be
+helper directory, remove the broker unit/configuration/credential and revoke its PAT,
+and reload systemd. The read-only official-image cache may be
 removed after all sessions stop. Keep receipts as needed for audit. Do not enable
 the legacy persistent runner for student jobs as an automatic rollback.
 
