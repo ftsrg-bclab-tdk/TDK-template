@@ -193,8 +193,10 @@ local function math_scripts(d, page)
   return scripts
 end
 
--- 8 pt: the call asks for 10 pt in figures and tables, and 8 pt still reads in print; below it does not
-rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to read in print (the call asks for 10 pt in figures and tables, labels included); listings and footnotes show up here too, math sub- and superscripts do not", function()
+-- 10 pt: the call asks for it in figures and tables, labels included ("10 pt alatti betűméret
+-- kerülendő címkéken is"). A footnote is 10 pt in the 12 pt class; math scripts are set smaller than
+-- their base and are not counted
+rule("pdf-smalltext", "pdf", "advice", "polish", "text below 10 pt, the call's minimum in figures and tables, labels included; listings show up here too, math sub- and superscripts do not", function()
   local d, why = doc(); if not d then C.skip(why); return end
   local perpage, total, smallest = {}, 0, 99
   -- the draft appends the guide, whose pages are not the paper's: stop at its first part
@@ -205,7 +207,7 @@ rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to 
     local scripts = math_scripts(d, page)
     for _, t in ipairs(page.texts) do
       local f = d.fonts[t.font]
-      if f and f.size < 8 and #C.trim(t.text) > 0 and not scripts[t] then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
+      if f and f.size < 10 and #C.trim(t.text) > 0 and not scripts[t] then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
     end
   end
   local pages = {}
@@ -214,9 +216,9 @@ rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to 
   if total > 0 then
     local list = {}
     for i, n in ipairs(pages) do if i <= 12 then list[#list + 1] = string.format("%d (%d)", n, perpage[n]) end end
-    warn(nil, nil, string.format("%d text runs below 8 pt, smallest %d pt, on pages %s%s: figure labels and table text must be readable in print", total, smallest, table.concat(list, ", "), #pages > 12 and ", ..." or ""))
+    warn(nil, nil, string.format("%d text runs below 10 pt, smallest %d pt, on pages %s%s: figure labels and table text must be readable in print", total, smallest, table.concat(list, ", "), #pages > 12 and ", ..." or ""))
   end
-  return string.format("runs<8pt=%d pages=%d", total, #pages)
+  return string.format("runs<10pt=%d pages=%d", total, #pages)
 end)
 
 -- the positions of the first numbered chapter and of the first unnumbered chapter after it (the

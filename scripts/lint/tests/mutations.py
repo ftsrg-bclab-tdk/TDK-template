@@ -513,8 +513,8 @@ MUTATIONS = [
     ("a todo printed in the draft is a notice", "pdf-parts", pdf_with("thesis.pdf", [(700, "TODO: the proving time")]), "the draft shows them", {"args": "--doc thesis --phase submit"}),
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     # a math script is set small by design and touches its base; a figure label stands alone
-    ("a math subscript is not small text", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (698, "t+1", 6, 80)]), "!below 8 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
-    ("a figure label below 8 pt still warns", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (500, "0.5", 6, 300)]), "1 text runs below 8 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    ("a math subscript is not small text", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (698, "t+1", 6, 80)]), "!below 10 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    ("a figure label below 10 pt still warns", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (500, "0.5", 9, 300)]), "1 text runs below 10 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # the line pitch is the most common one (14 here: 8 of 14, 7 of 20, 6 of 26, whose median is 20), and too few lines are a warning
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # a page number low on the page is not text in the margin, in roman numerals too (the abstracts' i, ii)
