@@ -465,6 +465,8 @@ When a theorem, a published bound or a short calculation predicts the result, st
   \label{guide:fig:scalability-formal}
 \end{figure}
 
+\paragraph{Time by phase.} A total says who is slower but not why. When a tool runs in phases, split its time by phase: one stacked bar per approach and input size, with the same phases in the same order and colours. Then name in the text the phase that grows, because that phase is what limits larger inputs and what the next version should fix.
+
 An optimisation also owes the workload it cannot improve. Add one where it has nothing to gain, such as a cache under keys that never repeat, and run the baseline beside it: any difference there is the overhead, which the other workloads hide inside the gain. Beside the metric it improves, report one that can show what it pays, such as storage, message size or memory, even if the cost turns out harmless.
 
 \subsection[Robustness analysis (RQ3)]{Robustness analysis (RQ3)\skimmark}\label{guide:chapters:robustness}
