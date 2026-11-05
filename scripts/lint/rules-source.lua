@@ -774,6 +774,13 @@ rule("crefs", "source", "check", "always", "references go through \\cref: no 'Fi
   end)
 end)
 
+-- all-caps words that are names or plain words, not abbreviations to declare; add to it when a
+-- product name trips the acronyms rule
+local NOT_ABBREVIATIONS = {
+  "AND", "NOT", "XOR", "NAND", "NOR", "README", -- words
+  "LTS", "WSL", "HOL", "RISC",                   -- parts of product names: Ubuntu LTS, WSL, Isabelle/HOL, RISC Zero
+}
+
 rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key is declared in content/glossary.tex or the common glossary, every abbreviation the paper declares is used, none is typed by hand (common ones included), every all-caps word is declared, and every symbol of a definition has a notation entry", function()
   local G = C.FILES.glossary or "content/glossary.tex"
   local CG = C.FILES.common_glossary
@@ -869,9 +876,11 @@ rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key
     end
     if first then note(f, first, count == 1 and "a definition with math and no \\gls" or string.format("%d lines of definitions with math and no \\gls, the first here", count), "does it introduce a symbol that belongs in the notation table?") end
   end
-  -- undeclared all-caps words that look like acronyms, counted once each; the logic operators and
-  -- a repository's README are words, not abbreviations
-  local seen = { AND = true, NOT = true, XOR = true, README = true }
+  -- undeclared all-caps words that look like acronyms, counted once each. NOT_ABBREVIATIONS holds
+  -- the all-caps words that are not: the logic operators, a repository's README, and the parts of
+  -- product names a paper names but never expands (Ubuntu 22.04 LTS, WSL, Isabelle/HOL, RISC Zero)
+  local seen = {}
+  for _, w in ipairs(NOT_ABBREVIATIONS) do seen[w] = true end
   C.each_prose_line(MAIN, function(f, n, l)
     for w in C.prose(l):gmatch("%f[%w][%u][%u%d]+[%u]%f[%W]") do
       if not short[w] and not seen[w] and #w >= 2 and #w <= 6 and not w:match("^RQ") and not w:match("^TODO") and not w:match("^[IVXLC]+$") then
