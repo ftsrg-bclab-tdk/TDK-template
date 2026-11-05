@@ -505,6 +505,7 @@ MUTATIONS = [
     ("a placeholder word printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "The proving time is TBD for now.")]), "TBD is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a roman numeral is not the XXX placeholder", "pdf-parts", pdf_with("tiny.pdf", [(700, "XXXVI. OTDK, Vol. TBDX")]), "!is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("an AI declaration headed in English is present", "pdf-parts", pdf_with("tiny.pdf", [(700, "Declaration on the Use of Generative Artificial Intelligence")]), "!missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
+    ("a gap marker printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "Proving takes [missing] on a laptop.")]), "[missing] is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a todo printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "TODO: the proving time")]), "1 TODO still printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a todo printed in the draft is a notice", "pdf-parts", pdf_with("thesis.pdf", [(700, "TODO: the proving time")]), "the draft shows them", {"args": "--doc thesis --phase submit"}),
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),

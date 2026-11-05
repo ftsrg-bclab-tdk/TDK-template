@@ -258,7 +258,7 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   for _, f in ipairs(p.forbids) do if text:find(f, 1, true) then warn(nil, nil, f .. " is in the PDF; the TDK call says to leave the student declaration out") end end
   if not (text:find("Contents", 1, true) or text:find("Tartalomjegyzék", 1, true)) then fail(nil, nil, "no table of contents") end
   if not (text:find("Budapest University of Technology", 1, true) or text:find("Budapesti Műszaki", 1, true)) then fail(nil, nil, "the title page does not name the university") end
-  for _, m in ipairs({ "[link?]", "[?]" }) do
+  for _, m in ipairs({ "[link?]", "[?]", "[missing]", "[citation needed]" }) do
     if text:find(m, 1, true) then fail(nil, nil, m .. " is printed in the PDF: a placeholder left in the text, or an undefined citation") end
   end
   -- whole words: XXXVI. OTDK in a reference is a year, not a placeholder

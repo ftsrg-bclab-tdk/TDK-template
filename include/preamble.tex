@@ -267,14 +267,15 @@
 %   \tbd{the proving time}          a value or a sentence still to write
 %   \citeneeded  \citeneeded[the 2023 survey]   a claim that still needs its source
 % Both print as coloured text in brackets in the draft, breaking across lines like the text around
-% them, are listed with the todos, and disappear in the
-% reviewer build. Never type TBD, [CITE], [?] or XXX into the text: the markers lint fails on them,
+% them, and are listed with the todos. The reviewer build prints a short red [missing] or
+% [citation needed] in their place, so a gap left at upload shows as a gap, not as a broken
+% sentence. Never type TBD, [CITE], [?] or XXX into the text: the markers lint fails on them,
 % and on any \tbd or \citeneeded left at the submit phase.
 \makeatletter
-\newcommand{\tdk@gap}[2]{\if@todonotes@disabled\else{\color{#1}\sffamily\small[#2]}\addcontentsline{tdo}{todo}{#2}\fi}
+\newcommand{\tdk@gap}[3]{\if@todonotes@disabled{\color{red!70!black}[#3]}\else{\color{#1}\sffamily\small[#2]}\addcontentsline{tdo}{todo}{#2}\fi}
 \makeatother
-\DeclareRobustCommand{\tbd}[1]{\csname tdk@gap\endcsname{orange!75!black}{TODO: #1}}
-\DeclareRobustCommand{\citeneeded}[1][]{\if\relax\detokenize{#1}\relax\csname tdk@gap\endcsname{red!70!black}{citation needed}\else\csname tdk@gap\endcsname{red!70!black}{citation needed: #1}\fi}
+\DeclareRobustCommand{\tbd}[1]{\csname tdk@gap\endcsname{orange!75!black}{TODO: #1}{missing}}
+\DeclareRobustCommand{\citeneeded}[1][]{\if\relax\detokenize{#1}\relax\csname tdk@gap\endcsname{red!70!black}{citation needed}{citation needed}\else\csname tdk@gap\endcsname{red!70!black}{citation needed: #1}{citation needed}\fi}
 
 
 %--------------------------------------------------------------------------------------
