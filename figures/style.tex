@@ -23,3 +23,8 @@
   write/.style={->, very thick, figaccent},
   read/.style={->, thick, dashed, figaccent},
 }
+
+% plots: start each axis with \begin{axis}[figplot, ...] so all plots share size, font and grid
+\pgfplotsset{figplot/.style={width=\linewidth, height=0.5\linewidth, grid=major, grid style={gray!20},
+  tick label style={font=\footnotesize}, label style={font=\footnotesize},
+  legend style={font=\footnotesize, draw=none, fill=none}, legend cell align=left}}
