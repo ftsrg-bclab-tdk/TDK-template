@@ -1417,6 +1417,11 @@ rule("typography", "source", "advice", "polish", "the small things the reviewer 
   end
 end)
 
+-- one spelling of a compound the field writes several ways; Martin's choice where it varies
+local PREFERRED_TERMS = {
+  { use = "dataset", not_ = { "data set", "data-set" } },
+}
+
 rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, open and closed forms of the same compound do not coexist (a hyphenated modifier before its noun, as in private-input recovery, is the open noun's own form), and British and American spellings of the known pairs are not mixed", function()
   local text = {}
   for _, f in ipairs(MAIN) do text[#text + 1] = C.prose(table.concat(C.prose_lines(f), "\n")) end
@@ -1444,6 +1449,13 @@ rule("terms", "source", "advice", "polish", "one name per concept: hyphenated, o
     end
     if noun == 0 then open = 0 end
     if open > 0 or closed > 0 then n = n + 1; warn(nil, nil, string.format("%s (%d) also appears as %s%s", h, hy, open > 0 and string.format("'%s %s' (%d)", a, b, open) or "", closed > 0 and string.format("%s'%s%s' (%d)", open > 0 and " and " or "", a, b, closed) or ""), "pick one") end
+  end
+  -- compounds with one accepted spelling, whatever else the paper does
+  for _, t in ipairs(PREFERRED_TERMS) do
+    for _, bad in ipairs(t.not_) do
+      local c = select(2, all:gsub("%f[%a][" .. bad:sub(1, 1):upper() .. bad:sub(1, 1) .. "]" .. C.escape(bad:sub(2)) .. "s?%f[%A]", ""))
+      if c > 0 then n = n + 1; warn(nil, nil, string.format("'%s' (%d): the term is '%s'", bad, c, t.use), "write " .. t.use) end
+    end
   end
   -- British/American pairs that a spell checker would not catch together
   local pairs_ = { { "modelling", "modeling" }, { "colour", "color" }, { "behaviour", "behavior" }, { "analyse", "analyze" }, { "optimise", "optimize" }, { "optimisation", "optimization" }, { "formalisation", "formalization" }, { "formalise", "formalize" }, { "centre", "center" }, { "licence", "license" }, { "catalogue", "catalog" }, { "parametrised", "parameterized" }, { "synchronise", "synchronize" }, { "realise", "realize" }, { "serialisation", "serialization" }, { "authorisation", "authorization" } }

@@ -313,6 +313,7 @@ MUTATIONS = [
     ("an ePrint preprint needs no access date", "bib", append("bib/references.bib", "@misc{someeprint,\n  author = {Doe, Jane},\n  title = {Some Preprint},\n  howpublished = {Cryptology ePrint Archive, Paper 2020/1},\n  year = {2020},\n  url = {https://eprint.iacr.org/2020/1}\n}"), "!someeprint: a web source"),
     ("a published paper with a link needs no access date", "bib", append("bib/references.bib", "@inproceedings{somepaper,\n  author = {Doe, Jane},\n  title = {Some Paper},\n  booktitle = {Some Conference},\n  year = {2020},\n  url = {https://example.org/paper.pdf}\n}"), "!somepaper: a web source"),
     # a hyphenated modifier before its noun is the open noun's own form; the same compound as a noun in two spellings is not
+    ("data set is written dataset", "terms", append(BG, "The data set holds the logs."), "'data set' (1): the term is 'dataset'"),
     ("a compound as a noun in two spellings", "terms", append(BG, "We grow the read-set. The read set shrinks."), "read-set (1) also appears as 'read set' (1)"),
     ("a hyphenated modifier next to its open noun", "terms", append(BG, "The private-input recovery reads the private input."), "!private-input"),
     ("a chain of hyphens is one word", "terms", append(BG, "A state-of-the-art tool is the state of play."), "!state-of"),
