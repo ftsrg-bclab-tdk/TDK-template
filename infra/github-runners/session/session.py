@@ -16,6 +16,7 @@ import sys
 import time
 import uuid
 from image import prepare
+from job_image import prepare as prepare_job_image
 
 ROOT = Path('/var/lib/tdk-isolation')
 CODE = Path('/usr/local/lib/tdk-isolation')
@@ -31,7 +32,9 @@ def unit(identifier):
     return 'tdk-session-' + identifier
 
 
-def start(data, seconds, runtime):
+def start(data, seconds, runtime, disk_gib=8, job_image=None):
+    if disk_gib not in (8,20):
+        raise ValueError('unsupported disk class')
     if not 10 <= seconds <= 7200:
         raise ValueError('deadline out of range')
     if not re.fullmatch(r'[A-Za-z0-9+/=]+', data['jit']):
@@ -39,8 +42,8 @@ def start(data, seconds, runtime):
     reap()
     if len(list((ROOT/'sessions').glob('*.json'))) >= 2:
         raise RuntimeError('two job slots already occupied')
-    slots=len(list((ROOT/'sessions').glob('*.json')))
-    if shutil.disk_usage(ROOT).free < (6+8*(slots+1))*1024**3:
+    # Existing disks are fully allocated, so free bytes already exclude them.
+    if shutil.disk_usage(ROOT).free < (4+disk_gib)*1024**3:
         raise RuntimeError('insufficient reserved disk capacity')
     identifier = uuid.uuid4().hex
     name = unit(identifier)
@@ -54,24 +57,30 @@ def start(data, seconds, runtime):
     for file in sorted(CODE.iterdir()):
         if file.suffix in ('.py','.sh','.js'):
             source.update(file.name.encode()+b'\0'+file.read_bytes())
-    metadata.update(configuration_sha256=source.hexdigest(),id=identifier, runtime=runtime, user=user, proxy_socket=proxy_socket,
+    metadata.update(disk_gib=disk_gib,job_image=job_image,configuration_sha256=source.hexdigest(),id=identifier, runtime=runtime, user=user, proxy_socket=proxy_socket,
                     started_at=time.time(), deadline=time.time()+seconds)
     # Placeholder mount points are infrastructure overlays, never writable job data.
     rootfs = Path(runtime['rootfs'])
-    for rel in ['job','infra/usr','infra/scripts','infra/containers-config']:
+    for rel in ['job','infra/usr','infra/scripts','infra/containers-config','infra/job-oci']:
         (rootfs / rel).mkdir(parents=True, exist_ok=True)
     shutil.copytree(CODE, control/'scripts')
     (control / 'metadata.json').write_text(json.dumps(metadata))
+    if job_image:
+        (control / 'job-image.json').write_text(json.dumps(job_image))
     denied = []
     for interface in json.loads(run(['ip','-j','address']).stdout):
         for address in interface.get('addr_info', []):
             denied.append(str(ipaddress.ip_interface(f"{address['local']}/{address['prefixlen']}").network))
     (control / 'policy.json').write_text(json.dumps(denied))
+    metadata_path=ROOT/'sessions'/(identifier+'.json')
+    temporary=metadata_path.with_suffix('.new')
+    with temporary.open('x') as output:
+        json.dump(metadata,output);output.flush();os.fsync(output.fileno())
+    temporary.replace(metadata_path)
     jit_path = ROOT / 'credentials' / identifier
     with jit_path.open('x') as output:
         jit_path.chmod(0o600)
         output.write(data['jit'])
-    (ROOT / 'sessions' / (identifier + '.json')).write_text(json.dumps(metadata))
     try:
         # DynamicUser forces RestrictSUIDSGID even when explicitly disabled; OCI
         # unpack needs to represent those mode bits. This fresh locked account
@@ -79,8 +88,8 @@ def start(data, seconds, runtime):
         run(['useradd','--system','--no-create-home','--home-dir','/nonexistent',
              '--shell','/usr/sbin/nologin',user])
         disk=ROOT/'disks'/identifier
-        run(['fallocate','-l','8G',str(disk)])
-        run(['mkfs.ext4','-q','-F',str(disk)])
+        run(['fallocate','-l',str(disk_gib)+'G',str(disk)])
+        run(['mkfs.ext4','-q','-F','-m','0',str(disk)])
         state=Path('/var/lib')/name
         state.mkdir(parents=True,mode=0o700)
         run(['mount','-o','loop,nodev,nosuid',str(disk),str(state)])
@@ -164,7 +173,7 @@ def reap():
         report=json.loads(receipt.read_text()) if receipt.exists() else {'id':identifier,'result':'startup-failed'}
         report.update(cleaned_at=time.time(),disk_removed=not directory.exists(),
                       cgroup_removed=not Path('/sys/fs/cgroup/system.slice',name+'.service').exists(),
-                      runtime=metadata['runtime'],configuration_sha256=metadata.get('configuration_sha256'))
+                      runtime=metadata['runtime'],job_image=metadata.get('job_image'),disk_gib=metadata.get('disk_gib',8),configuration_sha256=metadata.get('configuration_sha256'))
         receipt.write_text(json.dumps(report))
         account=metadata['user']
         if not re.fullmatch(r'tdkj[a-f0-9]{16}',account): raise ValueError('invalid account')
@@ -178,20 +187,24 @@ def reap():
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action',choices=['start','status','stop','reap'])
+    parser.add_argument('action',choices=['start','status','stop','reap','list'])
     parser.add_argument('--id')
     parser.add_argument('--seconds',type=int,default=3600)
+    parser.add_argument('--disk-gib',type=int,choices=(8,20),default=8)
     args=parser.parse_args()
     if os.geteuid()!=0: raise RuntimeError('root controller required')
     ROOT.mkdir(mode=0o700,exist_ok=True)
     for part in ['sessions','receipts','credentials','disks']:
         (ROOT/part).mkdir(mode=0o700,exist_ok=True)
     runtime=prepare() if args.action=='start' else None
+    job_image=prepare_job_image() if args.action=='start' and args.disk_gib==20 else None
     # Serialize setup and reaping. Job units run independently of this lock.
     lock=(ROOT/'control.lock').open('w')
     fcntl.flock(lock,fcntl.LOCK_EX)
     if args.action=='start':
-        print(json.dumps(start(json.load(sys.stdin),args.seconds,runtime)))
+        print(json.dumps(start(json.load(sys.stdin),args.seconds,runtime,args.disk_gib,job_image)))
+    elif args.action=='list':
+        print(json.dumps([json.loads(p.read_text()) for p in sorted((ROOT/'sessions').glob('*.json'))]))
     elif args.action=='status': print(json.dumps(status(args.id)))
     elif args.action=='stop':
         subprocess.run(['systemctl','stop',unit(args.id)],capture_output=True)

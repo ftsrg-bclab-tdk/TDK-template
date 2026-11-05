@@ -18,6 +18,7 @@ sys.path.insert(0,str(SESSION))
 import image
 import proxy
 import hook
+import paper
 
 
 class PolicyTests(unittest.TestCase):
@@ -40,6 +41,14 @@ class PolicyTests(unittest.TestCase):
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_paper_translation_uses_the_actual_shared_recipe(self):
+        path=SESSION.parents[2]/'scripts/ci/paper.Dockerfile'
+        self.assertEqual(paper.recipe(path)[-2:],['pymupdf','jsonschema'])
+        with tempfile.TemporaryDirectory() as tmp:
+            changed=Path(tmp)/'Dockerfile'
+            changed.write_text(path.read_text()+'RUN echo unsupported\n')
+            with self.assertRaises(ValueError):paper.recipe(changed)
+
     def test_cold_image_progress_does_not_corrupt_lifecycle_json(self):
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp);digest='sha256:'+('a'*64)

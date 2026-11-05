@@ -35,4 +35,8 @@ args = ['/usr/bin/bwrap', '--unshare-all', '--unshare-user', '--uid', '1001', '-
         '--setenv', 'ACTIONS_RUNNER_CONTAINER_HOOKS', '/infra/scripts/hook.js',
         '--', '/bin/bash', '/infra/scripts/entry.sh']
 # No controller/admin environment survives. Only the single-job JIT file is exposed.
+if metadata.get('job_image'):
+    position=args.index('--')
+    args[position:position]=['--ro-bind',metadata['job_image']['oci'],'/infra/job-oci',
+                            '--ro-bind',str(Path(sys.argv[1]).parent/'job-image.json'),'/infra/job-image.json']
 os.execve(args[0], args, {'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})

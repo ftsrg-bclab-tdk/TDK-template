@@ -7,7 +7,7 @@ for tool in bwrap skopeo umoci socat python3 systemd-run mkfs.ext4 fallocate; do
 done
 id tdk-proxy &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin tdk-proxy
 install -d -m 0755 /usr/local/lib/tdk-isolation
-install -m 0755 image.py worker.py session.py proxy.py finish.py hook.py entry.sh /usr/local/lib/tdk-isolation/
+install -m 0755 image.py job_image.py worker.py session.py proxy.py finish.py hook.py entry.sh /usr/local/lib/tdk-isolation/
 install -m 0644 hook.js /usr/local/lib/tdk-isolation/
 install -m 0644 tdk-isolation-reap.service tdk-isolation-reap.timer /etc/systemd/system/
 systemctl daemon-reload

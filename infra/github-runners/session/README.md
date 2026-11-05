@@ -9,7 +9,7 @@ restarting it unless an administrator explicitly opts into trusted-only use.
 ## Boundary and supported jobs
 
 A root controller creates a fresh locked host account, user/PID/mount/IPC/UTS/
-network namespaces, a private 8 GiB ext4 disk and a systemd cgroup for each job.
+network namespaces, a private 8 or 20 GiB ext4 disk and a systemd cgroup for each job.
 The only shared filesystem data is read-only: the official runner image, host
 `/usr` helper tools and an immutable copy of the session scripts. No home directory,
 host service socket, host cgroup filesystem, cloud credential, GitHub registration
@@ -31,7 +31,7 @@ Host-enforced controls, independent of job code:
 - HTTPS CONNECT on port 443 to the domain suffixes listed in `proxy.py`;
 - every DNS result must be public and outside current host-interface subnets;
   connection uses that validated numeric address, avoiding a second DNS lookup;
-- 6 GiB memory, no swap, 512 tasks, 750% CPU, 8 GiB writable disk, at most two jobs;
+- 6 GiB memory, no swap, 512 tasks, 750% CPU, bounded writable disk, at most two jobs;
 - a root-selected deadline, control-group kill, and an independent 15-second cleanup
   timer that removes storage, proxy and account even after controller death.
 
@@ -46,7 +46,7 @@ container actions are supported. Nested OCI containers retain the outer network
 namespace and job filesystem boundary. Services, custom mounts, Docker options,
 private registry credentials, host Docker, Dockerfile builds and inbound ports
 are rejected or absent. Images plus compressed layers and source/output must fit
-inside 8 GiB; full TeX images may exceed this class. No ordinary paper workflow has
+inside the selected disk class. No ordinary paper workflow has
 been switched to it. Nested processes within **one** job share job authority; the
 isolation unit is a job, not a step or action.
 
@@ -69,7 +69,9 @@ Host helper package versions are recorded separately in acceptance evidence.
 
 Runner startup, disk setup and cleanup add fixed overhead; CPU work is native.
 There is no measured whole-paper or proof throughput claim. The runner image is
-warm; writable workspaces and job image downloads are not shared across jobs.
+warm; writable workspaces are never shared across jobs. The paper class also has
+a root-selected, read-only cache of compressed public TeX image layers. Its latest
+tag is resolved on each admission; extraction remains private to each job.
 See [live acceptance evidence](evidence-2026-11-05.md).
 
 ## Install and launch
@@ -115,13 +117,56 @@ test payload; a student job can create its own marker and they are not an admiss
 or trust signal. Host receipts, not the guest's
 logs or systemctl's reset state, are authoritative for timeout/OOM/cleanup causes.
 
-There is currently no provisioned narrow unattended registration credential on
-BME or in `tdk-maintenance`. The local authorized `gh` credential works for these
-repository-scoped sessions; org runner administration returns HTTP 403. Deploying
-an always-on admission controller requires a narrowly scoped GitHub App or token
-outside all job sandboxes, plus the CI owner's routing/admission integration.
-No personal token was copied to the VM. Ordinary workflows retain their current
-routing and explicit hosted fallback design.
+## Automatic admission and paper acceptance
+
+`broker.py` polls only repositories in its root-owned allowlist. It admits queued
+jobs requesting exactly one configured class, optionally with `self-hosted`,
+`Linux`, and `X64`. Unknown labels and hosted jobs are ignored. It records a unique
+name before requesting a JIT configuration, reconciles ambiguous API/host responses
+after restart, and uses GitHub's actual runner assignment to track completion.
+Cleanup must remove the disk, cgroup and account before a slot is released.
+The journal contains identifiers and receipts, never a JIT blob or token.
+
+| Class | Writable disk | Supported execution |
+| --- | --- | --- |
+| `bme-isolated-native-v1` | 8 GiB | Native/JS actions and public OCI images that fit |
+| `bme-isolated-paper-v1` | 20 GiB | Public TeX job container and the paper acceptance adapter |
+
+The default 20 GiB admission budget permits two native jobs or one paper job.
+Root independently requires 4 GiB host free space beyond each newly allocated
+disk. Existing disks use `fallocate`; their capacity is already excluded from free
+bytes. The compressed paper cache is a separate 4 GiB ext4 filesystem, mounted
+read-only in jobs. A larger/new image that cannot fit fails admission. There is no
+fallback to an older image. Cache updates may need an operator to remove obsolete
+digests after all referencing sessions have stopped. No writable build cache or
+derived Python environment survives a job.
+
+Install `install-broker.sh` after the session engine. Configure the repository
+allowlist in `/etc/tdk-isolation/broker.json`, based on `broker.example.json`.
+Supply a fine-grained token with repository Administration read/write (JIT
+registration/removal) and Actions read (queue/status), selecting only the intended
+repositories. Store it as root-owned mode 0600 `/etc/tdk-isolation/github-token`.
+The unit loads it through systemd credentials, outside all guest mounts. Then run
+`systemctl enable --now tdk-isolation-broker.service`. An alternative trusted
+external controller can use `--host bclab-runner` and local `gh` authentication;
+never run both controllers simultaneously. Broker restarts preserve job units.
+
+The broker reacts to observed completed jobs/runs. GitHub may delay reporting a
+cancellation; the independent root deadline still kills the job, and administrators
+can call `session.py stop` immediately. Idle registrations are reclaimed after
+180 seconds. API failures stop new admission and retain host deadlines. Expired
+credentials need replacement and a broker restart to reload the systemd credential.
+
+`.github/workflows/bme-acceptance.yml` is opt-in via repository variable
+`BME_ACCEPTANCE_ENABLED=true`; it is separate from ordinary CI. It runs the current
+TeX image in a job container, translates only the existing `paper.Dockerfile` pip
+recipe, records its hash and actual resolved package versions, then runs the
+configured paper checks, review evidence and maintainer checks in fresh offline
+network namespaces. This is a limited recipe adapter, not Dockerfile-build support.
+Its offline wrapper is a convention within a job; the outer host network policy
+remains enforced even when arbitrary workflow code bypasses the wrapper.
+Artifacts include run/attempt/source/config/tool/image identities and timings.
+Publisher jobs and ordinary CI remain on their existing hosted route.
 
 `retire-legacy.py` performed the idle check, stopped/disabled the known persistent
 service and installed `90-retired.conf`. Its registration remains offline: deleting

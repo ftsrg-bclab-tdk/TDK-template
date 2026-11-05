@@ -34,24 +34,29 @@ def image(reference):
     directory=BASE/key
     if (directory/'metadata.json').exists(): return json.loads((directory/'metadata.json').read_text())
     directory.mkdir()
-    meta=json.loads(host_tool('skopeo',['inspect','--override-os','linux','--override-arch','amd64',
-                                      'docker://'+reference],True).stdout)
-    digest=meta['Digest']
+    cached=Path('/infra/job-image.json')
+    cached=json.loads(cached.read_text()) if cached.exists() else None
+    if cached and cached['reference']==reference:
+        digest=cached['digest'];resolved_at=cached['resolved_at'];oci=Path('/infra/job-oci')
+    else:
+        meta=json.loads(host_tool('skopeo',['inspect','--override-os','linux','--override-arch','amd64',
+                                          'docker://'+reference],True).stdout)
+        digest=meta['Digest'];resolved_at=time.time();oci=directory/'oci'
+        name=meta['Name']+'@'+digest
+        host_tool('skopeo',['copy','--override-os','linux','--override-arch','amd64',
+                           '--policy','/infra/containers-config/policy.json',
+                           'docker://'+name,'oci:'+str(oci)+':job'])
     if not re.fullmatch('sha256:[a-f0-9]{64}',digest): raise ValueError('invalid OCI digest')
-    # Inspect and copy the same immutable manifest; no fallback to a previous tag.
-    name=meta['Name']+'@'+digest
-    host_tool('skopeo',['copy','--override-os','linux','--override-arch','amd64',
-                       '--policy','/infra/containers-config/policy.json',
-                       'docker://'+name,'oci:'+str(directory/'oci')+':job'])
+    # Cached blobs are read-only. Each job still extracts its own writable tree.
     host_tool('bwrap',['--unshare-user','--uid','0','--gid','0','--bind','/','/',
                        '--',LOADER,'--library-path',LIBS,'/infra/usr/bin/umoci',
-                       'unpack','--rootless','--image',str(directory/'oci')+':job',str(directory/'bundle')])
+                       'unpack','--rootless','--image',str(oci)+':job',str(directory/'bundle')])
     config=json.loads((directory/'bundle/config.json').read_text())
-    def blob(digest): return json.loads((directory/'oci/blobs'/digest.replace(':','/')).read_text())
-    index=json.loads((directory/'oci/index.json').read_text())
+    def blob(digest): return json.loads((oci/'blobs'/digest.replace(':','/')).read_text())
+    index=json.loads((oci/'index.json').read_text())
     manifest=blob(index['manifests'][0]['digest'])
     image_config=blob(manifest['config']['digest'])['config']
-    resolved={'reference':reference,'digest':digest,'resolved_at':time.time(),
+    resolved={'reference':reference,'digest':digest,'resolved_at':resolved_at,
               'rootfs':str(directory/'bundle/rootfs'),'process':config['process'],
               'entrypoint':image_config.get('Entrypoint') or [],'cmd':image_config.get('Cmd') or []}
     (directory/'metadata.json').write_text(json.dumps(resolved))
@@ -79,6 +84,8 @@ def container(meta, args, command, extra_env=None):
     env=dict(x.split('=',1) for x in meta['process'].get('env',[]) if '=' in x)
     env.update(args.get('environmentVariables') or {})
     env.update(extra_env or {})
+    env.update(TDK_CONTAINER_IMAGE_REFERENCE=meta['reference'],TDK_CONTAINER_IMAGE_DIGEST=meta['digest'],
+               TDK_CONTAINER_RESOLVED_AT=str(meta['resolved_at']))
     env.update(https_proxy='http://127.0.0.1:3128',HTTPS_PROXY='http://127.0.0.1:3128',
                http_proxy='http://127.0.0.1:3128',HTTP_PROXY='http://127.0.0.1:3128')
     env['PATH']=':'.join(args.get('prependPath',[])+[env.get('PATH','/usr/local/bin:/usr/bin:/bin')])
