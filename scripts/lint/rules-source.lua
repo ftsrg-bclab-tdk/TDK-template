@@ -853,14 +853,17 @@ rule("acronyms", "source", "check", "polish", "glossary entries: every \\gls key
     end
   end
   -- a definition that introduces a symbol should have a notation entry: look for $...$ in definition environments
+  -- one notice per file, at the first such line: a formal chapter has dozens, and the question is
+  -- the same for all of them
   for _, f in ipairs(MAIN) do
-    local indef = false
+    local indef, first, count = false, nil, 0
     for n, raw in ipairs(C.lines(f)) do
       local l = C.strip_comment(raw)
       if l:match("\\begin{definition}") or l:match("\\begin{notation}") then indef = true end
-      if indef and l:match("%$") and not l:match("\\gls") and not l:match("TODO") then note(f, n, "a definition with math and no \\gls", "does it introduce a symbol that belongs in the notation table?") end
+      if indef and l:match("%$") and not l:match("\\gls") and not l:match("TODO") then first = first or n; count = count + 1 end
       if l:match("\\end{definition}") or l:match("\\end{notation}") then indef = false end
     end
+    if first then note(f, first, count == 1 and "a definition with math and no \\gls" or string.format("%d lines of definitions with math and no \\gls, the first here", count), "does it introduce a symbol that belongs in the notation table?") end
   end
   -- undeclared all-caps words that look like acronyms, counted once each; the logic operators and
   -- a repository's README are words, not abbreviations
