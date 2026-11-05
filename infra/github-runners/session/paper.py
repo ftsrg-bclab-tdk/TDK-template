@@ -52,21 +52,35 @@ def check():
         commands.append(('maintainer',['python3','scripts/ci/template.py','paper']))
     records=[]
     env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1')
-    for name,argv in commands:
-        start=time.time()
-        with (output/(name+'.log')).open('w') as log:
-            result=subprocess.run(['unshare','--user','--map-root-user','--net','--',*argv],
-                                  env=env,stdout=log,stderr=subprocess.STDOUT,timeout=1800)
-        records.append({'name':name,'exit_code':result.returncode,'seconds':time.time()-start})
-        print(json.dumps(records[-1]),flush=True)
-        if name=='runtime' and result.returncode:break
-    stat=os.statvfs('.')
-    (output/'bme-acceptance.json').write_text(json.dumps({'schema':'bme-paper-acceptance/v1',
-        'runner_class':'bme-isolated-paper-v1','run_id':os.environ.get('GITHUB_RUN_ID'),
-        'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT'),'source_sha':os.environ.get('GITHUB_SHA'),
-        'commands':records,'filesystem_bytes':stat.f_blocks*stat.f_frsize,
-        'free_bytes_after_checks':stat.f_bavail*stat.f_frsize,
-        'network':'new network namespace for each check command'},indent=2)+'\n')
+    try:
+        for name,argv in commands:
+            start=time.time()
+            record={'name':name,'started_at':start}
+            try:
+                with (output/(name+'.log')).open('w') as log:
+                    result=subprocess.run(['unshare','--user','--map-root-user','--net','--',*argv],
+                                          env=env,stdout=log,stderr=subprocess.STDOUT,timeout=1800)
+                record['exit_code']=result.returncode
+            except subprocess.TimeoutExpired:
+                record.update(exit_code=124,error='timeout',timeout_seconds=1800)
+            except OSError as error:
+                record.update(exit_code=127,error=type(error).__name__)
+            except BaseException as error:
+                record.update(exit_code=130,error=type(error).__name__)
+                raise
+            finally:
+                record.update(completed_at=time.time(),seconds=time.time()-start)
+                records.append(record)
+                print(json.dumps(record),flush=True)
+            if record.get('error') or (name=='runtime' and record['exit_code']):break
+    finally:
+        stat=os.statvfs('.')
+        (output/'bme-acceptance.json').write_text(json.dumps({'schema':'bme-paper-acceptance/v1',
+            'runner_class':'bme-isolated-paper-v1','run_id':os.environ.get('GITHUB_RUN_ID'),
+            'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT'),'source_sha':os.environ.get('GITHUB_SHA'),
+            'commands':records,'filesystem_bytes':stat.f_blocks*stat.f_frsize,
+            'free_bytes_after_checks':stat.f_bavail*stat.f_frsize,
+            'network':'new network namespace for each check command'},indent=2)+'\n')
     return int(any(record['exit_code'] for record in records))
 
 

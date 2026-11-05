@@ -161,6 +161,10 @@ class Broker:
                 if match:entry['runner_id']=match['id']
             if not entry.get('session_id'):
                 self.finish(name,entry);continue
+            if not any(s['id']==entry['session_id'] for s in host_sessions):
+                # The request may still be in transit, or preparation may have
+                # died. Root must tombstone this ID before its slot is freed.
+                self.finish(name,entry);continue
             assigned=next((j for j in jobs[repo] if j.get('runner_id')==entry['runner_id']),None)
             if assigned:entry['job_id']=assigned['id'];entry['run_id']=assigned['run_id'];self.save()
             if entry.get('job_id'):
@@ -169,6 +173,10 @@ class Broker:
                 if job['status']=='completed' or run['status']=='completed':
                     self.finish(name,entry);continue
             status=self.engine.call('status',entry['session_id'])
+            if status.get('phase')=='preparing':
+                # Root retains the reservation and a preparation deadline. Do
+                # not apply the idle-listener timeout before a listener exists.
+                continue
             if status['ActiveState'] in ['inactive','failed']:
                 self.finish(name,entry);continue
             runner=next((r for r in registrations[repo] if r['id']==entry['runner_id']),None)
@@ -193,10 +201,14 @@ class Broker:
                 jit=self.github.request(f'repos/{repo}/actions/runners/generate-jitconfig','POST',{
                     'name':name,'runner_group_id':self.config.get('runner_group_id',1),
                     'labels':self.labels+[profile,name],'work_folder':'_work'})
-                entry['runner_id']=jit['runner']['id'];self.save()
-                session=self.engine.call('start',data={'jit':jit['encoded_jit_config'],'repo':repo,
+                # Persist the host operation identity before sending any start.
+                # A lost response must be reconciled/cancelled using this ID.
+                entry['runner_id']=jit['runner']['id'];entry['session_id']=uuid.uuid4().hex;self.save()
+                session=self.engine.call('start',entry['session_id'],data={'jit':jit['encoded_jit_config'],'repo':repo,
                     'runner_id':entry['runner_id'],'label':name},seconds=self.config.get('deadline_seconds',2700),disk_gib=self.profiles[profile])
-                entry['session_id']=session['id'];self.save()
+                if session['id']!=entry['session_id']:
+                    raise RuntimeError('Host returned a different operation identity')
+                self.save()
                 self.emit('session_started',name=name,repo=repo,queued_job_id=job['id'],session_id=session['id'])
 
 

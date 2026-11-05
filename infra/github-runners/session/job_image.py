@@ -25,7 +25,7 @@ def prepare():
                 if shutil.disk_usage(BASE).free < 28*1024**3:
                     raise RuntimeError('insufficient paper cache and job capacity')
                 subprocess.run(['fallocate','-l','4G',str(DISK)],check=True)
-                subprocess.run(['mkfs.ext4','-q','-F','-m','0',str(DISK)],check=True)
+                subprocess.run(['mkfs.ext4','-q','-F','-m','0','-E','nodiscard',str(DISK)],check=True)
             subprocess.run(['mount','-o','loop,nodev,nosuid,noexec',str(DISK),str(BASE)],check=True)
             BASE.chmod(0o755)
         metadata = json.loads(subprocess.check_output([

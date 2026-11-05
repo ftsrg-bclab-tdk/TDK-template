@@ -1,6 +1,5 @@
 import copy
 import importlib.util
-import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -35,13 +34,14 @@ class Engine:
         self.calls.append((action,identifier))
         if action=='list':return copy.deepcopy(self.sessions)
         if action=='start':
-            item={k:v for k,v in data.items() if k!='jit'};item.update(id='a'*32,started_at=100000000000,disk_gib=disk_gib)
+            item={k:v for k,v in data.items() if k!='jit'};item.update(id=identifier,started_at=100000000000,disk_gib=disk_gib)
             self.sessions.append(item)
             if self.fail_after_start:self.fail_after_start=False;raise RuntimeError('lost response')
             return item
         if action=='status':return {'ActiveState':'active'}
         if action=='stop':
             self.stopped.append(identifier)
+            if self.clean:self.sessions=[s for s in self.sessions if s['id']!=identifier]
             return {'receipt':{'disk_removed':self.clean,'cgroup_removed':self.clean,'account_removed':self.clean}}
 
 
@@ -72,9 +72,10 @@ class BrokerTests(unittest.TestCase):
     def test_actual_assignment_not_queued_candidate_owns_cancellation(self):
         self.subject.tick();self.github.jobs[0].update(id=99,runner_id=1,status='in_progress')
         self.subject.tick();entry=next(iter(self.subject.state['sessions'].values()))
+        identifier=entry['session_id']
         self.assertEqual(entry['job_id'],99)
         self.github.jobs[0]['status']='completed'
-        self.subject.tick();self.assertEqual(self.engine.stopped,['a'*32]);self.assertEqual(self.github.deleted,[1])
+        self.subject.tick();self.assertEqual(self.engine.stopped,[identifier]);self.assertEqual(self.github.deleted,[1])
     def test_failed_cleanup_never_frees_admission_slot(self):
         self.subject.tick();self.github.jobs[0].update(runner_id=1,status='completed');self.engine.clean=False
         with self.assertRaises(RuntimeError):self.subject.tick()

@@ -105,9 +105,13 @@ monitors the run, and removes the registration after host cleanup. It never send
 the `gh` token to the VM or job. Class identity is `bme-isolated-native-v1`; the
 unique session label prevents unrelated pilot jobs consuming the test runner.
 
-For integration by a trusted CI controller, call root `session.py start` with JSON
+For integration by a trusted CI controller, call root `session.py start --id ID` with JSON
 on stdin containing `jit`, `repo`, `runner_id`, and `label`; use `--seconds` to set
-a deadline of 10–7200 seconds. It returns a session ID and runtime/config identity.
+a deadline of 10–7200 seconds. Persist the 32-character lowercase hexadecimal ID
+before sending the request. IDs are single-use, including cancelled operations.
+Omitting `--id` is supported for the interactive pilot, but cannot reconcile a
+request that has not returned its generated ID. Start returns the session ID and
+runtime/config identity.
 Call `session.py status --id ID` to read state and `session.py stop --id ID` to
 cancel. Stop is idempotent. **Call stop when cancellation is requested**, without
 waiting for the guest or GitHub's UI to acknowledge it. GitHub's cancelled status
@@ -122,10 +126,21 @@ logs or systemctl's reset state, are authoritative for timeout/OOM/cleanup cause
 `broker.py` polls only repositories in its root-owned allowlist. It admits queued
 jobs requesting exactly one configured class, optionally with `self-hosted`,
 `Linux`, and `X64`. Unknown labels and hosted jobs are ignored. It records a unique
-name before requesting a JIT configuration, reconciles ambiguous API/host responses
+name before requesting a JIT configuration and a host operation ID before start,
+reconciles ambiguous API/host responses
 after restart, and uses GitHub's actual runner assignment to track completion.
 Cleanup must remove the disk, cgroup and account before a slot is released.
 The journal contains identifiers and receipts, never a JIT blob or token.
+
+Root persists a reservation before preparing images. `list` includes pending
+operations; they consume slots and disk budget even before a disk is allocated.
+The broker keeps these reservations across restart. If a request is still in
+transit, `stop --id ID` records cancellation before confirming cleanup, so a late
+start with that ID is rejected. Cancellation during preparation prevents later
+allocation; a shared-cache download already running may finish, but cannot start
+the cancelled job. Preparation does not hold the global lifecycle lock. The root
+reaper closes abandoned preparations after 1,350 seconds. Completed and cancelled
+operation records are retained to prevent delayed requests from reusing an ID.
 
 | Class | Writable disk | Supported execution |
 | --- | --- | --- |
@@ -133,9 +148,10 @@ The journal contains identifiers and receipts, never a JIT blob or token.
 | `bme-isolated-paper-v1` | 20 GiB | Public TeX job container and the paper acceptance adapter |
 
 The default 20 GiB admission budget permits two native jobs or one paper job.
-Root independently requires 4 GiB host free space beyond each newly allocated
-disk. Existing disks use `fallocate`; their capacity is already excluded from free
-bytes. The compressed paper cache is a separate 4 GiB ext4 filesystem, mounted
+Root independently enforces the same 20 GiB total private disk budget and requires
+4 GiB host free space beyond the reserved job capacity. Disks use `fallocate` and
+formatting disables discard; admission also accounts for any holes made by later
+discard. The compressed paper cache is a separate 4 GiB ext4 filesystem, mounted
 read-only in jobs. A larger/new image that cannot fit fails admission. There is no
 fallback to an older image. Cache updates may need an operator to remove obsolete
 digests after all referencing sessions have stopped. No writable build cache or
@@ -166,6 +182,10 @@ network namespaces. This is a limited recipe adapter, not Dockerfile-build suppo
 Its offline wrapper is a convention within a job; the outer host network policy
 remains enforced even when arbitrary workflow code bypasses the wrapper.
 Artifacts include run/attempt/source/config/tool/image identities and timings.
+Command timeout, launch failure and handled interruption preserve completed
+command records and write a failed `bme-acceptance.json` receipt. A timeout uses
+exit 124 and stops subsequent commands. SIGKILL or loss of the entire job can
+still prevent a guest receipt; the host receipt remains the cleanup authority.
 Publisher jobs and ordinary CI remain on their existing hosted route.
 
 `retire-legacy.py` performed the idle check, stopped/disabled the known persistent
