@@ -6,17 +6,20 @@ local rule, fail, warn, note = C.rule, C.fail, C.warn, C.note
 rule("chktex", "tools", "advice", "always", "chktex: typographic slips in the sources (dashes, quotes, spacing before citations, \\ldots, maths in text)", function()
   if not C.have("chktex") then C.skip("chktex not installed"); return end
   local n = 0
-  -- off: 1 command terminated with space, 3 \( \) advice, 8 dash length, 13 \@ after a capital, 24 space before \label (the template puts it on its own line), 36 brace spacing, 44 user regex, 46 \( \)
-  local out = C.run("chktex -q -I0 -n1 -n3 -n8 -n13 -n24 -n36 -n44 -n46 -f '%f:%l:%n:%m\n' " .. table.concat(C.MAIN, " ") .. " " .. (C.FILES.abstract or "")) or ""
+  -- off: 1 command terminated with space, 3 \( \) advice, 8 dash length, 13 \@ after a capital, 24 space before \label (the template puts it on its own line), 36 brace spacing, 44 user regex, 46 \( \).
+  -- Also off, because the typography rule reports the same slip once, with a fix: 2 a tie before
+  -- \cite (\cref needs none), 11 three dots, 12 the space after e.g. and et al., 18 straight quotes,
+  -- 26 a space before punctuation. 38 punctuation before a quote is right in Hungarian (,,...''),
+  -- and 39 a double space prints as one
+  local out = C.run("chktex -q -I0 -n1 -n2 -n3 -n8 -n11 -n12 -n13 -n18 -n24 -n26 -n36 -n38 -n39 -n44 -n46 -f '%f:%l:%n:%m\n' " .. table.concat(C.MAIN, " ") .. " " .. (C.FILES.abstract or "")) or ""
   for l in out:gmatch("[^\n]+") do
     local f, ln, code, msg = l:match("^([^:]+):(%d+):(%d+):(.*)$")
-    if f and code == "2" and (C.lines(f)[tonumber(ln)] or ""):match("&") then f = nil end -- ~ before \ref inside table cells
     if f then n = n + 1; if n <= 60 then warn(f, tonumber(ln), string.format("chktex %s: %s", code, msg)) end end
   end
   return string.format("findings=%d", n)
 end)
 
-rule("lacheck", "tools", "advice", "always", "lacheck: unmatched braces and environments, missing \\@ after capitals, double spaces", function()
+rule("lacheck", "tools", "advice", "always", "lacheck: unmatched braces and environments, missing \\@ after capitals, punctuation inside maths", function()
   if not C.have("lacheck") then C.skip("lacheck not installed"); return end
   local n = 0
   for _, f in ipairs(C.MAIN) do
@@ -35,7 +38,10 @@ rule("lacheck", "tools", "advice", "always", "lacheck: unmatched braces and envi
     for l in out:gmatch("[^\n]+") do
       local file, ln, msg = l:match('^"([^"]+)", line (%d+): (.*)$')
       if file == tmp then file = f end
-      if file and msg:match('before "\\ref') and (C.lines(file)[tonumber(ln)] or ""):match("&") then file = nil end -- table cells
+      -- what typography reports with a fix, or what is not a slip: a tie before \ref (crefs asks for
+      -- \cref, which needs none), a double space (it prints as one), a space before punctuation, and
+      -- "possible unwanted space at {", which fires on TikZ and pgfplots options
+      if file and (msg:match('before "\\ref') or msg:match("^double space") or msg:match("^Whitespace before punctation") or msg:match("^possible unwanted space")) then file = nil end
       if file then n = n + 1; if n <= 60 then warn(file, tonumber(ln), "lacheck: " .. msg) end end
     end
   end
