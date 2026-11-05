@@ -61,11 +61,11 @@ Import the library through Overleaf's Zotero integration, included in our Pro su
 
 \paragraph{Editor.} We use \href{https://code.visualstudio.com/}{Visual Studio Code}. Useful extensions include Remote - SSH for the VM, GitHub Pull Requests, Claude Code, Codex and the extensions for your programming languages.
 
-\paragraph{Agent harness.} \Cref{guide:code:ai} recommends the agents and harnesses we use.
+\paragraph{Agent harness.} \Cref{guide:code:ai} recommends the agents and harnesses we use. Start with the lint-first workflow and bounded tasks in \cref{guide:code:agents,guide:code:orchestration}; \cref{guide:code:t3} covers optional T3 setup and practical moves.
 
 \paragraph{Notetaking and task management.} Keep notes in plain Markdown and commit them to GitHub. Obsidian, Tana and Emacs Org mode are options. Track tasks in GitHub issues or Todoist.
 
-\paragraph{Virtual machine and remote work.} In the message with your identifiers, ask us to request a VM in the BME cloud. Verify SSH access alongside early research; start reading and writing while provisioning is in progress. We can provide 8 cores and 16\,GB of memory in the \href{https://cloud.bme.hu/}{BME cloud}, usually in its \href{https://fured.cloud.bme.hu/}{Füred} environment. Host your editor and repositories there, or run AI agents while your laptop is closed. Connect through SSH, RDP, VS Code Remote or Tailscale. Agents and their harnesses (\cref{guide:code:ai}) can run on the VM directly or through remote access.
+\paragraph{Virtual machine and remote work.} In the message with your identifiers, ask us to request a VM in the BME cloud. Verify SSH access alongside early research; start reading and writing while provisioning is in progress. We can provide 8 cores and 16\,GB of memory in the \href{https://cloud.bme.hu/}{BME cloud}, usually in its \href{https://fured.cloud.bme.hu/}{Füred} environment. Host your editor and repositories there, or run AI agents while your laptop is closed. Connect through SSH, RDP, VS Code Remote or Tailscale. Agents and their harnesses (\cref{guide:code:ai}) can run on the VM directly or through remote access. For T3 Connect and the distinction between closing the client and stopping the host, see \cref{guide:code:t3}.
 
 \paragraph{Workspace layout.} Keep one clone of the project repository on your machine or VM. Open the generated \texttt{tdk.code-workspace} in VS Code. The paper, code, proofs, benchmarks, scratch notes and presentation share one commit history. After a consultation, commit its summary in \texttt{scratch/notes/consultations/} together with any agreed source changes. Keep generated outputs and local credentials out of Git.
 
