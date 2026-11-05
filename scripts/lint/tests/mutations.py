@@ -9,8 +9,9 @@ run the one rule that should catch it, and check that the expected text is in th
 and not in the output of the unmutated copy. The rule must have run: its exit is 0 or 1 and its
 summary line is printed (with --json: the output is one JSON document holding its result), so a
 negative case ("!text") cannot pass on a lint that crashed. A case may name another exit ("exit":
-2), other lint arguments ("args") or extra environment ("env"). Exits non-zero when a rule misses
-its mutation.
+2), other lint arguments ("args"), extra environment ("env"), or the skip message that marks a
+missing tool ("may_skip"), in which case the case is reported as skipped. Exits non-zero when a
+rule misses its mutation.
 
 The template's CI runs it after the reviewer build. It calls texlua directly when it is on the
 PATH (the CI container), and otherwise runs it in the docker image LINT_IMAGE (default
@@ -479,7 +480,7 @@ MUTATIONS = [
     # a rule whose own code fails did not run: exit 2, status error, never ok
     ("a crashed rule stops the lint with exit 2", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), "the rule itself failed", {"args": "--doc reviewer --phase submit", "exit": 2}),
     ("a crashed rule is not ok in the JSON", "sources", sub("scripts/lint/rules-source.lua", 'local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))', 'error("injected by the mutation suite") local bbl = C.readfile(C.bpath(C.opts.doc .. ".bbl"))'), '"ok":false', {"args": "--doc reviewer --phase submit --json", "exit": 2}),
-    ("a misspelt title", "spelling", sub("thesis.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation"),
+    ("a misspelt title", "spelling", sub("thesis.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation", {"may_skip": "aspell or detex not installed"}),
     # code is the program's text: no typography slip in \texttt, \lstinline or a verbatim block, and no
     # marker or abbreviation in a verbatim block, an \iffalse region or \verb
     ("a space before a colon in \\texttt is code", "typography", append(BG, "The kernel \\texttt{x : Nat} is typed."), "!space before punctuation"),
@@ -611,7 +612,12 @@ def main():
             shutil.rmtree(d)
             continue
         out, code = lint(d, rule, args, opts.get("env"))
-        why = ran(out, code, rule, opts)
+        # a case that needs a tool this image lacks (aspell) is reported as skipped, not as a miss
+        if opts.get("may_skip") and opts["may_skip"] in out:
+            print(f"SKIP  {rule:13s} {name}: {opts['may_skip']} here")
+            shutil.rmtree(d)
+            continue
+        why = ran(out, code, rule, {k: v for k, v in opts.items() if k != "may_skip"})
         ok = why is None and ((expect[1:] not in out) if negate else (expect in out))
         missed += not ok
         print(f"{'ok  ' if ok else 'MISS'}  {rule:13s} {name}")
