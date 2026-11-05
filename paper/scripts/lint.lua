@@ -56,7 +56,7 @@ do
 end
 -- the essentials first: they open the Checks page, the job summary and every list. A rule file that
 -- does not load is the lint not running, exit 2, not a pass
-for _, m in ipairs({ "rules-essentials", "rules-source", "rules-pdf", "rules-tools" }) do
+for _, m in ipairs({ "rules-essentials", "rules-source", "rules-evaluation", "rules-pdf", "rules-tools" }) do
   local ok, err = pcall(require, m)
   if not ok then io.stderr:write("lint: could not load " .. m .. ": " .. tostring(err) .. "\n"); os.exit(2) end
 end

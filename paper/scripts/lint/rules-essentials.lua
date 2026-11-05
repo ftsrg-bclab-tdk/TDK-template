@@ -567,6 +567,8 @@ local function matrix_rows(block)
   if #cells > 0 or tail:match("\\ref%s*{req:") then cells[#cells + 1] = tail; rows[#rows + 1] = cells end
   return rows
 end
+-- Shared bounded reader for literal evaluation tables; no TeX macro expansion.
+M.table_rows = matrix_rows
 M.gapwarn = {}
 -- Read cell commands as TeX tokens, skipping addresses and reference arguments. A literal
 -- \\cref or a command written inside a URL cannot supply a status or an evidence pointer.

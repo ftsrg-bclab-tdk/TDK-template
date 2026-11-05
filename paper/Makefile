@@ -63,6 +63,7 @@ guide-bib:
 test: test-lint test-review test-layout
 
 test-lint:
+	python3 scripts/lint/tests/evaluation.py
 	python3 scripts/lint/tests/mutations.py
 	python3 scripts/lint/tests/execution.py
 	python3 scripts/lint/tests/ci.py

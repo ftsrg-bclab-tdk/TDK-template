@@ -16,6 +16,7 @@ M.RULES = {
   essentials = { "argument", "The essentials" },
   outline = { "argument", "Headings are final" },
   numbers = { "argument", "Headline numbers agree with the evaluation" },
+  ["evaluation-results"] = { "argument", "Evaluation measurements are filled in" },
 
   frame = { "structure", "The template's frame is intact" },
   roles = { "structure", "Every chapter has a role" },
