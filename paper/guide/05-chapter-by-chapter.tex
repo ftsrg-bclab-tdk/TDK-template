@@ -95,7 +95,7 @@ Name the closest approaches and the difference your work establishes, including 
 Give each contribution its own item and a reference to the chapter or section that supports it: the theoretical result (model, formalisation, algorithm or protocol and its guarantees), the technical result (tool, system or artifact), and the evaluation.
 \begin{contributions}
   \item\label{guide:c:model} \textbf{Registry model.} A formal model of revocation registries, and a proof that verifiers never accept a credential revoked more than $\delta$ ago (\cref{ch:approach}).
-  \item\label{guide:c:registry} \textbf{Ledger registry.} A registry on a permissioned ledger where a check reads one accumulator witness, without asking the issuer, archived with its tests (\cref{ch:implementation}).
+  \item\label{guide:c:registry} \textbf{Ledger registry.} A registry on a permissioned ledger where a check reads one accumulator witness, without asking the issuer, archived with its tests, in \tplref{ch:implementation}.
   \item\label{guide:c:eval} \textbf{Evaluation.} Correctness on the model and the scenario, scalability up to 10\,000 issuers, and robustness under node failures and load spikes (\cref{ch:evaluation}).
 \end{contributions}
 
@@ -129,7 +129,7 @@ For the registry, explain the permissioned ledger used to store revocations: its
 %----------------------------------------------------------------------------
 \section{Approach}\label{guide:chapters:approach}
 %----------------------------------------------------------------------------
-\textbf{Criteria D/1 and D/2 (0--10 together).} Present your theoretical contribution, such as a model, formalisation, algorithm or protocol, and its guarantees. Put technical contributions in \cref{ch:implementation}. Name this chapter after your method.
+\textbf{Criteria D/1 and D/2 (0--10 together).} Present your theoretical contribution, such as a model, formalisation, algorithm or protocol, and its guarantees. Put technical contributions in \tplref{ch:implementation}. Name this chapter after your method.
 \textbf{Correctness:} every claim needs a proof, a mechanised proof, or a measurement; state assumptions explicitly.
 \textbf{Novelty:} separate what is new from what you adopted from the literature. When you adapt a published algorithm, name each departure from it and why your setting requires it, including any recommendation of its authors you overrode.
 \textbf{Non-triviality:} name the hard part and explain why the simple design does not work.

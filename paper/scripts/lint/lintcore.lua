@@ -394,7 +394,7 @@ function M.resolve_phase()
   end
   return p
 end
--- the draft build: draft.tex prints the guide, the todos and the beats, which the reviewer build
+-- the draft build: draft.tex prints the guide, the todos and the beats, which the final build
 -- hides, so what it shows of them, and its page count, is not what a reviewer gets
 function M.draft_build() return M.opts.doc == "draft" or M.opts.doc == "paper-draft" end
 function M.phase()

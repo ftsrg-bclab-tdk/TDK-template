@@ -143,7 +143,7 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
     local body = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then body = body + 1 end end
     if body >= 10 then
       local l, r, tp, b = 1e9, 0, 1e9, 0
-      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin. The reviewer build and the submit phase have
+      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin. The final build and the submit phase have
       -- none, so there everything past the edge is text: the last run of a listing or an equation that overflows starts there too
       local edge = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then edge = math.max(edge, t.left + t.w) end end
       for _, t in ipairs(page.texts) do
@@ -262,7 +262,7 @@ rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PD
   stop = stop or #d.pages
   local n = stop - start + 1
   local msg = string.format("main text is %d PDF pages (%d-%d by the outline); the %s asks for %d-%d", n, start, stop, p.name, p.pages[1], p.pages[2])
-  if C.draft_build() then msg = msg .. ", counted on the draft with its notes; make check-submit counts the reviewer build" end
+  if C.draft_build() then msg = msg .. ", counted on the draft with its notes; make check-submit counts the final build" end
   if n < p.pages[1] or n > p.pages[2] then if p.pages_gate and not C.draft_build() then fail(nil, nil, msg) else warn(nil, nil, msg) end else note(nil, nil, msg) end
   return string.format("pages=%d", n)
 end)
@@ -290,10 +290,10 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   -- ChatGPT's copy keeps :contentReference[oaicite:0]index=0 in the text, usually in a reference
   -- field; only the inner word, because a line break can split the rest
   if text:find("oaicite", 1, true) then fail(nil, nil, "an AI assistant's citation marker (oaicite) is printed in the PDF: text pasted from a chat; check that passage against its source") end
-  -- the draft prints its todos and beats on purpose; only the reviewer build must be clean of them
+  -- the draft prints its todos and beats on purpose; only the final build must be clean of them
   local report = C.draft_build() and note or fail
   if text:find("TODO", 1, true) then
-    local n = C.count(text, "TODO"); report(nil, nil, n .. " TODO still printed in the PDF" .. (C.draft_build() and " (the draft shows them; the reviewer build must not)" or ""))
+    local n = C.count(text, "TODO"); report(nil, nil, n .. " TODO still printed in the PDF" .. (C.draft_build() and " (the draft shows them; the final build must not)" or ""))
   end
-  if text:find("Beat%.") or text:find("Establishes:") then report(nil, nil, C.draft_build() and "beats are printed, as the draft does; the reviewer build must not" or "beats are printed: this is the draft, not the reviewer build") end
+  if text:find("Beat%.") or text:find("Establishes:") then report(nil, nil, C.draft_build() and "beats are printed, as the draft does; the final build must not" or "beats are printed: this is the draft, not the final build") end
 end)
