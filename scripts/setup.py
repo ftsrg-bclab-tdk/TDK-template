@@ -8,7 +8,7 @@ import difflib
 import copy
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import platform
 import re
 import stat
@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 
-from onboarding import accounts, bootstrap, session, workflow, platforms, workspace, provision, checks
+from onboarding import accounts, bootstrap, session, workflow, platforms, workspace, provision, checks, faculty
 
 from readme.badges import invalidate_blocks
 
@@ -228,6 +228,28 @@ def ask(prompt):
     return value
 
 
+def import_faculty(root, args):
+    """One-way import of a faculty-template paper; writes only paper/ files, never private state."""
+    config, _ = load_project(root, args.config)
+    main_file = inside(root, config["paper_main"])
+    if main_file.name != "draft.tex" or not main_file.is_file():
+        raise ValueError("The import needs paper_main to be the template's draft.tex")
+    labels = {}
+    for item in args.label:
+        source, separator, role = item.partition("=")
+        if not separator or not source or not role:
+            raise ValueError("--label takes SOURCE=ROLE, such as content/intro.tex=intro")
+        labels[PurePosixPath(source).as_posix()] = role
+    report = faculty.plan(Path(args.import_faculty).resolve(), main_file.parent, labels, args.accept_suggestions)
+    print(faculty.render(report, args.dry_run), end="")
+    if report["conflicts"]:
+        return 1
+    if not args.dry_run:
+        faculty.apply(report, main_file.parent)
+        print("Imported. Build with `make -C paper draft`, review `git diff`, then commit.")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("role", choices=["student", "advisor", "status"])
@@ -253,6 +275,10 @@ def main(argv=None):
     parser.add_argument("--template", default="FTSRG-BCLab-TDK/TDK-template")
     parser.add_argument("--ingest-ci", metavar="REPORT", help="Verify component report with shared CI verifier; native sync/clone remains separate")
     parser.add_argument("--report-sha256", help="Expected raw report digest from trusted receipt")
+    parser.add_argument("--import-faculty", metavar="PATH_OR_ZIP", help="Bring a paper written in the BME VIK faculty LaTeX template into paper/")
+    parser.add_argument("--label", action="append", default=[], metavar="SOURCE=ROLE",
+                        help="With --import-faculty: confirm a chapter's role (intro, background, approach, implementation, evaluation, related, conclusion) or refuse a suggestion (none)")
+    parser.add_argument("--accept-suggestions", action="store_true", help="With --import-faculty: add every suggested label, \\printlists and preamble definition")
     args = parser.parse_args(argv)
     if sys.version_info < (3, 11):
         parser.error("Python 3.11+ is required; install a supported Python before setup")
@@ -264,9 +290,15 @@ def main(argv=None):
         parser.error("Status is read-only; use student --check-bootstrap --smoke")
     if args.paper_source and not args.init_config:
         parser.error("--paper-source requires --init-config ORG/REPO")
+    if args.import_faculty and args.role != "student":
+        parser.error("--import-faculty is a student command")
+    if (args.label or args.accept_suggestions) and not args.import_faculty:
+        parser.error("--label and --accept-suggestions go with --import-faculty")
     try:
         exit_code = 0
         root = Path(git(Path(args.root).resolve(), "rev-parse", "--show-toplevel")).resolve()
+        if args.import_faculty:
+            return import_faculty(root, args)
         local = state_path(root, args.state_dir)
         for target in local.iterdir() if local.exists() else []:
             if target.is_symlink() or not target.is_file() or target.stat().st_mode & 0o077 or target.stat().st_uid != os.getuid():

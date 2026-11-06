@@ -1,0 +1,7 @@
+\begin{tikzpicture}[node distance=3cm]
+  \node[draw] (issuer) {Issuer};
+  \node[draw, right of=issuer] (summary) {Summary $S_t$};
+  \node[draw, right of=summary] (verifier) {Verifier};
+  \draw[->] (issuer) -- (summary);
+  \draw[->] (verifier) -- (summary);
+\end{tikzpicture}

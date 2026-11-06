@@ -1,0 +1,16 @@
+%----------------------------------------------------------------------------
+\appendix
+%----------------------------------------------------------------------------
+\chapter*{\fuggelek}\addcontentsline{toc}{chapter}{\fuggelek}
+\setcounter{chapter}{\appendixnumber}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{lstlisting}{section}
+
+%----------------------------------------------------------------------------
+\section{The pilot's policy}
+%----------------------------------------------------------------------------
+\begin{lstlisting}[language=Policy, caption={The pilot's revocation policy.}, label={lst:policy}]
+allow check when issuer is listed
+\end{lstlisting}
+\Cref{lst:policy} is the policy every issuer of the pilot used.

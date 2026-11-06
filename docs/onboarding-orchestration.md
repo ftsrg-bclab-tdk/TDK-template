@@ -97,6 +97,26 @@ dirty flag and shared-config digest. Pull failure never silently reuses an old
 image. Old successful receipts are historical observations, not current runtime
 or remote authorization evidence.
 
+## Importing a faculty-template paper
+
+```sh
+python3 scripts/setup.py student --import-faculty PATH_OR_ZIP --dry-run
+python3 scripts/setup.py student --import-faculty PATH_OR_ZIP [--label SOURCE=ROLE ...] [--accept-suggestions]
+```
+
+`scripts/onboarding/faculty.py` maps a paper written in the BME VIK faculty LaTeX
+template onto `paper/`. It returns before the account and state flow and writes
+no private state. Every write is preflighted: a target that is neither absent nor
+one of this template's placeholders (`PLACEHOLDERS` digests, or the lint skeleton)
+is a conflict, the command exits 1, and nothing is written. Targets are rechecked
+just before the first write. Student files are copied byte for byte; role labels,
+`\printlists` and carried preamble definitions are added only when confirmed.
+`draft.tex` changes are limited to the title-page macros still at their template
+values, the unchanged template chapter list and, for extra `.bib` files, the
+unchanged `\bibliography` line. The faculty archive is not redistributed: the
+module keeps its URL, version, SHA-256 and per-file digests. When a template update
+changes a placeholder file, `test_faculty.py` fails until its new digest is added.
+
 ## Installation, workspace and GitHub adapters
 
 ```sh
