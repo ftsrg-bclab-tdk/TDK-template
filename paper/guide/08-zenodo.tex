@@ -10,7 +10,7 @@ The lead student owns the Zenodo records and publishes after advisor review. Thi
   \item Complete the reproduction README using \cref{guide:code:readme}. Enable the actual checks for each selected component in \path{project.json}; an unconfigured scaffold is not evidence that research results reproduce.
   \item Create a tracked selection manifest, normally \path{release/manifest.json}, using the examples in \path{docs/selective-release/}. Replace their example paths with the project's real files. Select the code, proof obligations, benchmark inputs/results and documentation needed to reproduce the claims. Include the Dockerfile and build inputs when they are part of that procedure. A separately distributed container image needs its own publication plan and recorded image/platform digest.
   \item Choose the archive's licenses and access conditions with the advisors. Preserve third-party notices and redistribution terms. The default is one combined code/proof/benchmark record; use independently citable records only when the project needs them.
-  \item Set each record's \texttt{metadata\_file} in the manifest, for example \path{release/metadata/study.json}. Fill its title, creators, version, date, access and license (\cref{guide:lst:zenodo-json}). List the actual supervisors as contributors. Keep any selected \texttt{CITATION.cff} consistent with these fields. The manifest's access setting must agree with the metadata.
+  \item Set each record's \texttt{metadata\_file} in the manifest, for example \path{release/metadata/study.json}. Fill its title, creators, version, date, access and license (\cref{guide:lst:zenodo-json}). Give the license as Zenodo's identifier, such as \texttt{mit-license} for MIT: Zenodo stores the identifier, and staging stops when the stored metadata differs from the reviewed file. List the actual supervisors as contributors. Keep any selected \texttt{CITATION.cff} consistent with these fields. The manifest's access setting must agree with the metadata.
   \item Add real related identifiers when available (\cref{guide:lst:zenodo-related}). Credit reused work and retain its license; leave an unknown identifier out instead of inventing a DOI. Replace every illustrative placeholder before preparing a candidate.
 \end{enumerate}
 
@@ -23,7 +23,7 @@ The lead student owns the Zenodo records and publishes after advisor review. Thi
   "version": "1.0.0",
   "publication_date": "TODO YYYY-MM-DD",
   "access_right": "open",
-  "license": "MIT",
+  "license": "mit-license",
   "creators": [
     { "name": "TODO Surname, Given name", "affiliation": "Budapest University of Technology and Economics", "orcid": "TODO your ORCID iD, or remove this field" }
   ],
