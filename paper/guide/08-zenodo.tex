@@ -1,28 +1,28 @@
 %----------------------------------------------------------------------------
-\chapter{Archiving the code on Zenodo}\label{app:zenodo}
+\chapter{Archiving selected research artifacts}\label{guide:zenodo}
 %----------------------------------------------------------------------------
-A reviewer assessing \textbf{correctness} (criterion D/2) needs the code behind your results. A GitHub link can change or disappear.
-\href{https://zenodo.org/}{Zenodo}, run by CERN, permanently archives GitHub releases and assigns DOIs. Cite the archive.
-These steps follow Zenodo's September 2026 documentation. If its interface has changed, follow the linked pages.
+A reviewer assessing \textbf{correctness} (criterion D/2) needs the artifacts behind your results. Archive the selected code, proofs and benchmarks on \href{https://zenodo.org/}{Zenodo} and cite the verified record. The project monorepo stays private. Its \path{code/}, \path{proof/} and \path{benchmark/} directories are ordinary components, not separate repositories or submodules.
 
-\section{Prepare the repository}
-Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zenodo archives this repository, not the notes repository.
+The lead student owns the Zenodo records and publishes after advisor review. This chapter follows the repository's manual preparation and publication workflows. Paths below are relative to the monorepo root; \path{scripts/release/README.md} documents the commands and recovery procedures. Zenodo's \href{https://developers.zenodo.org/}{API documentation} describes its metadata and upload operations.
+
+\section{Select the files and metadata}
 \begin{enumerate}
-  \item Complete \texttt{README.md} using \cref{app:code:readme}.
-  \item Add a \texttt{LICENSE} file and ask us which license to use: Apache 2.0 for tools (\cref{app:code:readme}), MIT otherwise.
-  \item Add \texttt{.zenodo.json} at the repository root (\cref{lst:zenodo-json}). It supplies the record's title, authors, license and links, and lists your supervisors as \texttt{contributors} of type \texttt{Supervisor}; see the \href{https://help.zenodo.org/docs/github/describe-software/zenodo-json/}{format and example}. The code template's \texttt{hygiene} workflow checks that it parses and that \texttt{CITATION.cff} validates.
-  \item Link related works with \texttt{related\_identifiers} (\cref{lst:zenodo-related}): \texttt{isDerivedFrom} the upstream repository of a fork, and \texttt{isSupplementTo} the paper once it has a DOI. Leave the field out until you have a real identifier, because a placeholder fails the release.
-  \item If the repository has a \texttt{CITATION.cff}, keep its fields in line with \texttt{.zenodo.json}; Zenodo uses \texttt{.zenodo.json} when both exist.
+  \item Complete the reproduction README using \cref{guide:code:readme}. Enable the actual checks for each selected component in \path{project.json}; an unconfigured scaffold is not evidence that research results reproduce.
+  \item Create a tracked selection manifest, normally \path{release/manifest.json}, using the examples in \path{docs/selective-release/}. Replace their example paths with the project's real files. Select the code, proof obligations, benchmark inputs/results and documentation needed to reproduce the claims. Include the Dockerfile and build inputs when they are part of that procedure. A separately distributed container image needs its own publication plan and recorded image/platform digest.
+  \item Choose the archive's licenses and access conditions with the advisors. Preserve third-party notices and redistribution terms. The default is one combined code/proof/benchmark record; use independently citable records only when the project needs them.
+  \item Set each record's \texttt{metadata\_file} in the manifest, for example \path{release/metadata/study.json}. Fill its title, creators, version, date, access and license (\cref{guide:lst:zenodo-json}). List the actual supervisors as contributors. Keep any selected \texttt{CITATION.cff} consistent with these fields. The manifest's access setting must agree with the metadata.
+  \item Add real related identifiers when available (\cref{guide:lst:zenodo-related}). Credit reused work and retain its license; leave an unknown identifier out instead of inventing a DOI. Replace every illustrative placeholder before preparing a candidate.
 \end{enumerate}
 
 \begin{listing}[!ht]
 \begin{minted}{json}
 {
   "title": "TODO Artifact for: <thesis title>",
-  "description": "Code and measurement scripts for the TDK paper <thesis title>.",
+  "description": "Code, proofs and benchmarks for <thesis title>.",
   "upload_type": "software",
   "version": "1.0.0",
   "publication_date": "TODO YYYY-MM-DD",
+  "access_right": "open",
   "license": "MIT",
   "creators": [
     { "name": "TODO Surname, Given name", "affiliation": "Budapest University of Technology and Economics", "orcid": "TODO your ORCID iD, or remove this field" }
@@ -34,7 +34,7 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
   "keywords": ["TODO"]
 }
 \end{minted}
-\caption{A minimal \texttt{.zenodo.json}.}\label{lst:zenodo-json}
+\caption{Illustrative record metadata in the file selected by the manifest. Confirm the actual creators, supervisors, license and access; this example is not ready to publish.}\label{guide:lst:zenodo-json}
 \end{listing}
 
 \begin{listing}[!ht]
@@ -44,42 +44,40 @@ Prepare the \texttt{code/} submodule for archiving (\cref{app:code:github}); Zen
   { "identifier": "10.xxxx/<paper DOI>", "relation": "isSupplementTo", "resource_type": "publication-article" }
 ]
 \end{minted}
-\caption{Related works in \texttt{.zenodo.json}: the upstream of a fork and the paper.}\label{lst:zenodo-related}
+\caption{Related works in record metadata. Replace these example identifiers with verified public identifiers, or omit them.}\label{guide:lst:zenodo-related}
 \end{listing}
 
-\section{Before the repository goes public}\label{app:zenodo:public}
-Making the repository public, on GitHub or through its Zenodo archive, publishes its whole history, not only the current files. A file you deleted last month is still in a commit, and Zenodo does not let you change the files of a published record. We do not rewrite the history: keep the current files clean, and review what the history still holds. Check the following before the first release:
+\section{Review what the archive discloses}\label{guide:zenodo:public}
+The packager exports the selected bytes and their provenance. It does not export the whole Git history. Making the GitHub repository public is a separate decision with a separate history review; publication of selected artifacts does not require it.
 \begin{itemize}
-  \item \textbf{No links to private or unpublished places.} No Overleaf project, paper or notes repository, Notion, Teams or SharePoint page, or chat share link, in the README or anywhere else. Link only public URLs; the same-year rule for companion papers (\cref{app:tdk:companion}) applies here too.
-  \item \textbf{No paper sources.} The paper lives in the paper repository; standalone TikZ figures that a script generates may stay.
-  \item \textbf{You author your commits.} Configure the agent to commit as you; an agent identity such as \texttt{Claude <noreply@anthropic.com>} lists the agent as a contributor on GitHub. A \texttt{Co-Authored-By} line naming the agent is fine, and so are commits by your advisors. Do not add an AI app or bot as a collaborator.
-  \item \textbf{No agent files in the archive.} The code template's \texttt{.gitattributes} marks \path{.claude/}, \texttt{CLAUDE.md}, \texttt{AGENTS.md} and similar files \texttt{export-ignore}, which keeps them out of GitHub's release archive that Zenodo stores. Add any other agent file there. If your \texttt{CLAUDE.md} is really documentation of the code, rename it to \texttt{README.md} or move it under \path{docs/}; otherwise the archive silently drops it.
-  \item \textbf{No secrets, test keys included.} Keep keys, wallets and tokens in an untracked \texttt{.env}, and commit an \texttt{.env.example} with placeholders. A key that was ever committed is burned, because the history keeps it: rotate it, so that the committed value no longer works or holds anything.
-  \item \textbf{No machine-specific paths} such as \path{/home/you/}: use relative paths or variables.
-  \item \textbf{A fork credits its upstream.} Create it with GitHub's \emph{Fork} button from the start: GitHub cannot turn an existing repository into a fork later, and only a real fork shows the ``forked from'' link. Keep the upstream license, name its authors in \texttt{.zenodo.json}, link the upstream with \texttt{isDerivedFrom} (\cref{lst:zenodo-related}), and say in the README what you changed.
+  \item Inspect every selected file, its metadata and the generated provenance. Keep \path{scratch/}, private integration links, internal review records, account state and agent configuration out of the archive unless explicitly selected and reviewed. A private source URL or an author field can disclose information even when the research files have restricted access.
+  \item Publish only the paper material that the manifest deliberately selects. Selected paper files require strict submission evidence; ordinary advisory writing CI is not sufficient for that release.
+  \item Keep secrets and test keys in ignored local state. Rotate a credential that was committed; deleting a current file does not remove it from Git history. Use relative reproduction paths rather than machine-specific paths.
+  \item Check that the README explains the selected files, commands, limits and results mapping. Review third-party attribution and redistribution rights for code, data, fonts and artwork. Hashes identify bytes; they do not establish permission to publish them.
 \end{itemize}
-The code template's \texttt{hygiene} workflow checks these on every push: secrets with gitleaks over the whole history, the rest with \texttt{scripts/hygiene.py}. Findings in the current files fail the run. Findings in the history only warn, because the history stays as it is: read each one, and decide whether it is harmless once public. A secret in the history fails the run until you rotate it; then add the finding's exact fingerprint to \texttt{.gitleaksignore}, with a one-line reason such as \enquote{rotated on 2026-11-02} directly above it. Use the same file for findings that are not secrets, such as a public key in an example. \texttt{just hygiene --strict}, which fails on history findings too, remains an optional local check.
+Use \path{code/scripts/publishing-checklist.md} to record this review, optionally in a private \path{code/PUBLISHING.md}. The checklist records advisor review; creating it does not enable a workflow. The code hygiene checker is a supplementary local check, not the release gate. Student-writable workflows do not enforce advisor approval, so the student and advisor must complete that review before publication.
 
-\paragraph{The publication gate.} When you start preparing the release, copy \path{scripts/publishing-checklist.md} to \texttt{PUBLISHING.md}. From then on, the workflow runs \texttt{just hygiene --publish} instead: it also fails on unfinished Zenodo metadata, missing supervisors, a README with \texttt{TODO}s or without its sections (\cref{app:code:readme}), missing lockfiles, and a missing release workflow. \texttt{PUBLISHING.md} lists what a script cannot check, such as rotated secrets, reviewed history warnings and the license choice. Fill in the evidence for each item; we sign it off by approving your pull request. Release only when the gate passes.
-
-\section{Publish the first release}
+\section{Prepare and publish a reviewed candidate}
+Before the first production publication, complete the sandbox pilot with the advisors and check the project's immutable-release setting. The repository administrator provisions the lead student's own \texttt{ZENODO\_SANDBOX\_TOKEN} and \texttt{ZENODO\_TOKEN} as project secrets in GitHub's repository Actions-secret settings. Tokens belong in secret storage, never in metadata, manifests or command-line arguments.
 \begin{enumerate}
-  \item Sign in to \href{https://zenodo.org/}{Zenodo} with the repository owner's GitHub account. In the profile menu, choose \emph{GitHub}, click \emph{Sync now}, find the repository and enable its toggle; see \href{https://help.zenodo.org/docs/github/enable-repository/}{enable a repository}.
-  \item Commit the prepared files. In GitHub's \emph{Releases}, choose \emph{Draft a new release}. Create a tag such as \texttt{v1.0.0} at the commit used for the measurements. Add release notes and publish.
-  \item The code template's \texttt{release} workflow then pushes the runtime image as \texttt{ghcr.io/<you>/<repo>:v1.0.0}. Copy \path{.github/workflows/release.yml} if your repository did not start from the template. A new package is \href{https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility}{private by default}, even when the repository is public: in the package's settings, change its visibility to public, or the README's \texttt{docker run} fails for reviewers.
-  \item Open the repository on Zenodo's GitHub page and wait for processing. Check the new record's files and metadata. A failed release has an \emph{Errors} section; see \href{https://help.zenodo.org/docs/github/archive-software/github-upload/}{archive a release}.
+  \item Commit the manifest, metadata and research source, and obtain successful checks for that exact commit and configuration. Retain the checks run ID, attempt, artifact ID and archive digest. The selected artifacts must describe the measurements and proof obligations actually reported in the paper.
+  \item From the default branch, manually run \emph{Prepare research release} (\path{.github/workflows/release-prepare.yml}). Supply that source SHA, checks run/attempt/artifact identity and digest, and the manifest path. It packages verified existing bytes without rebuilding research code.
+  \item Download and inspect the candidate ZIPs, file inventory, metadata, runtime evidence and \texttt{receipt.json}. Record the candidate's preparation run, attempt, artifact ID, archive digest and exact receipt digest from the workflow summary. The advisor reviews these particular bytes; a successful build alone is not publication approval.
+  \item Manually run \emph{Publish reviewed research} (\path{.github/workflows/publication.yml}) from the default branch. Supply the candidate identity, reviewed receipt digest and a stable operation ID. Choose \texttt{sandbox} for the pilot, or deliberately choose \texttt{production} for a reviewed real release. Start with phase \texttt{stage} to prepare the Zenodo draft. Before any Zenodo write, the workflow retains the verified candidate in an immutable project support release so Actions artifact expiry cannot silently replace it.
+  \item Inspect the draft and, after advisor review, invoke the same operation and candidate with phase \texttt{publish}. Staging or reserving a DOI does not make the archive available. Only a receipt verifying the production record as \texttt{published}, with matching files and metadata, supports an availability statement or DOI badge.
+  \item If a response is interrupted or uncertain, retain the same operation and candidate identity and use \texttt{reconcile}. Follow the recovery instructions in \path{scripts/release/README.md} if it remains blocked. Creating another operation to bypass an uncertain write risks duplicate records.
 \end{enumerate}
-If you cannot connect the repository, upload an archive manually. Choose \emph{+}, then \emph{New upload}, fill in metadata, select \emph{Preview}, then \emph{Publish}; see the \href{https://help.zenodo.org/docs/deposit/create-new-upload/}{upload instructions}.
+The journal on the project's \texttt{publication-state} branch preserves retry state. It is excluded from exported research packages and template contributions. GitHub tags, support releases and ordinary pushes do not automatically publish to Zenodo; use the manual workflow above.
 
-\section{Cite it}\label{app:zenodo:cite}
-Each release has a \emph{version DOI}. The \emph{concept DOI} identifies all versions and resolves to the newest; see \href{https://support.zenodo.org/help/en-gb/1-upload-deposit/97-what-is-doi-versioning}{DOI versioning}.
+\section{Cite it}\label{guide:zenodo:cite}
+Zenodo's \href{https://support.zenodo.org/help/en-gb/1-upload-deposit/97-what-is-doi-versioning}{versioning documentation} distinguishes a \emph{version DOI} for one archived version from a \emph{concept DOI} for all its versions.
 \begin{itemize}
-  \item Cite the \textbf{concept DOI} in the paper, following the \texttt{artifact} entry in \texttt{bib/references.bib}, in \tplref{ch:implementation}. Beside it, name the \textbf{results tag}: the Git tag and corresponding Zenodo version used for every reported number. The DOI leads to the latest packaging; the tag identifies the exact measured version.
-  \item Put the concept DOI badge in \texttt{README.md} (\cref{app:code:readme}). Copy the badge's Markdown from the record page's DOI badge dialog.
-  \item Copy both DOIs from the Zenodo record; never guess a DOI by changing its number.
+  \item Cite the concept DOI for the artifact as a whole. Beside the results, identify the exact version DOI and \textbf{results tag}: the Git tag and source commit used for the reported numbers. A later packaging version must not change which version those measurements describe.
+  \item Generate the README badge, version citation and artifact-availability patch from the verified production publication receipt using \path{scripts/release/writeback.py}. Review that patch before applying it. The bibliography target is \path{paper/bib/references.bib}; preserve Zotero's managed \path{paper/bib/zotero.bib}.
+  \item Use the version and concept DOIs returned by the verified record. Draft/reserved identifiers and sandbox records are not evidence of production availability, and DOI numbers must never be guessed.
 \end{itemize}
 
-\section{Release a new version}\label{app:zenodo:versions}
-After fixing code, update \texttt{version} and \texttt{publication\_date} in \texttt{.zenodo.json}, commit, and publish a release under a new tag, such as \texttt{v1.0.1}. Zenodo adds a version with its own DOI to the record; see \href{https://help.zenodo.org/docs/deposit/manage-versions/}{manage versions}. Never move an old tag or rerun the paper's measurements against a version it does not describe. Keep the paper's results tag unchanged.
+\section{Release a new version}\label{guide:zenodo:versions}
+For a new version, update the selected metadata, commit the changed source, run the required checks and prepare a new reviewed candidate. Give that candidate a new operation ID and repeat the stage/review/publish sequence. The project journal links it to the prior record; preserve that journal and the earlier receipts. Keep old tags and archived bytes fixed.
 
-The lifecycle (\cref{tab:lifecycle}) allows code polish \emph{after} the paper deadline, because the paper cites the concept DOI, which opens the version current when a reviewer visits. You have about two days after upload to finish the README, the Docker images, the results map and the reproduction-limits section, and to release them as a new version. Polish after that is allowed, but reviewers may already have looked.
+The lifecycle (\cref{guide:tab:lifecycle}) allows code polish after the paper deadline. Within about two days of upload, aim to complete the README, container reproduction instructions, results map and reproduction limits, then publish that polish as a new version. Keep the paper's results tag and measured version unchanged. Later polish is allowed, but reviewers may already have looked.

@@ -9,8 +9,9 @@ run the one rule that should catch it, and check that the expected text is in th
 and not in the output of the unmutated copy. The rule must have run: its exit is 0 or 1 and its
 summary line is printed (with --json: the output is one JSON document holding its result), so a
 negative case ("!text") cannot pass on a lint that crashed. A case may name another exit ("exit":
-2), other lint arguments ("args") or extra environment ("env"). Exits non-zero when a rule misses
-its mutation.
+2), other lint arguments ("args"), extra environment ("env"), or the skip message that marks a
+missing tool ("may_skip"), in which case the case is reported as skipped. Exits non-zero when a
+rule misses its mutation.
 
 The template's CI runs it after the final build. It calls texlua directly when it is on the
 PATH (the CI container), and otherwise runs it in the docker image LINT_IMAGE (default
@@ -57,6 +58,14 @@ def append(rel, text):
     def f(d):
         p = d / rel
         p.write_text(p.read_text() + "\n" + text + "\n")
+    return f
+
+
+def write(rel, text):
+    def f(d):
+        p = d / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text + "\n")
     return f
 
 
@@ -134,13 +143,15 @@ def tag_line(rel, n, comment):
 
 
 def pdf_with(rel, lines):
-    """A one-page PDF of the given (y, text) lines in 12 pt Helvetica, for the PDF rules, which
-    read what pdftotext and pdftohtml see: a built PDF cannot be mutated in place."""
+    """A one-page PDF of the given (y, text) lines in 12 pt Helvetica at x = 72, or (y, text, size,
+    x) runs, or (y, text, size, x, 2) runs in Courier, as a listing's run is, for the PDF rules,
+    which read what pdftotext and pdftohtml see: a built PDF cannot be mutated in place."""
     def f(d):
-        body = "".join(f"BT /F1 12 Tf 72 {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t in lines)
+        body = "".join(f"BT /F{font} {size} Tf {x} {y} Td ({t.replace('(', '').replace(')', '')}) Tj ET\n" for y, t, size, x, font in ((*l, 12, 72, 1)[:5] if len(l) == 2 else (*l, 1)[:5] if len(l) == 4 else l for l in lines))
         objs = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-                f"<< /Length {len(body)} >>\nstream\n{body}endstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
+                f"<< /Length {len(body)} >>\nstream\n{body}endstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>"]
         out, offsets = "%PDF-1.4\n", []
         for i, o in enumerate(objs, 1):
             offsets.append(len(out))
@@ -202,8 +213,8 @@ OWN_BOX = replace_line("content/01-introduction.tex", "TODO Two or three sentenc
 
 BG = "content/02-background.tex"
 EVAL = "content/05-evaluation.tex"
-CONTEXT = "\\guidetodo{Context}{app:chapters:context}"
-SETUP = "\\guidetodo{Setup}{app:chapters:setup}"
+CONTEXT = "\\guidetodo{Context}{guide:chapters:context}"
+SETUP = "\\guidetodo{Setup}{guide:chapters:setup}"
 YEAR = datetime.date.today().year  # the template's \tdkev is \the\year
 ZENODO = sub("bib/references.bib", "10.5281/zenodo.TODO", "10.5281/zenodo.1234567", 2)
 
@@ -227,8 +238,23 @@ MUTATIONS = [
     ("gap matrix rows short", "essentials", both(filled_gap, drop_line("content/06-related-work.tex", "\\ref{req:third}  & Auditable")), "req:third has no row in the gap matrix"),
     ("a gap matrix row twice", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\ref{req:second} & Unlinkable", "\\ref{req:first} & Unlinkable")), "req:first has two rows"),
     ("this work without a result pointer", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{sec:scalability})", "\\gapyes")), "points at no evaluation result"),
+    ("an essential figure moved to an appendix", "essentials", both(sub("content/03-approach.tex", "\\label{fig:architecture}", "\\label{fig:architecture-old}"),
+        append("content/10-appendices.tex", "\\begin{figure}\\caption{The approach end to end.}\\label{fig:architecture}\\end{figure}")), "fig:architecture is outside the main text"),
     ("guarantee not in the correctness table", "essentials", both(own_items("content/03-approach.tex", "g"), drop_line("content/05-evaluation.tex", "\\ref{g:example} &")), "g:example is not checked in the evaluation"),
     ("contribution not restated", "essentials", own_items("content/01-introduction.tex", "c"), "c:method is not restated"),
+    ("a headline number the evaluation lacks", "numbers", append("content/01-introduction.tex", "The ledger confirms a payment in 73 seconds."), "number 73 does not occur"),
+    ("a number of the running example is no result", "numbers", sub("content/01-introduction.tex", "TODO Two or three sentences: the actors", "A payment sent after 73 minutes"), "!number 73"),
+    ("a slip in the prose", "lacheck", append(BG, "The rows go to the DB. Then the proof runs."), "lacheck: missing"),
+    ("a double space is left to typography", "lacheck", append(BG, "Some text  ~here."), "!double space"),
+    ("a missing tie is reported once, by typography", "chktex", append(BG, "As shown \\cite{lamport1978time}, it holds."), "!Non-breaking space"),
+    ("a listing with an odd dollar sign", "lacheck", append(BG, "\\begin{lstlisting}[caption={Rule.}, label={lst:rule}]\nrule R: [ In($N) ] --> [ ]\n\\end{lstlisting}"), "!unmatched"),
+    ("a float referenced only with autoref", "figures", both(append(BG, "\\begin{figure}[!ht]\\centering\\caption{A figure that shows the flow.}\\label{fig:auto}\\end{figure}"), append(BG, "See \\autoref{fig:auto}.")), "fig:auto is referenced only with \\autoref"),
+    ("a table wider than the text asks for tabularx", "overfull", lambda d: (d / "final.log").write_text((d / "final.log").read_text() + "\nOverfull \\hbox (25.0pt too wide) in alignment at lines 10--20\n []\n"), "tabularx"),
+    ("an axis label without a unit", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Nodes}, ylabel={Latency}]\n\\end{axis}"), "ylabel without a unit in brackets: Latency"),
+    ("an axis label that says it counts", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Number of nodes}, ylabel={\\# of proof steps}]\n\\end{axis}"), "!without a unit"),
+    ("a bare plural is not yet a count", "axes", append(EVAL, "% lint fixture\n\\begin{axis}[xlabel={Number of nodes}, ylabel={Proof steps}]\n\\end{axis}"), "Number of proof steps"),
+    ("a contribution without a pointer", "essentials", both(own_items("content/01-introduction.tex", "c"), sub("content/01-introduction.tex", " (\\cref{ch:approach}).\n\\end{contributions}", ".\n\\end{contributions}")), "c:method points to no chapter"),
+    ("a contribution pointing to a section", "essentials", both(own_items("content/01-introduction.tex", "c"), sub("content/01-introduction.tex", "(\\cref{ch:approach}).\n\\end{contributions}", "(\\cref{sec:validity}).\n\\end{contributions}")), "!c:method points to no chapter"),
     ("a restated contribution", "essentials", both(own_items("content/01-introduction.tex", "c"), append("content/07-conclusion.tex", "\\Cref{c:method} holds in every run.")), "!c:method is not restated"),
     ("this work reports a failed requirement", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapno\\,(\\cref{rq:correct})")), "related ◔●◔"),
     ("this work reports a partially met requirement", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gappartial\\,(\\cref{rq:correct})")), "related ◔●◔"),
@@ -238,9 +264,14 @@ MUTATIONS = [
     ("a float without its label is missing", "essentials", drop_line("content/06-related-work.tex", "\\label{fig:positioning}"), "○ Positioning figure"),
     ("text below the threshold is started", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(15)), "◑ Context\n    help: 14 own words"),
     ("text above the threshold is written and enough", "essentials", replace_line("content/01-introduction.tex", CONTEXT, words(50)), "intro ●◔◔◔◔◔◔◔"),
+    ("a skeleton list beside the student's own heading", "essentials", append("content/03-approach.tex", "\\section{Soundness assumptions}\nThe prover is honest."), 'has a heading "Soundness assumptions"'),
+    ("limitations written as prose under their heading", "essentials", lambda d: (lambda p: p.write_text(re.sub(r"\\begin\{limitations\}.*?\\end\{limitations\}", lambda m: "The model omits network delays and assumes honest clocks.", p.read_text(), flags=re.S)))(d / "content/07-conclusion.tex"), 'written as prose under'),
+    ("a limitations heading in another chapter is not the list", "essentials", both(lambda d: (lambda p: p.write_text(re.sub(r"\\begin\{limitations\}.*?\\end\{limitations\}", "", p.read_text(), flags=re.S)))(d / "content/07-conclusion.tex"), append(BG, "\\section{Capabilities and limitations of the prover}\nThe prover cannot model time.")), "!written as prose under"),
+    ("a positioning table is accepted silently", "essentials", lambda d: (lambda p: p.write_text(p.read_text().replace("\\begin{figure}[!ht]\n  \\centering\n  \\missingfigure[figheight=2cm]{Positioning figure: \\cref{fig:positioning}}\n  \\caption{TODO positioning figure.}\n  \\label{fig:positioning}", "\\begin{table}[!ht]\n  \\centering\n  \\caption{Arithmetization against the question asked; this work fills the empty cell.}\n  \\label{tab:positioning}\n  \\begin{tabular}{ll}\\toprule a & b \\\\ \\bottomrule\\end{tabular}").replace("\\end{figure}", "\\end{table}", 1).replace("\\cref{fig:positioning}", "\\cref{tab:positioning}")))(d / "content/06-related-work.tex"), "!Positioning figure", {"fresh": True}),
     ("some items own is started", "essentials", both(three_reqs, own_items("content/01-introduction.tex", "req", only="req:first")), "◑ Requirements\n    help: 1 of 3 items written"),
     ("an own figure with a TODO caption is started", "essentials", replace_line("content/03-approach.tex", "\\missingfigure[figheight=2cm]{Architecture:",
         "  \\begin{tikzpicture}\\node[draw] (h) {Holder}; \\node[draw, right=of h] {Registry};\\end{tikzpicture}"), "◑ Architecture figure\n    help: the caption is still a TODO"),
+    ("a cost section is the scalability section", "essentials", sub("content/05-evaluation.tex", "\\section{Scalability (RQ2)}\\label{sec:scalability}", "\\section{Cost (RQ2)}"), "add \\label{sec:scalability}"),
     ("a section found by its heading", "essentials", sub("content/05-evaluation.tex", "\\section{Threats to validity}\\label{sec:validity}", "\\section{Threats to validity}"), "add \\label{sec:validity}"),
     ("a written setup without the artifact's DOI", "essentials", replace_line(EVAL, SETUP, words(120)), "◕ Setup and artifact\n    help: cite the archived artifact"),
     ("a written setup with the artifact's DOI", "essentials", both(replace_line(EVAL, SETUP, words(120) + " The code is archived~\\cite{artifact}."), ZENODO), "evaluation ◔◔●◔◔◔◔"),
@@ -278,12 +309,17 @@ MUTATIONS = [
     ("a token beside a reference to something else", "crefs", append(BG, "\\cref{sec:scalability}, SHA256"), "!typed by hand"),
     ("lint-ignore silences a typed tag", "crefs", append(BG, "It relies on AS1. % lint-ignore: crefs test"), "!typed by hand"),
     ("autoref", "crefs", append(BG, "As \\autoref{fig:overview} shows, it works."), "\\autoref"),
+    ("a sentence opened by \\cref on its own line", "crefs", append(BG, "It works.\n\\cref{fig:overview} shows it."), "start of a sentence"),
+    ("a wrapped line opened by \\cref mid-sentence", "crefs", append(BG, "The result is shown in\n\\cref{fig:overview} for every run."), "!start of a sentence"),
     ("lint-ignore silences one finding", "crefs", append(BG, "As Figure~\\ref{fig:overview} shows. % lint-ignore: crefs test"), "!typed reference"),
     ("acronym typed by hand", "acronyms", append(BG, "We use ZKP here."), "ZKP typed by hand"),
     ("two-letter abbreviation typed by hand", "acronyms", append(BG, "Every VC is signed."), "VC typed by hand"),
     ("plural abbreviation typed by hand", "acronyms", append(BG, "Both VCs are signed."), "VC typed by hand"),
     ("a longer word is not the abbreviation", "acronyms", append(BG, "The VCS keeps the history."), "!VC typed by hand"),
+    ("definitions with math: one notice per file", "acronyms", append(BG, "\\begin{definition}\nLet $x$ be a key.\nLet $y$ be its hash.\n\\end{definition}"), "2 lines of definitions with math"),
+    ("part of a product name is not an abbreviation", "acronyms", append(BG, "The prover runs on Ubuntu 22.04 LTS inside WSL."), "!LTS is not in the glossary"),
     ("all-caps word not declared", "acronyms", append(BG, "The QWXZ protocol runs."), "QWXZ is not in the glossary"),
+    ("logic operators and the README are words", "acronyms", append(BG, "A query is an AND of ORs; NOT negates it, as the README says."), "!is not in the glossary"),
     ("a comment environment is not prose", "acronyms", append(BG, "\\begin{comment}\nEvery VC is signed.\n\\end{comment}"), "!VC typed by hand"),
     ("glossary key undeclared", "acronyms", append(BG, "We use \\gls{nosuchkey} here."), "nosuchkey is not declared"),
     # the common glossary, include/glossary-common.tex
@@ -296,8 +332,24 @@ MUTATIONS = [
     ("a paper glossary with no entries yet", "frame", lambda d: (d / "content/glossary.tex").write_text("% no entries yet\n"), "!no glossary file"),
     ("approach role missing", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:method}"), "no approach chapter"),
     ("file not NN-name", "frame", rename("content/02-background.tex", "content/background.tex"), "NN-name.tex"),
+    ("a figure body input from figures/", "frame", both(write("figures/lead-body.tex", "\\node {x};"), append(BG, "\\begin{tikzpicture}\\input{figures/lead-body}\\end{tikzpicture}")), "!NN-name.tex"),
+    ("a chapter piece input from content/", "chapters", both(write("content/bg-part.tex", "More background."), append(BG, "\\input{content/bg-part}")), "pulls part of the chapter"),
+    ("a table body input from tables/", "chapters", both(write("tables/results.tex", "\\begin{tabular}{l}x\\end{tabular}"), append(BG, "\\input{tables/results}")), "!pulls part of the chapter"),
     ("bib entry without title", "bib", drop_line("bib/references.bib", "{Time, Clocks, and the Ordering"), "lamport1978time: no title"),
+    ("a Zotero entry this paper does not cite is not its problem", "bib", append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), "!groupentry"),
+    ("a Zotero entry this paper cites is", "bib", both(append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), append(BG, "See~\\cite{groupentry}.")), "groupentry: no title"),
+    ("\\nocite{*} prints the whole Zotero library", "bib", both(append("bib/zotero.bib", "@misc{groupentry,\n  url = {https://example.org},\n}"), append(BG, "\\nocite{*}")), "groupentry: no title"),
+    ("a hand-written entry is checked uncited too", "bib", append("bib/references.bib", "@misc{ownentry,\n  url = {https://example.org},\n}"), "ownentry: no title"),
     ("cited key missing", "bib", append(BG, "See~\\cite{nosuchref}."), "nosuchref is in no .bib file"),
+    # a web source is a page, not a paper that has a link: a published paper or an archived preprint needs no access date
+    ("a web page without its access date", "bib", append("bib/references.bib", "@misc{somepage,\n  author = {{Some Owner}},\n  title = {Some Page},\n  year = {2026},\n  url = {https://example.org/page}\n}"), "somepage: a web source needs its access date"),
+    ("an ePrint preprint needs no access date", "bib", append("bib/references.bib", "@misc{someeprint,\n  author = {Doe, Jane},\n  title = {Some Preprint},\n  howpublished = {Cryptology ePrint Archive, Paper 2020/1},\n  year = {2020},\n  url = {https://eprint.iacr.org/2020/1}\n}"), "!someeprint: a web source"),
+    ("a published paper with a link needs no access date", "bib", append("bib/references.bib", "@inproceedings{somepaper,\n  author = {Doe, Jane},\n  title = {Some Paper},\n  booktitle = {Some Conference},\n  year = {2020},\n  url = {https://example.org/paper.pdf}\n}"), "!somepaper: a web source"),
+    # a hyphenated modifier before its noun is the open noun's own form; the same compound as a noun in two spellings is not
+    ("data set is written dataset", "terms", append(BG, "The data set holds the logs."), "'data set' (1): the term is 'dataset'"),
+    ("a compound as a noun in two spellings", "terms", append(BG, "We grow the read-set. The read set shrinks."), "read-set (1) also appears as 'read set' (1)"),
+    ("a hyphenated modifier next to its open noun", "terms", append(BG, "The private-input recovery reads the private input."), "!private-input"),
+    ("a chain of hyphens is one word", "terms", append(BG, "A state-of-the-art tool is the state of play."), "!state-of"),
     ("unicode lstinline", "code", append(BG, "The rule \\lstinline{∀x} holds."), "ASCII"),
     ("label prefix wrong", "labels", append(BG, "\\begin{table}\\caption{A table for the test.}\\label{fig:wrong}\\end{table}"), "expected prefix tab:"),
     ("running example missing from a chapter", "essentials", both(NAMED, OWN_BOX, lambda d: (d / BG).write_text(re.sub(r"\\begin\{runningexample\}.*?\\end\{runningexample\}", "", (d / BG).read_text(), flags=re.S))), "no example box in 02-background"),
@@ -305,6 +357,9 @@ MUTATIONS = [
     ("own example box counts", "essentials", both(NAMED, OWN_BOX, sub("draft.tex", "\\newcommand{\\lintexamplebox}{runningexample}", "\\newcommand{\\lintexamplebox}{cvd}"),
         lambda d: [(f).write_text(f.read_text().replace("{runningexample}", "{cvd}")) for f in (d / "content").glob("0[1-7]-*.tex")]), "intro ◔◔●◔◔◔◔◔"),
     ("hyphen range", "typography", append(BG, "This holds for pages 12-18 of the book."), "with a hyphen"),
+    ("a citation on its own line of a header cell", "typography", append(BG, "\\textbf{Indy}\\newline\\cite{lamport1978time} & x"), "!\\cite without a tie"),
+    ("a sentence twice in a row", "typography", append(BG, "The earlier run used an older interface of the registry.\nThe earlier run used an older interface of the registry. It reports nothing."), "the same sentence twice in a row"),
+    ("a short sentence twice is left alone", "typography", append(BG, "It holds. It holds."), "!the same sentence twice"),
     ("a name is not a range", "typography", append(BG, "The curve BLS12-381 on an i7-9750H."), "!range 12-381"),
     ("appendix theorem", "appendix-core", append("content/10-appendices.tex", r"\begin{theorem} A result.\end{theorem}"), "core element theorem is in an appendix"),
     ("appendix definition", "appendix-core", append("content/10-appendices.tex", r"\begin{definition} A concept.\end{definition}"), "core element definition is in an appendix"),
@@ -314,23 +369,45 @@ MUTATIONS = [
     ("appendix note theorem", "appendix-core", append("content/10-appendices.tex", r"\todo{\begin{theorem} A result.\end{theorem}}"), "!core element"),
     ("appendix supporting proof", "appendix-core", append("content/10-appendices.tex", r"\begin{proof} Supporting detail.\end{proof}"), "!core element"),
     ("main text theorem", "appendix-core", append(BG, r"\begin{theorem} A result.\end{theorem}"), "!core element"),
+    ("a three-part compound is one word", "terms", append(BG, "An atomic test-and-set makes the test and the set one step, peer-to-peer."), "!test-and"),
+    ("a number before a compound", "terms", append(BG, "The 95th-percentile latency and the 95th percentile agree."), "!th-percentile"),
     ("two chapters in one file", "chapters", append(BG, "\\chapter{Second}\nMore text."), "a second chapter in one file"),
     ("a file nothing includes", "orphans", lambda d: (d / "content/notes.tex").write_text("Some notes the author forgot to include in a chapter.\n"), "included nowhere"),
     ("own prose ends a stub", "stubs", append(BG, " ".join(["Own words of the author, written for this chapter."] * 25)), "!content/02-background.tex"),
     ("faculty placeholder text", "stock", append(BG, "A bevezető tartalmazza a diplomaterv-kiírás elemzését."), "placeholder text is still here"),
+    ("a character the font lacks", "build", append("final.log", "Missing character: There is no ✓ (U+2713) in font TeX Gyre Termes/OT:script=latn;language=dflt;!"), "✓ (U+2713) is missing from the font"),
     ("a chapter after the conclusion", "spine", lambda d: ((d / "content/08-extra.tex").write_text("\\chapter{Future Work}\nText.\n"),
         sub("draft.tex", "\\include{content/07-conclusion}\n", "\\include{content/07-conclusion}\n\\include{content/08-extra}\n")(d)), "after the conclusion"),
     ("amssymb in the own preamble", "preamble", append("include/macros.tex", "\\usepackage{amssymb}"), "amssymb next to unicode-math"),
     ("a template theorem defined again", "preamble", append("include/macros.tex", "\\newtheorem{lemma}{Lemma}"), "defines the lemma environment"),
     ("an option clash", "preamble", append("include/macros.tex", "\\usepackage[noend]{algpseudocode}"), "option clash"),
     ("Hungarian prose", "language", append(BG, "Ez a fejezet azt mutatja be, hogy a módszer hogyan működik és mit ad."), "Hungarian prose"),
+    ("a headline number missing from the evaluation", "numbers", append("content/01-introduction.tex", "A guarded update costs 4711 gas."), "number 4711 does not occur"),
+    ("a number inside a name is no result", "numbers", append("content/01-introduction.tex", "It uses BLS12-381 pairings, SHA-256, Ed25519 and Aries RFC~0104."), "!does not occur"),
     ("a numbered label", "labels", append(BG, "\\section{Extra}\\label{sec:3.4}"), "encodes a number"),
+    ("an appendix chapter labelled app:", "labels", append(BG, "\\appendix\n\\chapter{Proofs}\\label{app:proofs}\n\\section{Lemmas}\\label{app:proofs:lemmas}"), "!label app:proofs"),
+    ("a body section labelled app:", "labels", append(BG, "\\section{Extra}\\label{app:extra}"), "label app:extra inside sec"),
+    ("a tightened paragraph skip", "squeeze", append("include/macros.tex", "\\setlength{\\parskip}{0pt}"), "a changed \\parskip"),
+    ("a raised tolerance", "squeeze", append("include/macros.tex", "\\tolerance=1800"), "a raised \\tolerance"),
+    ("a patched chapter head", "squeeze", append("include/macros.tex", "\\makeatletter\\patchcmd{\\@makechapterhead}{\\vspace*{50\\p@}}{\\vspace*{10\\p@}}{}{}\\makeatother"), "a patched \\@makechapterhead"),
+    ("negative space in a chapter", "squeeze", append(BG, "\\vspace{-2em}"), "negative \\vspace"),
+    ("a narrower table is not a squeeze", "squeeze", append(BG, "{\\setlength{\\tabcolsep}{3pt}}"), "!tabcolsep"),
+    ("one section under a heading", "outline", sub("content/02-background.tex", "\\section{", "\\subsection{Only one}\n\\section{"), "a lone \\subsection"),
+    ("one paragraph under a heading", "outline", append(BG, "\\section{Alone}\n\\paragraph{Only}Text.\n\\section{Next}Text.\n\\section{Last}Text."), "a lone \\paragraph: a section divided"),
+    ("a chapter read by its place", "roles", sub("content/03-approach.tex", "\\chapter{Approach}\\label{ch:approach}", "\\chapter{System model}"), "reads as the approach"),
+    ("a role no chapter has", "roles", sub("content/04-implementation.tex", "\\label{ch:implementation}", "\\label{ch:approach:build}"), "no implementation chapter"),
+    ("AI use declared on the English form with blank rows", "aidecl", sub("content/09-ai-declaration.tex", "\\aibox\\enspace I used", "\\aiboxmarked\\enspace I used"), "every row is still the blank"),
     ("a chapter label that names no role", "roles", sub("content/04-implementation.tex", "\\label{ch:implementation}", "\\label{ch:impl}"), "names no role"),
     ("a chapter without a label", "roles", sub(BG, "\\chapter{Background}\\label{ch:background}", "\\chapter{Background}"), "no role label"),
     ("a named role label counts", "frame", sub("content/03-approach.tex", "\\label{ch:approach}", "\\label{ch:approach:method}"), "!no approach chapter"),
     ("a role spans two chapters", "essentials", both(own_items("content/03-approach.tex", "g"), second_evaluation), "!g:example is not checked"),
     ("tracked build output", "repo-hygiene", track("final.pdf"), "final.pdf: FAIL build output is tracked"),
+    ("a tracked minted data file", "repo-hygiene", both(lambda d: (d / "_2EF71E68.data.minted").write_text("{}\n"), track("_2EF71E68.data.minted")), "_2EF71E68.data.minted: FAIL build output is tracked"),
     ("a typed TBD", "markers", append(BG, "The proving time is TBD for now."), "a typed TBD"),
+    # sample keys match whole: a paper's own w3c2025vcdm2 is not the template's sample
+    ("a key that extends a sample key", "placeholders", both(sub("content/06-related-work.tex", "{lamport1978time}", "{lamport1978time2}"), sub("content/06-related-work.tex", "{w3c2025vcdm}", "{w3c2025vcdm2}")), "!content/06-related-work.tex:32: warn sample citation"),
+    ("the word placeholder in prose", "placeholders", append(BG, "A sorry is a placeholder for a missing proof."), "!1 placeholder figure"),
+    ("a placeholder figure", "placeholders", append(BG, "\\begin{figure}\\centering Placeholder\\caption{A figure.}\\end{figure}"), "1 placeholder figure"),
     ("a typed citation marker", "markers", append(BG, "This is well known [CITE: the survey]."), "a typed [CITE"),
     ("a gap marker left at the submit phase", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "is still here"),
     ("a TBD inside a todo is not typed into the text", "markers", append(BG, "Text.\\todo{TBD later}"), "!a typed TBD"),
@@ -355,14 +432,21 @@ MUTATIONS = [
     ("a companion paper cited", "companion", append(BG, "A companion paper~\\cite{lamport1978time} verifies the protocol."), "attached to a companion paper"),
     ("a companion paper linked", "companion", append(BG, "The protocol is verified in \\href{https://example.org/paper.pdf}{a companion paper}."), "attached to a companion paper"),
     ("a companion paper named, its tool cited", "companion", append(BG, "A companion paper verifies the protocol in Tamarin~\\cite{lamport1978time}."), "!attached to a companion paper"),
+    ("this paper's Zenodo artifact, its release named after the TDK", "companion", both(append("bib/references.bib", f"@misc{{ownartifact,\n  author = {{Di{{\\'a}}k, D{{\\'o}}ra}},\n  title = {{Models and scripts of this paper}},\n  howpublished = {{Zenodo, release {{TDK-Scalability}}}},\n  year = {{{YEAR}}},\n  doi = {{10.5281/zenodo.1234567}}\n}}"),
+        append(BG, "The models are archived~\\cite{ownartifact}.")), "!is a TDK paper of"),
     # the citation reader: spaces and line breaks where TeX allows them, nothing from notes
     ("cited key missing after a space", "bib", append(BG, "See~\\cite {nosuchref}."), "nosuchref is in no .bib file"),
     ("cited key missing after a line break", "bib", append(BG, "See~\\cite\n{nosuchref}."), "nosuchref is in no .bib file"),
+    ("a sample source cited for itself", "placeholders", both(sub("content/06-related-work.tex", "\\\\\\cite{lamport1978time}", ""), sub("content/06-related-work.tex", "\\\\\\cite{w3c2025vcdm}", ""),
+        append(BG, "Clocks follow~\\cite{lamport1978time}.")), "!sample citation"),
     ("cited key missing on the next line", "bib", append(BG, "See~\\cite{lamport1978time,\n  nosuchref}."), "nosuchref is in no .bib file"),
     ("cited key missing after an optional argument and a space", "bib", append(BG, "See~\\citep[Section 2] {nosuchref}."), "nosuchref is in no .bib file"),
     ("a citation in a comment environment is not read", "bib", append(BG, "\\begin{comment}\nSee~\\cite{nosuchref}.\n\\end{comment}"), "!nosuchref"),
     ("a citation in a picture is read", "bib", append(BG, "\\begin{tikzpicture}\\node {Prior work~\\cite{nosuchref}};\\end{tikzpicture}"), "nosuchref is in no .bib file"),
     ("a citation in a code listing is not read", "bib", append(BG, "\\begin{lstlisting}\n\\cite{nosuchref}\n\\end{lstlisting}"), "!nosuchref"),
+    ("an access date in a note after a link", "bib", append("bib/references.bib", "@misc{noteurl,\n  author = {{W3C}},\n  title = {A page},\n  year = {2025},\n  url = {https://example.org/},\n  note = {Source: \\url{https://example.org/src}; accessed 2026-10-09}\n}"), "!noteurl: a web source needs its access date"),
+    ("a web source without an access date", "bib", append("bib/references.bib", "@misc{noteurl,\n  author = {{W3C}},\n  title = {A page},\n  year = {2025},\n  url = {https://example.org/},\n  note = {Source: \\url{https://example.org/src}}\n}"), "noteurl: a web source needs its access date"),
+    ("a web source with editors", "bib", append("bib/references.bib", "@misc{edited,\n  editor = {Ann Editor},\n  title = {A specification},\n  year = {2025},\n  url = {https://example.org/},\n  urldate = {2026-10-09}\n}"), "!edited: a web source names the page's owner"),
     # the phase is one of the lifecycle's seven, wherever it comes from; final is no alias of submit
     ("an old phase name is no alias", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "unknown phase 'final'", {"args": "--doc final --phase final", "exit": 2, "fresh": True}),
     ("the first four phases share a level", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc final --phase research", "fresh": True}),
@@ -370,10 +454,15 @@ MUTATIONS = [
     ("an unknown phase in draft.tex stops the lint", "markers", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "from \\lintphase in draft.tex", {"args": "--doc final", "exit": 2}),
     ("an unknown phase on the Checks page", "markers", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{fnial}"), "The lint did not run", {"args": "overleaf --tex", "exit": 2}),
     # a rule that cannot run says skipped, and --json carries every rule's result
+    ("the word placeholder in prose is not counted", "burndown", append(BG, "The prover replaces hashes with placeholders."), '!placeholders\\":1', {"args": "--doc final --phase submit --json"}),
+    ("an offline Zenodo check is skipped, not passed", "zenodo", lambda d: None, "zenodo        check   skipped", {"fresh": True}),
+    ("an offline portal check is skipped, not passed", "portal", lambda d: None, "portal        check   skipped", {"fresh": True}),
     ("an offline link check is skipped, not passed", "links", lambda d: None, "links         advice  skipped", {"fresh": True}),
     ("a PDF rule without a PDF is skipped", "pdf-margins", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
     ("json carries the findings of every rule", "bib", append(BG, "See~\\cite{nosuchref}."), '"msg":"cited key nosuchref is in no .bib file","rule":"bib"', {"args": "all --doc final --phase submit --json", "exit": 1}),
     # fixes never edit literal text: code listings, inline verbatim, links, maths
+    ("a tilde used for about", "typography", append(BG, "Each record costs ~5,600 cycles."), "prints a space, not 'about'"),
+    ("a tie before a number is a tie", "typography", append(BG, "See Table~3 and page~12."), "!prints a space, not 'about'"),
     ("a code listing's Figure~\\ref is the program's text", "crefs", append(BG, "\\begin{lstlisting}\nFigure~\\ref{fig:overview}\n\\end{lstlisting}"), "!typed reference"),
     ("inline verbatim is the program's text", "crefs", append(BG, "The macro \\verb|Figure~\\ref{fig:overview}| is typed as text."), "!typed reference"),
     ("a quote inside verbatim is not rewritten", "typography", append(BG, 'The string \\verb|"abc"| is a literal; "quoted" text follows.'), '!\\verb|\\enquote{abc}|'),
@@ -420,8 +509,8 @@ MUTATIONS = [
     ("an evaluation pointer alone does not justify N/A", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapna\\,(\\cref{rq:correct})")), "N/A cell needs a reason"),
     # The guide's matrix points directly at a theorem in the approach, outside evaluation.
     ("the guide's direct theorem evidence outside evaluation", "essentials", both(filled_gap,
-        append("content/03-approach.tex", "\\begin{theorem}[Bounded staleness]\\label{thm:guide:stale}\nAn accepted credential was not revoked more than the allowed delay before its check.\n\\end{theorem}"),
-        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:guide:stale})")), "related ◔●◔"),
+        append("content/03-approach.tex", "\\begin{theorem}[Bounded staleness]\\label{thm:stale}\nAn accepted credential was not revoked more than the allowed delay before its check.\n\\end{theorem}"),
+        sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{thm:stale})")), "related ◔●◔"),
     ("a lemma outside evaluation is evidence", "essentials", both(filled_gap, sub("content/06-related-work.tex", "\\gapyes\\,(\\cref{rq:correct})", "\\gapyes\\,(\\cref{lem:helper})")), "related ◔●◔"),
     ("a theorem's environment determines evidence, not its prefix", "essentials", both(filled_gap,
         append("content/03-approach.tex", "\\begin{corollary}\n\\label{sec:bounded-result} Every accepted witness satisfies the bound.\n\\end{corollary}"),
@@ -445,6 +534,7 @@ MUTATIONS = [
     ("a misspelt title", "spelling", sub("draft.tex", "\\newcommand{\\vikcim}{TODO Title of the paper}", "\\newcommand{\\vikcim}{Revocation and revovation of credentials}"), "revovation"),
     # code is the program's text: no typography slip in \texttt, \lstinline or a verbatim block, and no
     # marker or abbreviation in a verbatim block, an \iffalse region or \verb
+    ("a table row's last cell on its own line is not a line break", "typography", append(BG, "\\begin{tabular}{ll}\n  a &\n  the last cell of the row \\\\\n\\end{tabular}"), "!manual line break"),
     ("a space before a colon in \\texttt is code", "typography", append(BG, "The kernel \\texttt{x : Nat} is typed."), "!space before punctuation"),
     ("a space before a colon in \\lstinline is code", "typography", append(BG, "The signature \\lstinline{f : A -> B} is typed."), "!space before punctuation"),
     ("a range in a verbatim block is the program's text", "typography", append(BG, "\\begin{verbatim}\npages 3-4\n\\end{verbatim}"), "!with a hyphen"),
@@ -468,9 +558,26 @@ MUTATIONS = [
     # the PDF rules on a PDF of known text (pdf_with): a placeholder is a whole word, and no PDF is a skip
     ("a placeholder word printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "The proving time is TBD for now.")]), "TBD is printed in the PDF", {"args": "--doc tiny --phase submit"}),
     ("a roman numeral is not the XXX placeholder", "pdf-parts", pdf_with("tiny.pdf", [(700, "XXXVI. OTDK, Vol. TBDX")]), "!is printed in the PDF", {"args": "--doc tiny --phase submit"}),
+    ("an overall share its justification contradicts", "aidecl", both(
+        sub("content/09-ai-declaration.tex", "with respect to the substantive part of the work)}} & --", "with respect to the substantive part of the work)}} & 30\\%"),
+        sub("content/09-ai-declaration.tex", "overall value:} TODO", "overall value:} About 35\\% of the work came from the model.")), "the overall share is 30%, its justification says 35%"),
+    ("a missing AI declaration fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "Abstract Kivonat Contents Budapest University of Technology")]), "missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
+    ("an assistant's citation marker printed in the PDF", "pdf-parts", pdf_with("tiny.pdf", [(700, "Reference number: 83303. :contentReference[oaicite:0]index=0.")]), "citation marker (oaicite) is printed in the PDF", {"args": "--doc tiny --phase submit"}),
+    ("an AI declaration headed in English is present", "pdf-parts", pdf_with("tiny.pdf", [(700, "Declaration on the Use of Generative Artificial Intelligence")]), "!missing from the PDF: generat", {"args": "--doc tiny --phase submit"}),
+    ("a gap marker printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "Proving takes [missing] on a laptop.")]), "[missing] is printed in the PDF", {"args": "--doc tiny --phase submit"}),
+    ("a todo printed in the reviewer build fails", "pdf-parts", pdf_with("tiny.pdf", [(700, "TODO: the proving time")]), "1 TODO still printed in the PDF", {"args": "--doc tiny --phase submit"}),
+    ("a todo printed in the draft is a notice", "pdf-parts", pdf_with("draft.pdf", [(700, "TODO: the proving time")]), "the draft shows them", {"args": "--doc draft --phase submit"}),
     ("pdf-parts without a PDF is skipped", "pdf-parts", lambda d: None, "skipped", {"args": "--doc nosuchdoc --phase submit", "fresh": True}),
+    # a math script is set small by design and touches its base; a figure label stands alone
+    ("a math subscript is not small text", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (698, "t+1", 6, 80)]), "!below 10 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    ("a figure label below 10 pt still warns", "pdf-smalltext", pdf_with("tiny.pdf", [(700, "w", 10, 72), (500, "0.5", 9, 300)]), "1 text runs below 10 pt", {"args": "--doc tiny --phase submit", "exit": 0}),
     # the line pitch is the most common one (14 here: 8 of 14, 7 of 20, 6 of 26, whose median is 20), and too few lines are a warning
     ("the line pitch is the most common pitch, not the median", "pdf-spacing", pdf_with("tiny.pdf", pitched([14, 14, 20, 26, 14, 20, 26, 14, 14, 20, 26, 14, 20, 26, 14, 20, 26, 14, 20, 26, 20])), "pitch=14.0pt", {"args": "--doc tiny --phase submit", "exit": 0}),
+    # a page number low on the page is not text in the margin, in roman numerals too (the abstracts' i, ii)
+    ("a roman page number is not text in the bottom margin", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(10, "ii")]), "!on page 1;", {"args": "--doc tiny --phase submit"}),
+    # a listing's last run starts past the text column: text at submit, where no margin note is left, and taken for a note in a draft
+    ("a listing run past the column is text at submit", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(400, "values and th", 12, 470, 2)]), "right margin is 10.9", {"args": "--doc tiny --phase submit"}),
+    ("a run past the column is a margin note in a draft", "pdf-margins", pdf_with("tiny.pdf", pitched([14] * 12) + [(400, "values and th", 12, 470, 2)]), "!right margin is 10.9", {"args": "--doc tiny --phase polish"}),
     ("too few lines to measure the pitch is a warning", "pdf-spacing", pdf_with("tiny.pdf", pitched([20, 20, 20, 20, 20])), "only 5 line pitches to measure", {"args": "--doc tiny --phase submit", "exit": 0}),
     # an overfull box is placed at the source lines the log names, so a lint-ignore there silences it; under a point it is invisible
     ("an overfull box at its source lines", "overfull", append("final.log", "(./content/02-background.tex\nOverfull \\hbox (12.5pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "content/02-background.tex:7: FAIL overfull by 12.5pt at lines 7-9"),
@@ -478,6 +585,8 @@ MUTATIONS = [
         tag_line(BG, 7, "lint-ignore: overfull the long identifier stays")), "!overfull by"),
     ("an overfull box under a point is invisible", "overfull", append("final.log", "(./content/02-background.tex\nOverfull \\hbox (0.4pt too wide) in paragraph at lines 7--9\n[]\\TU/TeXGyreTermes(0)/m/n/12 Some text\n)"), "!overfull by"),
     # the phase declaration is trimmed wherever it is read
+    ("the date raises a declared phase", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "is still here", {"args": "--doc final", "env": {"LINT_DATE": "2026-10-31"}}),
+    ("--phase is taken as given whatever the date", "markers", append(BG, "Proving takes \\tbd{the proving time}."), "!is still here", {"args": "--doc final --phase plan", "env": {"LINT_DATE": "2026-10-31"}}),
     ("a phase with spaces around it is the phase", "markers", both(append(BG, "Proving takes \\tbd{the proving time}."), sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ submit }")), "is still here", {"args": "--doc final"}),
     ("a phase with spaces around it keeps the frame", "frame", sub("draft.tex", "\\newcommand{\\lintphase}{plan}", "\\newcommand{\\lintphase}{ draft }"), "!no \\lintphase", {"args": "--doc final"}),
 ]
@@ -491,6 +600,8 @@ def lint(d, rule, args=ARGS, env=None):
     The cases read the lint's plain output, so GitHub's variables are kept from it: under
     GITHUB_ACTIONS the lint prints workflow commands instead, with the help on the annotation."""
     cmd = args if args.split()[0] in ("overleaf", "all", "source") else f"{rule} {args}"
+    # a date before October, so the calendar does not raise a declared phase; a case may set its own
+    env = {"LINT_DATE": "2026-06-01", **(env or {})}
     plain = {k: v for k, v in os.environ.items() if not k.startswith("GITHUB_")}
     plain.update(env or {})
     if shutil.which("texlua"):
@@ -568,7 +679,12 @@ def main():
             shutil.rmtree(d)
             continue
         out, code = lint(d, rule, args, opts.get("env"))
-        why = ran(out, code, rule, opts)
+        # a case that needs a tool this image lacks (aspell) is reported as skipped, not as a miss
+        if opts.get("may_skip") and opts["may_skip"] in out:
+            print(f"SKIP  {rule:13s} {name}: {opts['may_skip']} here")
+            shutil.rmtree(d)
+            continue
+        why = ran(out, code, rule, {k: v for k, v in opts.items() if k != "may_skip"})
         ok = why is None and ((expect[1:] not in out) if negate else (expect in out))
         missed += not ok
         print(f"{'ok  ' if ok else 'MISS'}  {rule:13s} {name}")

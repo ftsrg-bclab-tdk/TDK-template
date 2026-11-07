@@ -1,6 +1,6 @@
 \part*{Guide: reference\addcontentsline{toc}{part}{Guide: reference}}
 %----------------------------------------------------------------------------
-\chapter{TDK rules and dates}\label{app:tdk}
+\chapter{TDK rules and dates}\label{guide:tdk}
 %----------------------------------------------------------------------------
 Present your research in a TDK paper at the \href{https://tdk.bme.hu/}{Students' Scientific Conference} (Tudományos Diákköri Konferencia; \href{https://tdk.bme.hu/conference/VIK/2026}{this year's faculty call}). The conference gives a semester's work a written result, a review and a presentation. The best papers qualify for the national round, the \href{https://otdk.hu/}{OTDK}.
 
@@ -8,13 +8,13 @@ Present your research in a TDK paper at the \href{https://tdk.bme.hu/}{Students'
 \begin{itemize}
   \item The \href{https://tdk.bme.hu/}{BME TDK portal} and the \href{https://tdk.bme.hu/conference/VIK/2026}{faculty's page for the current year}: check the call, the templates, the FAQ, and the review sheet. Calls change from year to year.
   \item The group's \href{https://github.com/ftsrg/cheat-sheets/wiki/TDK-Howto}{TDK Howto} covers portal steps, the slide template and presentation advice. Its chapter page ranges predate the call's 30--35 page limit. Follow the call.
-  \item Past first-place papers of the research group and of neighbouring groups at the faculty (\cref{app:tdk:papers}), for structure and tone.
+  \item Past first-place papers of the research group and of neighbouring groups at the faculty (\cref{guide:tdk:papers}), for structure and tone.
 \end{itemize}
 
-\section{Official dates}\label{app:tdk:dates}
-The portal publishes dates each year. These are the 2026 dates, shown in \cref{fig:timeline} and planned for in \cref{tab:lifecycle}.
+\section{Official dates}\label{guide:tdk:dates}
+The portal publishes dates each year. These are the 2026 dates, shown in \cref{guide:fig:timeline} and planned for in \cref{guide:tab:lifecycle}.
 \begin{itemize}
-  \item \textbf{1--30 September:} register on the portal with Hungarian and English abstracts (the paper's Kivonat and Abstract). At this stage, they describe the planned work (\cref{app:writing:abstract}). Registration is required to submit a paper.
+  \item \textbf{1--30 September:} register on the portal with Hungarian and English abstracts (the paper's Kivonat and Abstract). At this stage, they describe the planned work (\cref{guide:writing:abstract}). Registration is required to submit a paper. Once submitted, the title and both abstracts are fixed: the paper prints them as the portal has them, and the lint's \texttt{portal} rule fetches your record by the author name in \texttt{draft.tex} and fails when the title, the Abstract or the Kivonat differ from it.
   \item \textbf{1 October -- 1 November:} upload the paper. The portal closes on the last day.
   \item \textbf{2--16 November:} the reviewers read and score the paper.
   \item \textbf{18 November:} conference day. The plenary starts at 8:00 and section presentations at 8:30. Each presentation has fifteen minutes plus five for questions. The awards ceremony is that evening.
@@ -26,7 +26,7 @@ The portal publishes dates each year. These are the 2026 dates, shown in \cref{f
 \begin{figure}[!ht]
   \centering
   % One unit = one day from 1 September (1 October is 30, 1 November is 61).
-  % The phases follow tab:lifecycle: draft 1--22 October, the full draft ten days before the deadline (22 October, day 51), polish 22--28 October, submit 29 October -- 1 November.
+  % The phases follow guide:tab:lifecycle: draft 1--22 October, the full draft ten days before the deadline (22 October, day 51), polish 22--28 October, submit 29 October -- 1 November.
   \newcommand{\tlband}[6]{\fill[#5, rounded corners=1.2pt] (#1,#3) rectangle (#2,#4); \node[font=\footnotesize, #6] at ({(#1+#2)/2},{(#3+#4)/2}) {\strut};}
   \begin{tikzpicture}[x=0.142cm, y=1cm, every node/.style={inner sep=1.5pt}]
     % months and weeks
@@ -78,10 +78,10 @@ The portal publishes dates each year. These are the 2026 dates, shown in \cref{f
       \node[font=\footnotesize\bfseries, text=green!45!black, anchor=north, align=center] at (\d,-3.35) {department\\\t};
     }
   \end{tikzpicture}
-  \caption{The faculty's deadlines are yellow; our phases are teal, with three anchors in red. Green marks the department's writing session just before upload, and its presentation rehearsal two days before the conference. The semester lane shows the 2026 autumn dates as known in October 2026.}\label{fig:timeline}
+  \caption{The faculty's deadlines are yellow; our phases are teal, with three anchors in red. Green marks the department's writing session just before upload, and its presentation rehearsal two days before the conference. The semester lane shows the 2026 autumn dates as known in October 2026.}\label{guide:fig:timeline}
 \end{figure}
 
-\section{Form requirements}\label{app:tdk:form}
+\section{Form requirements}\label{guide:tdk:form}
 The faculty's call states these requirements under \enquote{A dolgozat formai és terjedelmi követelményei}; the template already follows them. Each part of the call is quoted, then summarised.
 \begin{itemize}
   \item \textbf{Terjedelem:} \enquote{A dolgozat hossza 30--35 oldal, amely a törzsszövegre vonatkozik. A fedlap, az opcionális feladatkiírás, a tartalomjegyzék, az irodalomjegyzék, az absztrakt és a mellékletek (appendix) nem számítanak bele az oldalszámba.}
@@ -101,19 +101,23 @@ The faculty's call states these requirements under \enquote{A dolgozat formai é
   \item \textbf{Hasznos segédanyagok:} \enquote{A dolgozat elkészítéséhez sablonok érhetők el a Letöltések menüpont alatt. Ezek alapvetően diplomaterv-sablonok, ezért a formai követelményekhez igazodva előfordulhat, hogy kisebb módosításokra lesz szükség (pl.\ margók, címsorok beállítása).}
   The faculty's templates under \emph{Letöltések} are diploma thesis templates, so they need small changes for the TDK, such as margins and headings. This template has them.
 \end{itemize}
-Our reading of the length: the main text (törzsszöveg) runs from the first page of \tplref{ch:intro} to the last page of the conclusion (\path{content/07-conclusion.tex}). The acknowledgements, the glossary lists and the AI declaration are not main text. The lint counts the pages this way and fails outside 30--35 at \texttt{submit}; that is our requirement.
+Our reading of the length: the main text (törzsszöveg) runs from the first page of \tplref{ch:intro} to the last page of the conclusion (\path{content/07-conclusion.tex}). Between the table of contents and the bibliography stand only the abstract and the main text; the acknowledgements, the lists, the AI declaration and the appendices follow the bibliography. The acknowledgements, the glossary lists and the AI declaration are not main text. The lint counts the pages this way and fails outside 30--35 at \texttt{submit}; that is our requirement. Meet it by cutting, never by squeezing: keep the template's paragraph, list, display and heading spacing, its margins and its line breaking. The \texttt{squeeze} rule fails on a changed skip or separation, \texttt{\textbackslash linespread}, a raised \texttt{\textbackslash tolerance}, a negative \texttt{\textbackslash vspace}, \texttt{\textbackslash enlargethispage} or a patched heading. A table may still set its own \texttt{\textbackslash tabcolsep} to fit the text width. When you cut, keep every essential (\cref{guide:writing:essentials}) in the main text and move its evidence: a reduced architecture figure stays in the approach and the full one goes to the appendix; the verdicts stay in the correctness table and the theorems behind them go to an appendix table. A reader and the lint look for the essentials in the main text.
 
-\section{Two papers in one year}\label{app:tdk:companion}
-A topic sometimes yields two TDK papers in the same year: you write both, or you and a fellow student write neighbouring parts of one project, such as a system in one paper and its formal verification in the other. Each paper is then the other's \emph{companion paper}, and three rules hold.
+\section{Two papers in one year}\label{guide:tdk:companion}
+A topic sometimes yields two TDK papers in the same year: you write both, or you and a fellow student write neighbouring parts of one project, such as a system in one paper and its formal verification in the other. Each paper is then the other's \emph{companion paper}, and these rules hold.
 \begin{itemize}
   \item \textbf{Never cite or link it.} It gets no bibliography entry and no Overleaf, GitHub or portal link. Citing it is very bad practice. The two papers are reviewed at the same time, each on its own, so the reviewer scores this paper against a source that is not published and that nobody has reviewed yet, and the citation suggests one contribution cut in two.
   \item \textbf{Call it a companion paper.} Where the reader needs to know where this paper ends, one sentence says what the other one does, without its title: \enquote{A companion paper verifies the registry's revocation protocol in Tamarin; this paper builds the registry and measures it.}
-  \item \textbf{Restate what this paper needs from it.} The core part this paper relies on, such as a system model, its definitions or a protocol, goes into the background chapter (\cref{app:chapters:background}), condensed to what this paper uses, so that the paper reads without the other. It is background here even if you wrote it, so claim each result in only one of the two papers. Keep these core elements in the main text even when space is tight. An appendix may hold supporting detail, but no theorem, definition or other core element (\cref{app:chapters}).
+  \item \textbf{Restate what this paper needs from it.} The core part this paper relies on, such as a system model, its definitions or a protocol, goes into the background chapter (\cref{guide:chapters:background}), condensed to what this paper uses, so that the paper reads without the other. It is background here even if you wrote it, so claim each result in only one of the two papers. Keep these core elements in the main text even when space is tight. An appendix may hold supporting detail, but no theorem, definition or other core element (\cref{guide:chapters}).
 \end{itemize}
-The \texttt{companion} rule of the lint (\cref{app:code:paperci}) fails on a citation of a TDK paper of the same year; on a link to an Overleaf project, to a paper of this year's TDK on the portal or to the repository of a TDK paper of this year other than this paper's own, the first repository the implementation chapter cites or links; and on a citation or link attached to the words \enquote{companion paper}.
+The \texttt{companion} rule of the lint (\cref{guide:code:paperci}) fails on a citation of a TDK paper of the same year; on a link to an Overleaf project, to a paper of this year's TDK on the portal or to the repository of a TDK paper of this year other than this paper's own, the first repository the implementation chapter cites or links; and on a citation or link attached to the words \enquote{companion paper}.
 
-\section{The review sheet}\label{app:tdk:sheet}
-The bundled 2025 review sheet (bírálói lap), saved in \texttt{docs/}, is a reference; check the current faculty call for the applicable sheet. It awards 35 points across five criteria: A form and style, B figures and literature, C topic, D originality and soundness, and E introduction and evaluation. \Cref{app:chapters} explains how to argue relevance, non-triviality, novelty and correctness throughout the paper. Each of its sections quotes the sheet's lower steps, the ones a weak chapter lands on, so you can assess your work in the reviewer's wording. The top scores are defined as follows:
+\paragraph{Continuing your own earlier paper.} A paper may build on your own TDK paper of an earlier year, or on a conference paper you co-authored. That paper is published, so cite it like any other. Give it one paragraph, in the introduction or the background: what the earlier paper did, what this one carries over from it, and what is new here. The contributions and the evaluation then claim only the new part.
+
+\paragraph{A weakness in a deployed system.} If your work finds a vulnerability in a product, a service or a deployed protocol that others use, tell your advisors first, then notify the owner privately and give them time to fix it before the paper or its code becomes public. Say in the paper that the owner was notified and when, and leave out what would let a reader exploit an unfixed system.
+
+\section{The review sheet}\label{guide:tdk:sheet}
+The bundled 2025 review sheet (bírálói lap), saved in \texttt{docs/}, is a reference; check the current faculty call for the applicable sheet. It awards 35 points across five criteria: A form and style, B figures and literature, C topic, D originality and soundness, and E introduction and evaluation. \Cref{guide:chapters} explains how to argue relevance, non-triviality, novelty and correctness throughout the paper. Each of its sections quotes the sheet's lower steps, the ones a weak chapter lands on, so you can assess your work in the reviewer's wording. The top scores are defined as follows:
 \begin{description}[noitemsep]
   \item[A. Szerkesztés, stílus (0--5)] \enquote{4--5: kiváló (ha a dolgozat közel hibamentes, jól tagolt, követhető, gördülékeny stílusú)}. The sheet also says: \enquote{Terjedelmi korlát 30--35 oldal. Ettől eltérés esetén 3 oldalanként 1 pont levonás javasolt.} \enquote{Műszaki tudományi OTDK szekcióba 50 oldal felett nem fogadnak dolgozatot.} The sheet recommends that reviewers deduct the point; it does not require them to.
   \item[B/1. Ábrák, táblázatok] \enquote{4: kiváló (a dolgozat megfelelő számú és jól átgondolt ábrát, táblázatot tartalmaz, és a szakirodalmi hivatkozások pontosak)}.

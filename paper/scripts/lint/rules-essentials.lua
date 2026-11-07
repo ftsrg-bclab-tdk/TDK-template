@@ -198,7 +198,7 @@ end
 
 local TEXT_USED = {
   introgap = function(f, a, b)
-    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^tab:related$") + refs_in_span(f, a, b, "^fig:positioning$") > 0 then return true end
+    if refs_in_span(f, a, b, "^ch:related") + refs_in_span(f, a, b, "^tab:related$") + refs_in_span(f, a, b, "^fig:positioning$") + refs_in_span(f, a, b, "^tab:positioning$") > 0 then return true end
     return false, "point to the full comparison: \\cref{ch:related}, \\cref{tab:related} or \\cref{fig:positioning}"
   end,
   setup = function()
@@ -368,7 +368,11 @@ local TAG_USED = {
     each_unreferenced(tag_items("dr"), "evaluation", "is not checked in the evaluation", miss)
   end,
   c = function(items, miss)
-    for _, it in ipairs(items) do if not it.text:match("\\[cC]ref{ch:") then miss[#miss + 1] = it.key .. " points to no chapter" end end
+    -- a section of a chapter is a chapter pointer too, and a more precise one
+    for _, it in ipairs(items) do
+      local t = it.text
+      if not (t:match("\\[cC]ref{%s*ch:") or t:match("\\[cC]ref{%s*sec:") or t:match("\\[cC]ref{%s*subsec:")) then miss[#miss + 1] = it.key .. " points to no chapter" end
+    end
     each_unreferenced(items, "conclusion", "is not restated in the conclusion", miss)
   end,
   thr = function(items, miss) each_unreferenced(items, "approach", "is not met in the approach", miss) end,
@@ -384,14 +388,54 @@ local function first_of(list, n)
   return s
 end
 
+-- a heading of the paper that names the row, outside the tagged list's own place: a student who
+-- wrote the items as prose under their own heading left the skeleton's list behind
+local function heading_naming(row, skip_file, skip_line, prose)
+  local word = row.title:lower():match("%a+")
+  -- prose that stands in for the list counts only in the row's own chapter: a background section
+  -- on a tool's limitations is not the paper's limitations
+  for _, f in ipairs(prose and C.role_files(row.role) or C.MAIN) do
+    for n, raw in ipairs(C.lines(f)) do
+      local l = C.strip_comment(raw):gsub("(\\%a+%*?)%s*%b[]", "%1")
+      local t = l:match("\\%a*section%*?%s*{([^}]*)}") or l:match("\\paragraph%*?%s*{([^}]*)}")
+      -- the skeleton's own headings are where the list belongs, not a sign of another one
+      local own_heading = not C.skeleton_lines()[C.prose_key(raw)]
+      if t and t:lower():find(word, 1, true) and not (f == skip_file and math.abs(n - skip_line) <= 3) then
+        if prose then
+          -- any heading, the skeleton's too, with the student's own words under it before the next one
+          local ls = C.lines(f)
+          for m = n + 1, #ls do
+            local x = C.strip_comment(ls[m])
+            if x:match("\\%a*section") or x:match("\\chapter") then break end
+            if x:match("%a%a%a") and not x:match("^%s*\\") and not x:match("TODO") and not C.skeleton_lines()[C.prose_key(ls[m])] then return f, n, t end
+          end
+        elseif own_heading then return f, n, t end
+      end
+    end
+  end
+end
+
 local function eval_tags(row, r)
   local items = tag_items(row.prefix)
-  if #items == 0 then return 0, row.add end
+  if #items == 0 then
+    -- written as prose under its own heading: started, not missing; the tagged list is what the
+    -- rest of the paper can reference
+    local hf, hn, ht = heading_naming(row, nil, 0, true)
+    if hf then
+      r.where = place(hf, hn, hn)
+      return 2, string.format("written as prose under \"%s\": put the items in the tagged list, so the paper can reference them", C.trim(ht))
+    end
+    return 0, row.add
+  end
   r.where = place(items[1].file, items[1].line, items[1].stop)
   local own = 0
   for _, it in ipairs(items) do if own_item(it) then own = own + 1 end end
   r.items, r.own = #items, own
-  if own == 0 then return 1, string.format("%d item%s, all TODO or the template's text: write them", #items, #items == 1 and "" or "s") end
+  if own == 0 then
+    local hf, hn, ht = heading_naming(row, items[1].file, items[1].line)
+    local hint = hf and string.format("; %s:%d has a heading \"%s\": move its items into this list and delete the template's", hf, hn, C.trim(ht)) or ""
+    return 1, string.format("%d item%s, all TODO or the template's text: write them%s", #items, #items == 1 and "" or "s", hint)
+  end
   if own < #items then return 2, string.format("%d of %d items written; the rest are TODO or the template's text", own, #items) end
   local used = TAG_USED[row.prefix]
   if not used then return 4 end
@@ -464,12 +508,20 @@ local FLOAT_USED = {
 }
 
 local function eval_float(row, r)
-  local fl = find_float(C.main_chapters(), row.label)
-  if not fl then return 0, row.add end
+  -- a row may accept a second label: the positioning figure as a table, tab:positioning
+  local label = row.label
+  local fl = find_float(C.main_chapters(), label)
+  if not fl and row.alt then fl = find_float(C.main_chapters(), row.alt); if fl then label = row.alt end end
+  if not fl then
+    -- moved out of the main text, typically to an appendix to meet the page limit
+    local elsewhere = find_float(C.CONTENT, label)
+    if elsewhere then return 0, string.format("%s is outside the main text (%s:%d); the reviewer looks for it in the %s: move it back", label, elsewhere.file, elsewhere.line, C.ROLE_NAME[row.role] or row.role) end
+    return 0, row.add
+  end
   r.where = place(fl.file, fl.line, fl.last)
-  local body, cap = float_parts(fl, row.label)
-  local sk = find_float(C.skeleton_files(), row.label)
-  local skbody = sk and float_parts(sk, row.label)
+  local body, cap = float_parts(fl, label)
+  local sk = find_float(C.skeleton_files(), label)
+  local skbody = sk and float_parts(sk, label)
   if body:match("[Pp]laceholder") or (skbody and skbody == body) then return 1, "still the template's placeholder: make it your own" end
   local words = 0
   for _ in C.prose(cap):gmatch("%a%a+") do words = words + 1 end
@@ -478,7 +530,7 @@ local function eval_float(row, r)
   if words < 6 or not C.trim(cap):match("%.$") then return 2, "the caption is shorter than a sentence: say what the reader should see" end
   local used = FLOAT_USED[row.id]
   local ok, why
-  if used then ok, why = used(fl) else ok = main_refs(row.label) > 0; why = "reference it from the text: \\cref{" .. row.label .. "}" end
+  if used then ok, why = used(fl) else ok = main_refs(label) > 0; why = "reference it from the text: \\cref{" .. label .. "}" end
   if ok then return 4, used and why or nil end
   return 3, why
 end
@@ -604,6 +656,7 @@ function M.gapmatrix()
   for _, cells in ipairs(parsed) do
     local req = cells[1]:match("\\ref%s*{(req:[^}]*)}")
     if req then
+      cells[1] = "\\ref{" .. req .. "}" -- the row's name in messages, without a \midrule before it
       rows[#rows + 1] = cells; ncols = ncols or #cells
       if #cells ~= ncols then fails[#fails + 1] = "gap matrix rows have different numbers of cells" end
       if seen[req] then fails[#fails + 1] = req .. " has two rows in the gap matrix" end

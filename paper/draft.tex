@@ -1,6 +1,7 @@
 % !TeX spellcheck = en_GB
 % !TeX encoding = UTF-8
 % !TeX program = xelatex
+% !BIB program = bibtex
 \documentclass[12pt,a4paper,oneside]{report}             % Single-side
 %\documentclass[11pt,a4paper,twoside,openright]{report}  % Duplex
 
@@ -30,7 +31,7 @@
 \newcommand{\lintphase}{plan} % topic | setup | research | plan | draft | polish | submit: your phase in the lifecycle; the lint's checks come due by phase
 \newcommand{\vikcim}{TODO Title of the paper} % Cím
 \newcommand{\viktanszek}{\bmemit} % Tanszék
-\newcommand{\vikdoktipus}{\tdk} % Dokumentum típusa 
+\newcommand{\vikdoktipus}{\tdk} % Dokumentum típusa
 % \bsc
 % \msc
 % \tdk
@@ -103,14 +104,17 @@
 \include{content/07-conclusion}
 
 
-% Acknowledgements
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\include{content/08-acknowledgement}
-
-
 % Bibliography
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \bibliography{bib/references,bib/zotero} % zotero.bib: linked to the Zotero group by Overleaf; the guide has its own list
+
+
+% Only the main text stands between the table of contents and the bibliography; the abstract is
+% the one exception. Everything else follows the bibliography; the lists of abbreviations,
+% notation and terms are in the appendix (content/10-appendices.tex).
+% Acknowledgements
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\include{content/08-acknowledgement}
 
 
 % Declaration on generative AI use (the faculty requires it for theses; we require it for the TDK)

@@ -32,7 +32,7 @@ For Overleaf, select root `paper-draft.tex` or `paper-final.tex`; edit `draft.te
 `\lintphase` in `draft.tex` is the student's phase in the lifecycle: `topic`, `setup`,
 `research`, `plan`, `draft`, `polish` or `submit`. Checks become required as the phase
 advances, and any other value stops the lint. Change it only when the student asks. The phases
-and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
+and their steps are in `guide/02-lifecycle.tex` (`guide:tab:lifecycle`).
 
 ## Files
 
@@ -67,7 +67,7 @@ and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
   `\atodo` (green) is an advisor's review comment that the student resolves and then deletes.
 - Mark a gap with `\tbd{...}` or `\citeneeded[...]`, never with a typed TBD, [CITE] or XXX.
 - Check every source you suggest before it is cited. By the advisors' rule, an AI answer never goes in the
-  bibliography; it goes in the AI declaration (`guide/04-writing.tex`, `app:writing:ai`).
+  bibliography; it goes in the AI declaration (`guide/04-writing.tex`, `guide:writing:ai`).
 
 ## Markup the lint reads
 
@@ -75,20 +75,20 @@ and their steps are in `guide/02-lifecycle.tex` (`tab:lifecycle`).
 - Tagged lists and their label prefixes: `requirements` (`req:`), `derivedrequirements` (`dr:`),
   `contributions` (`c:`), `threats` (`thr:`), `assumptions` (`asm:`), `guarantees` (`g:`),
   `rqlist` (`rq:`) and `limitations` (`lim:`).
-- Abbreviations, symbols and terms go through `\gls` (`guide/09-latex-template.tex`, `app:latex:acro`).
+- Abbreviations, symbols and terms go through `\gls` (`guide/09-latex-template.tex`, `guide:latex:acro`).
 
 ## Where the guidance is
 
 | To find | Look in |
 | --- | --- |
-| Where to start, by situation | `guide/00-start-here.tex` (`app:here`) |
-| What each chapter must contain, with a worked example | `guide/05-chapter-by-chapter.tex` (`app:chapters`) |
-| The elements the lint measures in every paper | `guide/04-writing.tex` (`app:writing:essentials`) |
-| What must hold before upload | `guide/02-lifecycle.tex` (`tab:polish`) |
-| What the draft and final builds contain, and what reads each | `guide/07-code-tools-checks.tex` (`app:code:builds`) |
-| What each lint rule checks | `guide/07-code-tools-checks.tex` (`app:code:paperci`) |
-| Reviewer passes: what they are and when to run them | `guide/02-lifecycle.tex` (`app:lifecycle:reviewers`) |
-| Running the reviewer passes and self-score | `guide/07-code-tools-checks.tex` (`app:code:reviewers`) |
-| AI use and the declaration | `guide/04-writing.tex` (`app:writing:ai`) |
-| The faculty's dates, form rules and review sheet | `guide/06-tdk-rules-and-dates.tex` (`app:tdk`) |
-| LaTeX syntax: notes, glossary, citations, figures, listings | `guide/09-latex-template.tex` (`app:latex`) |
+| Where to start, by situation | `guide/00-start-here.tex` (`here`) |
+| What each chapter must contain, with a worked example | `guide/05-chapter-by-chapter.tex` (`chapters`) |
+| The elements the lint measures in every paper | `guide/04-writing.tex` (`guide:writing:essentials`) |
+| What must hold before upload | `guide/02-lifecycle.tex` (`guide:tab:polish`) |
+| What the draft and final builds contain, and what reads each | `guide/07-code-tools-checks.tex` (`guide:code:builds`) |
+| What each lint rule checks | `guide/07-code-tools-checks.tex` (`guide:code:paperci`) |
+| Reviewer passes: what they are and when to run them | `guide/02-lifecycle.tex` (`guide:lifecycle:reviewers`) |
+| Running the reviewer passes and self-score | `guide/07-code-tools-checks.tex` (`guide:code:reviewers`) |
+| AI use and the declaration | `guide/04-writing.tex` (`guide:writing:ai`) |
+| The faculty's dates, form rules and review sheet | `guide/06-tdk-rules-and-dates.tex` (`tdk`) |
+| LaTeX syntax: notes, glossary, citations, figures, listings | `guide/09-latex-template.tex` (`latex`) |

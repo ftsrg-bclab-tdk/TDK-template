@@ -8,9 +8,9 @@ local lfs = require("lfs")
 
 local PROFILES = {
   tdk = { name = "TDK call", size = { 11.5, 12.5 }, pitch = { 1.0, 1.35 }, margin = { 15, 35 }, pages = { 30, 35 }, pages_gate = true,
-    needs = { "Abstract", "Kivonat|Összefoglaló|Tartalmi összefoglaló", "generatív mesterséges intelligencia|generatív MI" }, forbids = { "HALLGATÓI NYILATKOZAT" } },
+    needs = { "Abstract", "Kivonat|Összefoglaló|Tartalmi összefoglaló", "generatív mesterséges intelligencia|generatív MI|Generative Artificial Intelligence" }, forbids = { "HALLGATÓI NYILATKOZAT" } },
   thesis = { name = "faculty thesis guide", size = { 10.5, 12.5 }, pitch = { 1.4, 2.0 }, margin = { 24, 40 }, pages = { 30, 90 }, pages_gate = false,
-    needs = { "Abstract", "Kivonat|Összefoglaló", "HALLGATÓI NYILATKOZAT", "generatív mesterséges intelligencia|generatív MI" }, forbids = {} },
+    needs = { "Abstract", "Kivonat|Összefoglaló", "HALLGATÓI NYILATKOZAT", "generatív mesterséges intelligencia|generatív MI|Generative Artificial Intelligence" }, forbids = {} },
 }
 local function profile() return PROFILES[C.opts.profile] or PROFILES.tdk end
 local function pdf() return C.bpath(C.opts.doc .. ".pdf") end
@@ -138,16 +138,19 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
   local p = profile(); local bf = body_font(d); if not bf then return end
   local worst = { left = 1e9, right = 1e9, top = 1e9, bottom = 1e9 }; local worstpage = {}
   local typical = { left = {}, right = {}, top = {}, bottom = {} }
+  local final = C.opts.doc == "final" or C.opts.doc == "paper-final" or C.phase() == "submit"
   for _, page in ipairs(d.pages) do
     local body = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then body = body + 1 end end
     if body >= 10 then
       local l, r, tp, b = 1e9, 0, 1e9, 0
-      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin (the final build has none)
+      -- the text column's right edge: a draft's todonotes margin notes (\todo[noinline]) sit just right of it, in the margin. The reviewer build and the submit phase have
+      -- none, so there everything past the edge is text: the last run of a listing or an equation that overflows starts there too
       local edge = 0; for _, t in ipairs(page.texts) do if t.font == bf.id then edge = math.max(edge, t.left + t.w) end end
       for _, t in ipairs(page.texts) do
         local f = d.fonts[t.font]
-        local pagenum = t.text:match("^%s*%d+%s*$") and t.top > page.h * 0.9
-        local margin_note = t.left > edge - 6 * MM
+        -- arabic or roman: the front matter (abstracts, contents) is numbered i, ii, ...
+        local pagenum = (t.text:match("^%s*%d+%s*$") or t.text:match("^%s*[ivxlcIVXLC]+%s*$")) and t.top > page.h * 0.9
+        local margin_note = not final and t.left > edge - 6 * MM
         if f and f.size >= 9 and not pagenum and not margin_note then
           l = math.min(l, t.left); r = math.max(r, t.left + t.w); tp = math.min(tp, t.top); b = math.max(b, t.top + t.h)
         end
@@ -169,14 +172,44 @@ rule("pdf-margins", "pdf", "check", "polish", "margins on every text page are wi
   return string.format("min l/r/t/b=%.0f/%.0f/%.0f/%.0f mm", worst.left, worst.right, worst.top, worst.bottom)
 end)
 
--- 8 pt: the call asks for 10 pt in figures and tables, and 8 pt still reads in print; below it does not
-rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to read in print (the call asks for 10 pt in figures and tables, labels included); listings and footnotes show up here too", function()
+-- the page's math scripts: TeX sets a sub- or superscript smaller than its base, 7 pt in a 10 pt
+-- table, so its size says nothing about the text's. A run of up to three characters that touches a
+-- larger run or another script is one; a figure label stands alone and is not. Left to right, so
+-- that the k of a (k) reaches the base through its parenthesis
+local function math_scripts(d, page)
+  local runs = {}
+  for _, t in ipairs(page.texts) do if d.fonts[t.font] then runs[#runs + 1] = t end end
+  table.sort(runs, function(a, b) return a.left < b.left end)
+  local function touch(a, b)
+    return a.left <= b.left + b.w + 1 and b.left <= a.left + a.w + 1 and a.top <= b.top + b.h + 1 and b.top <= a.top + a.h + 1
+  end
+  local scripts = {}
+  for _, t in ipairs(runs) do
+    local text = C.trim(t.text)
+    if (utf8.len(text) or #text) <= 3 then
+      for _, o in ipairs(runs) do
+        if o ~= t and touch(t, o) and (d.fonts[o.font].size > d.fonts[t.font].size or scripts[o]) then scripts[t] = true; break end
+      end
+    end
+  end
+  return scripts
+end
+
+-- 10 pt: the call asks for it in figures and tables, labels included ("10 pt alatti betűméret
+-- kerülendő címkéken is"). A footnote is 10 pt in the 12 pt class; math scripts are set smaller than
+-- their base and are not counted
+rule("pdf-smalltext", "pdf", "advice", "polish", "text below 10 pt, the call's minimum in figures and tables, labels included; listings show up here too, math sub- and superscripts do not", function()
   local d, why = doc(); if not d then C.skip(why); return end
   local perpage, total, smallest = {}, 0, 99
+  -- the draft appends the guide, whose pages are not the paper's: stop at its first part
+  local guide = math.huge
+  for _, it in ipairs(d.outline) do if it.title:match("^Guide:") then guide = math.min(guide, it.page) end end
   for _, page in ipairs(d.pages) do
+    if page.n >= guide then break end
+    local scripts = math_scripts(d, page)
     for _, t in ipairs(page.texts) do
       local f = d.fonts[t.font]
-      if f and f.size < 8 and #C.trim(t.text) > 0 then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
+      if f and f.size < 10 and #C.trim(t.text) > 0 and not scripts[t] then perpage[page.n] = (perpage[page.n] or 0) + 1; total = total + 1; smallest = math.min(smallest, f.size) end
     end
   end
   local pages = {}
@@ -185,9 +218,9 @@ rule("pdf-smalltext", "pdf", "advice", "polish", "text below 8 pt, too small to 
   if total > 0 then
     local list = {}
     for i, n in ipairs(pages) do if i <= 12 then list[#list + 1] = string.format("%d (%d)", n, perpage[n]) end end
-    warn(nil, nil, string.format("%d text runs below 8 pt, smallest %d pt, on pages %s%s: figure labels and table text must be readable in print", total, smallest, table.concat(list, ", "), #pages > 12 and ", ..." or ""))
+    warn(nil, nil, string.format("%d text runs below 10 pt, smallest %d pt, on pages %s%s: figure labels and table text must be readable in print", total, smallest, table.concat(list, ", "), #pages > 12 and ", ..." or ""))
   end
-  return string.format("runs<8pt=%d pages=%d", total, #pages)
+  return string.format("runs<10pt=%d pages=%d", total, #pages)
 end)
 
 -- the position of the first numbered chapter among the .toc's chapter lines; nil without a .toc.
@@ -229,7 +262,8 @@ rule("pdf-pages", "pdf", "check", "submit", "main text pages counted from the PD
   stop = stop or #d.pages
   local n = stop - start + 1
   local msg = string.format("main text is %d PDF pages (%d-%d by the outline); the %s asks for %d-%d", n, start, stop, p.name, p.pages[1], p.pages[2])
-  if n < p.pages[1] or n > p.pages[2] then if p.pages_gate then fail(nil, nil, msg) else warn(nil, nil, msg) end else note(nil, nil, msg) end
+  if C.draft_build() then msg = msg .. ", counted on the draft with its notes; make check-submit counts the reviewer build" end
+  if n < p.pages[1] or n > p.pages[2] then if p.pages_gate and not C.draft_build() then fail(nil, nil, msg) else warn(nil, nil, msg) end else note(nil, nil, msg) end
   return string.format("pages=%d", n)
 end)
 
@@ -246,15 +280,20 @@ rule("pdf-parts", "pdf", "check", "submit", "the parts we require are in the PDF
   for _, f in ipairs(p.forbids) do if text:find(f, 1, true) then warn(nil, nil, f .. " is in the PDF; the TDK call says to leave the student declaration out") end end
   if not (text:find("Contents", 1, true) or text:find("Tartalomjegyzék", 1, true)) then fail(nil, nil, "no table of contents") end
   if not (text:find("Budapest University of Technology", 1, true) or text:find("Budapesti Műszaki", 1, true)) then fail(nil, nil, "the title page does not name the university") end
-  for _, m in ipairs({ "[link?]", "[?]" }) do
+  for _, m in ipairs({ "[link?]", "[?]", "[missing]", "[citation needed]" }) do
     if text:find(m, 1, true) then fail(nil, nil, m .. " is printed in the PDF: a placeholder left in the text, or an undefined citation") end
   end
   -- whole words: XXXVI. OTDK in a reference is a year, not a placeholder
   for _, m in ipairs({ "TBD", "XXX", "FIXME" }) do
     if text:find("%f[%w]" .. m .. "%f[%W]") then fail(nil, nil, m .. " is printed in the PDF: a placeholder left in the text") end
   end
+  -- ChatGPT's copy keeps :contentReference[oaicite:0]index=0 in the text, usually in a reference
+  -- field; only the inner word, because a line break can split the rest
+  if text:find("oaicite", 1, true) then fail(nil, nil, "an AI assistant's citation marker (oaicite) is printed in the PDF: text pasted from a chat; check that passage against its source") end
+  -- the draft prints its todos and beats on purpose; only the reviewer build must be clean of them
+  local report = C.draft_build() and note or fail
   if text:find("TODO", 1, true) then
-    local n = C.count(text, "TODO"); fail(nil, nil, n .. " TODO still printed in the PDF")
+    local n = C.count(text, "TODO"); report(nil, nil, n .. " TODO still printed in the PDF" .. (C.draft_build() and " (the draft shows them; the reviewer build must not)" or ""))
   end
-  if text:find("Beat%.") or text:find("Establishes:") then fail(nil, nil, "beats are printed: this is the draft, not the final build") end
+  if text:find("Beat%.") or text:find("Establishes:") then report(nil, nil, C.draft_build() and "beats are printed, as the draft does; the reviewer build must not" or "beats are printed: this is the draft, not the reviewer build") end
 end)
