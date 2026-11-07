@@ -1,0 +1,52 @@
+name: BME paper acceptance
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/bme-cloud-runners]
+permissions:
+  contents: read
+jobs:
+  paper:
+    if: vars.BME_ACCEPTANCE_ENABLED == 'true'
+    runs-on: [self-hosted, Linux, X64, bme-isolated-paper-v2]
+    timeout-minutes: 40
+    container: danteev/texlive:latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Resolve current paper dependencies using the shared recipe
+        run: python3 infra/github-runners/session/paper.py prepare
+      - name: Run configured paper checks and review evidence offline
+        env:
+          TDK_NETWORK_NONE: '1'
+        run: python3 infra/github-runners/session/paper.py check
+      - name: Preserve workload evidence
+        if: always()
+        id: evidence
+        uses: actions/upload-artifact@main
+        with:
+          name: bme-paper-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .project/checks/
+            .project/review/
+            .project/image.json
+            .project/paper-runtime.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - name: Record artifact transport identity
+        if: always()
+        env:
+          ARTIFACT_ID: ${{ steps.evidence.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.evidence.outputs.artifact-digest }}
+          ARTIFACT_URL: ${{ steps.evidence.outputs.artifact-url }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(json.dumps({k: os.environ.get(k) for k in ['ARTIFACT_ID','ARTIFACT_DIGEST','ARTIFACT_URL','GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','GITHUB_SHA']}))
+          PY

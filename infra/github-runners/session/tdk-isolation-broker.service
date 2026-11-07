@@ -1,0 +1,15 @@
+[Unit]
+Description=Allowlisted automatic BME one-job runner provisioning
+After=network-online.target tdk-isolation-reap.service
+Wants=network-online.target tdk-isolation-reap.timer
+ConditionPathExists=/etc/tdk-isolation/github-token
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/lib/tdk-isolation-controller/broker.py --config /etc/tdk-isolation/broker.json --state /var/lib/tdk-isolation-controller/state.json --credential ${CREDENTIALS_DIRECTORY}/github-token
+LoadCredential=github-token:/etc/tdk-isolation/github-token
+UMask=0077
+Restart=on-failure
+RestartSec=20
+# Job units are separate cgroups. Restarting the broker preserves active jobs.
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,687 @@
+{
+  "schema": "bme-automatic-acceptance/v1",
+  "implementation_source_sha": "27ccc3db14b197ec106f414bdc7cad6287574d3a",
+  "deployed_configuration_sha256": "8bd2924720c6d4c0621f126aebf89c1e75508c3f45e521ef3a85f27da0a52ced",
+  "broker_sha256": "055808cbf9c744342e4dcafa12ed8d11540937ab1154692776059bf6fa1e6e84",
+  "fixture_source_sha": "3f38f25932aa9dcc049160af959a2d0d71dc399a",
+  "local_runner_tests_passed": 50,
+  "review": {
+    "source_sha": "27ccc3db14b197ec106f414bdc7cad6287574d3a",
+    "reviewer": "independent coordinator Sol permission recheck",
+    "actionable_findings": 0
+  },
+  "records": [
+    {
+      "run_id": 42124395621,
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "session_id": "dba52050fc0f4fcb9f68f01fb68c9c61",
+      "runner_id": 29,
+      "actual_job_id": 127584744130,
+      "registration_created_at": 1793919918.5444317,
+      "reconciled_at": 1793919977.0843997,
+      "host_receipt": {
+        "id": "dba52050fc0f4fcb9f68f01fb68c9c61",
+        "finished_at": 1793919965.0911007,
+        "result": "success",
+        "exit_code": "exited",
+        "exit_status": "0",
+        "cleaned_at": 1793919975.3251557,
+        "disk_removed": true,
+        "image_mounts_removed": true,
+        "cgroup_removed": true,
+        "disk_gib": 8,
+        "configuration_sha256": "8bd2924720c6d4c0621f126aebf89c1e75508c3f45e521ef3a85f27da0a52ced",
+        "account_removed": true,
+        "runtime": {
+          "reference": "ghcr.io/actions/actions-runner:latest",
+          "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+          "resolved_at": 1793919922.1830554
+        },
+        "job_image": {
+          "reference": "docker.io/danteev/texlive:latest",
+          "digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+          "resolved_at": 1793919924.4130695,
+          "unpacked": true
+        }
+      },
+      "credential_and_cache_probe": {
+        "pat_readable_as_job_uid": false,
+        "lower_writable_as_job_uid": false,
+        "lower_baseline_sha256": "3c84b36be589a13576e4d54126a87ca950fe4b01716c42ef4ceb462e7445401c"
+      },
+      "capacity_samples": {
+        "interval_seconds": 5,
+        "count": 9,
+        "first_at": 1793919924.9747515,
+        "last_at": 1793919965.0758078,
+        "max_observed_memory_peak_bytes": 1436700672,
+        "max_observed_disk_used_bytes": 911863808,
+        "min_observed_host_free_bytes": 7255719936,
+        "excluded_after_cgroup_disappeared": [
+          {
+            "time": 1793919970.0773182,
+            "disk_used_bytes": 911806464,
+            "host_free_bytes": 7385280512,
+            "memory_peak_bytes": null
+          },
+          {
+            "time": 1793919975.0791748,
+            "disk_used_bytes": 40676655104,
+            "host_free_bytes": 7385284608,
+            "memory_peak_bytes": null
+          }
+        ],
+        "exclusion_reason": "Only samples with a live cgroup memory.peak are summarized. After unmount, statvfs of the old directory can report the host filesystem."
+      },
+      "workflow_source_sha": "3f38f25932aa9dcc049160af959a2d0d71dc399a",
+      "artifact": {
+        "run_id": 42124395621,
+        "artifact_id": 13461377709,
+        "name": "native-evidence",
+        "artifact_sha256": "5e3195007ecd8aaefcc71ef3402fdd20937b08441b784585bba8b9266dbda48b",
+        "size_bytes": 157,
+        "payload_sha256": "2989c53a1660d388fd5535fa825ad332f46d524f1f4c42abe076213d4e2a445a",
+        "payload_verified": true
+      },
+      "payload_ready_log_observed": true,
+      "overlay_edit_probe_passed": true,
+      "downloaded_log_sha256": "e2f8d0254d8968bbc99ab9bbaabe6af66fd0b178f4af1d32388c9ba6f15ea917"
+    },
+    {
+      "run_id": 42124400987,
+      "repo": "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "session_id": "ad9b6c1af7bd44f896b85343320a3be4",
+      "runner_id": 30,
+      "actual_job_id": 127584760105,
+      "registration_created_at": 1793919977.1054251,
+      "reconciled_at": 1793920033.388726,
+      "host_receipt": {
+        "id": "ad9b6c1af7bd44f896b85343320a3be4",
+        "finished_at": 1793920019.3395615,
+        "result": "success",
+        "exit_code": "exited",
+        "exit_status": "0",
+        "cleaned_at": 1793920023.3060498,
+        "disk_removed": true,
+        "image_mounts_removed": true,
+        "cgroup_removed": true,
+        "disk_gib": 8,
+        "configuration_sha256": "8bd2924720c6d4c0621f126aebf89c1e75508c3f45e521ef3a85f27da0a52ced",
+        "account_removed": true,
+        "runtime": {
+          "reference": "ghcr.io/actions/actions-runner:latest",
+          "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+          "resolved_at": 1793919980.5215218
+        },
+        "job_image": {
+          "reference": "docker.io/danteev/texlive:latest",
+          "digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+          "resolved_at": 1793919982.7456403,
+          "unpacked": true
+        }
+      },
+      "credential_and_cache_probe": {
+        "pat_readable_as_job_uid": false,
+        "lower_writable_as_job_uid": false,
+        "lower_baseline_sha256": "3c84b36be589a13576e4d54126a87ca950fe4b01716c42ef4ceb462e7445401c"
+      },
+      "capacity_samples": {
+        "interval_seconds": 5,
+        "count": 7,
+        "first_at": 1793919985.083963,
+        "last_at": 1793920015.3386683,
+        "max_observed_memory_peak_bytes": 1143836672,
+        "max_observed_disk_used_bytes": 911863808,
+        "min_observed_host_free_bytes": 7255711744,
+        "excluded_after_cgroup_disappeared": [
+          {
+            "time": 1793920020.34346,
+            "disk_used_bytes": 911806464,
+            "host_free_bytes": 7386787840,
+            "memory_peak_bytes": null
+          }
+        ],
+        "exclusion_reason": "Only samples with a live cgroup memory.peak are summarized. After unmount, statvfs of the old directory can report the host filesystem."
+      },
+      "workflow_source_sha": "3f38f25932aa9dcc049160af959a2d0d71dc399a",
+      "artifact": {
+        "run_id": 42124400987,
+        "artifact_id": 13461207129,
+        "name": "native-evidence",
+        "artifact_sha256": "95f85bca1fc4f40a82349a68f603a276a13769f420657e4cc9293a714bad7803",
+        "size_bytes": 157,
+        "payload_sha256": "2989c53a1660d388fd5535fa825ad332f46d524f1f4c42abe076213d4e2a445a",
+        "payload_verified": true
+      },
+      "payload_ready_log_observed": true,
+      "overlay_edit_probe_passed": true,
+      "downloaded_log_sha256": "42f52e07e70d5d23593a4aa2beaa46044af4278e7e948dd1be5c76c5553aa731"
+    },
+    {
+      "run_id": 42126798775,
+      "repo": "ftsrg-bclab-tdk/TDK-template",
+      "session_id": "1778543e0f5c4177b7192d21b936acf0",
+      "runner_id": 28,
+      "actual_job_id": 127592943682,
+      "registration_created_at": 1793920033.4211392,
+      "reconciled_at": 1793920313.6411338,
+      "host_receipt": {
+        "id": "1778543e0f5c4177b7192d21b936acf0",
+        "finished_at": 1793920293.593063,
+        "result": "success",
+        "exit_code": "exited",
+        "exit_status": "0",
+        "cleaned_at": 1793920296.096703,
+        "disk_removed": true,
+        "image_mounts_removed": true,
+        "cgroup_removed": true,
+        "disk_gib": 8,
+        "configuration_sha256": "8bd2924720c6d4c0621f126aebf89c1e75508c3f45e521ef3a85f27da0a52ced",
+        "account_removed": true,
+        "runtime": {
+          "reference": "ghcr.io/actions/actions-runner:latest",
+          "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+          "resolved_at": 1793920036.8704634
+        },
+        "job_image": {
+          "reference": "docker.io/danteev/texlive:latest",
+          "digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+          "resolved_at": 1793920039.0644803,
+          "unpacked": true
+        }
+      },
+      "credential_and_cache_probe": {
+        "pat_readable_as_job_uid": false,
+        "lower_writable_as_job_uid": false,
+        "lower_baseline_sha256": "3c84b36be589a13576e4d54126a87ca950fe4b01716c42ef4ceb462e7445401c"
+      },
+      "capacity_samples": {
+        "interval_seconds": 5,
+        "count": 51,
+        "first_at": 1793920040.3583574,
+        "last_at": 1793920290.8918705,
+        "max_observed_memory_peak_bytes": 1616433152,
+        "max_observed_disk_used_bytes": 1132425216,
+        "min_observed_host_free_bytes": 7282941952,
+        "excluded_after_cgroup_disappeared": [
+          {
+            "time": 1793920295.8956323,
+            "disk_used_bytes": 40676405248,
+            "host_free_bytes": 7385534464,
+            "memory_peak_bytes": null
+          }
+        ],
+        "exclusion_reason": "Only samples with a live cgroup memory.peak are summarized. After unmount, statvfs of the old directory can report the host filesystem."
+      },
+      "artifact_verification": {
+        "run_id": 42126798775,
+        "run_attempt": 1,
+        "source_sha": "27ccc3db14b197ec106f414bdc7cad6287574d3a",
+        "artifact_id": 13460503589,
+        "artifact_name": "bme-paper-27ccc3db14b197ec106f414bdc7cad6287574d3a-42126798775-1",
+        "artifact_sha256": "2b9bd775e7eeaecdec15e63d1e60139d9b01124a62c1f8d2a15d3e19d6a163ad",
+        "artifact_size_bytes": 2951289,
+        "report_sha256": "fd5446eaef2397b4068e78c7184d2bbc0122d821a40e37a7022f3c4a95665660",
+        "config_sha256": "9a87c7ec2419ae414e01d74cb36afdb1a74b0261e691935b248faf1010350046",
+        "runtime_sha256": "4496908f1cd5e48404822c90cbac0bd55c17f0cc6b1ae659c3d8c9e928fbff28",
+        "gate_outcome": "pass",
+        "whole_project_acceptance_eligible": false,
+        "files_verified": 10,
+        "acceptance": {
+          "schema": "bme-paper-acceptance/v1",
+          "runner_class": "bme-isolated-paper-v2",
+          "run_id": "42126798775",
+          "run_attempt": "1",
+          "source_sha": "27ccc3db14b197ec106f414bdc7cad6287574d3a",
+          "commands": [
+            {
+              "name": "runtime",
+              "started_at": 1793920070.8678784,
+              "exit_code": 0,
+              "completed_at": 1793920071.8876173,
+              "seconds": 1.0197393894195557
+            },
+            {
+              "name": "paper",
+              "started_at": 1793920071.8877957,
+              "exit_code": 0,
+              "completed_at": 1793920164.5413299,
+              "seconds": 92.65353488922119
+            },
+            {
+              "name": "review",
+              "started_at": 1793920164.541764,
+              "exit_code": 0,
+              "completed_at": 1793920165.9662375,
+              "seconds": 1.424473762512207
+            },
+            {
+              "name": "maintainer",
+              "started_at": 1793920165.966374,
+              "exit_code": 0,
+              "completed_at": 1793920283.3167586,
+              "seconds": 117.3503851890564
+            }
+          ],
+          "filesystem_bytes": 8350298112,
+          "free_bytes_after_checks": 7201193984,
+          "network": "offline step namespace created by the outer container hook"
+        },
+        "image": {
+          "requested": "docker.io/danteev/texlive:latest",
+          "manifest_digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+          "resolved": "docker.io/danteev/texlive@sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+          "resolved_at": 1793920039.0644803,
+          "dockerfile_sha256": "396c09728f269efd24df215d9395ddeb0f0cbbcb40d31eb635a74c5aae2aa156",
+          "construction": "private overlay of immutable OCI image plus the recorded pip recipe; no Docker image build",
+          "platform": "linux/amd64",
+          "dependency_install_seconds": 13.570592880249023
+        }
+      },
+      "live_systemd_properties": {
+        "RuntimeMaxUSec": "45min",
+        "CPUQuotaPerSecUSec": "7.500000s",
+        "MemoryMax": "6442450944",
+        "MemorySwapMax": "0",
+        "TasksMax": "512",
+        "CapabilityBoundingSet": "",
+        "User": "tdkj1778543e0f5c4177",
+        "NoNewPrivileges": "yes",
+        "KillMode": "control-group",
+        "ActiveState": "active"
+      },
+      "github_job_steps": [
+        {
+          "completedAt": "2026-11-05T23:07:30Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-05T23:07:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:07:30Z",
+          "conclusion": "success",
+          "name": "Initialize containers",
+          "number": 2,
+          "startedAt": "2026-11-05T23:07:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:07:36Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@main",
+          "number": 3,
+          "startedAt": "2026-11-05T23:07:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:07:50Z",
+          "conclusion": "success",
+          "name": "Resolve current paper dependencies using the shared recipe",
+          "number": 4,
+          "startedAt": "2026-11-05T23:07:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:23Z",
+          "conclusion": "success",
+          "name": "Run configured paper checks and review evidence offline",
+          "number": 5,
+          "startedAt": "2026-11-05T23:07:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:27Z",
+          "conclusion": "success",
+          "name": "Preserve workload evidence",
+          "number": 6,
+          "startedAt": "2026-11-05T23:11:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:28Z",
+          "conclusion": "success",
+          "name": "Record artifact transport identity",
+          "number": 7,
+          "startedAt": "2026-11-05T23:11:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:28Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@main",
+          "number": 13,
+          "startedAt": "2026-11-05T23:11:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:28Z",
+          "conclusion": "success",
+          "name": "Stop containers",
+          "number": 14,
+          "startedAt": "2026-11-05T23:11:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-05T23:11:28Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-11-05T23:11:28Z",
+          "status": "completed"
+        }
+      ]
+    }
+  ],
+  "final_host": {
+    "observed_at": 1793920336.0782046,
+    "configuration_sha256": "8bd2924720c6d4c0621f126aebf89c1e75508c3f45e521ef3a85f27da0a52ced",
+    "broker_sha256": "055808cbf9c744342e4dcafa12ed8d11540937ab1154692776059bf6fa1e6e84",
+    "broker_config": {
+      "controller_id": "bme29136",
+      "repositories": [
+        "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+        "ftsrg-bclab-tdk/TDK-template"
+      ],
+      "profiles": {
+        "bme-isolated-native-v1": 8,
+        "bme-isolated-paper-v2": 8
+      },
+      "disk_budget_gib": 8,
+      "runner_group_id": 1,
+      "max_sessions": 1,
+      "deadline_seconds": 2700,
+      "poll_seconds": 20
+    },
+    "broker_config_sha256": "c0245865fc0862a5301a5636a11f486918fdbbd2b939ee827391a949b9d5280e",
+    "broker_active": "active",
+    "broker_enabled": "enabled",
+    "reaper_active": "active",
+    "credential_mode": {
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o600"
+    },
+    "journal_mode": {
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o600"
+    },
+    "sessions": [],
+    "private_disks": [],
+    "jit_staging": [],
+    "job_accounts": [],
+    "job_cgroups": [],
+    "job_controls": [],
+    "job_mounts": [],
+    "host_filesystem": {
+      "filesystem_bytes": 50548641792,
+      "available_bytes": 15845613568,
+      "used_bytes": 32216326144
+    },
+    "cache_filesystem": {
+      "filesystem_bytes": 14708465664,
+      "available_bytes": 1026670592,
+      "used_bytes": 13665017856
+    },
+    "cache_disk_bytes": 15032385536,
+    "cache_builder_pending": false,
+    "lower_baseline_sha256": "3c84b36be589a13576e4d54126a87ca950fe4b01716c42ef4ceb462e7445401c",
+    "lower_marker_present": false,
+    "legacy_allow_marker_present": false,
+    "legacy_service": {
+      "ActiveState": "inactive",
+      "UnitFileState": "disabled"
+    },
+    "acceptance_opt_in": "false",
+    "repository_runner_counts": {
+      "ftsrg-bclab-tdk/tdk-runner-isolation-pilot": 0,
+      "ftsrg-bclab-tdk/TDK-template": 0
+    }
+  },
+  "pending_prepare_restart": {
+    "observed_at": 1793918612.9676266,
+    "event": "broker restarted during pending image preparation",
+    "host": [
+      {
+        "repo": "ftsrg-bclab-tdk/TDK-template",
+        "runner_id": 27,
+        "label": "bme-auto-bme29136-ff30b9ca00e546cc844b845535024a00",
+        "runner_class": "bme-isolated-paper-v2",
+        "id": "778e0094de9e443d95abeb13a12102cc",
+        "phase": "preparing",
+        "disk_gib": 8,
+        "started_at": 1793918542.0459683,
+        "preparation_deadline": 1793919892.045969
+      }
+    ],
+    "registrations": {
+      "total_count": 1,
+      "runners": [
+        {
+          "id": 27,
+          "name": "bme-auto-bme29136-ff30b9ca00e546cc844b845535024a00",
+          "os": "Linux",
+          "status": "offline",
+          "busy": false,
+          "version": null,
+          "labels": [
+            {
+              "id": 0,
+              "name": "self-hosted",
+              "type": "read-only"
+            },
+            {
+              "id": 0,
+              "name": "Linux",
+              "type": "read-only"
+            },
+            {
+              "id": 0,
+              "name": "X64",
+              "type": "read-only"
+            },
+            {
+              "id": 0,
+              "name": "bme-isolated-paper-v2",
+              "type": "read-only"
+            },
+            {
+              "id": 0,
+              "name": "bme-auto-bme29136-ff30b9ca00e546cc844b845535024a00",
+              "type": "read-only"
+            }
+          ]
+        }
+      ]
+    },
+    "journal_sessions": {
+      "bme-auto-bme29136-ff30b9ca00e546cc844b845535024a00": {
+        "repo": "ftsrg-bclab-tdk/TDK-template",
+        "created_at": 1793918539.8653295,
+        "queued_job_id": 127581780958,
+        "profile": "bme-isolated-paper-v2",
+        "disk_gib": 8,
+        "runner_id": 27,
+        "session_id": "778e0094de9e443d95abeb13a12102cc"
+      }
+    }
+  },
+  "prior_paper_verification": {
+    "artifact_id": 13459944313,
+    "artifact_sha256": "0adf713f888e2563d8493ea352077b30ec4c335764a362265999ed348fdcbead",
+    "report_sha256": "d8a9224f0ae59ec3a1b8f05e3be320e5c59a1a872b63a555f91a780c99f31ac2",
+    "config_sha256": "9a87c7ec2419ae414e01d74cb36afdb1a74b0261e691935b248faf1010350046",
+    "gate_outcome": "pass",
+    "files_verified": 10,
+    "commands": [
+      {
+        "name": "runtime",
+        "started_at": 1793919030.1745815,
+        "exit_code": 0,
+        "completed_at": 1793919032.1492844,
+        "seconds": 1.974703311920166
+      },
+      {
+        "name": "paper",
+        "started_at": 1793919032.1494732,
+        "exit_code": 0,
+        "completed_at": 1793919175.671568,
+        "seconds": 143.52209568023682
+      },
+      {
+        "name": "review",
+        "started_at": 1793919175.6720848,
+        "exit_code": 0,
+        "completed_at": 1793919177.848624,
+        "seconds": 2.176539659500122
+      },
+      {
+        "name": "maintainer",
+        "started_at": 1793919177.8487706,
+        "exit_code": 0,
+        "completed_at": 1793919319.5646906,
+        "seconds": 141.71592092514038
+      }
+    ],
+    "paper_steps": [
+      {
+        "name": "draft",
+        "exit_code": null,
+        "gate_outcome": "pass"
+      },
+      {
+        "name": "final",
+        "exit_code": null,
+        "gate_outcome": "pass"
+      },
+      {
+        "name": "lint",
+        "exit_code": null,
+        "gate_outcome": "pass"
+      }
+    ]
+  },
+  "prior_paper_host": {
+    "run_id": 42123545307,
+    "repo": "ftsrg-bclab-tdk/TDK-template",
+    "session_id": "778e0094de9e443d95abeb13a12102cc",
+    "runner_id": 27,
+    "actual_job_id": 127581780958,
+    "registration_created_at": 1793918539.8653295,
+    "reconciled_at": 1793919346.353469,
+    "host_receipt": {
+      "id": "778e0094de9e443d95abeb13a12102cc",
+      "finished_at": 1793919330.2718976,
+      "result": "success",
+      "exit_code": "exited",
+      "exit_status": "0",
+      "cleaned_at": 1793919338.1048658,
+      "disk_removed": true,
+      "image_mounts_removed": true,
+      "cgroup_removed": true,
+      "disk_gib": 8,
+      "configuration_sha256": "bcc4b147e715ca94671149e2c413be4c02de828eb2d081041229e5dce8fc340e",
+      "account_removed": true,
+      "runtime": {
+        "reference": "ghcr.io/actions/actions-runner:latest",
+        "digest": "sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232",
+        "resolved_at": 1793918547.6291294
+      },
+      "job_image": {
+        "reference": "docker.io/danteev/texlive:latest",
+        "digest": "sha256:0d9a3e04eb3a6918c64c502c2129e9ffbf5ec0c55ea74f0eff277bc564ae5c41",
+        "resolved_at": 1793918978.0853763,
+        "unpacked": true
+      }
+    },
+    "credential_and_cache_probe": {
+      "pat_readable_as_job_uid": false,
+      "lower_writable_as_job_uid": false,
+      "lower_baseline_sha256": "3c84b36be589a13576e4d54126a87ca950fe4b01716c42ef4ceb462e7445401c"
+    },
+    "capacity_samples": {
+      "interval_seconds": 5,
+      "count": 45,
+      "first_at": 1793919109.0347805,
+      "last_at": 1793919329.1867974,
+      "max_observed_memory_peak_bytes": 2021961728,
+      "max_observed_disk_used_bytes": 1132404736,
+      "min_observed_host_free_bytes": 7385939968,
+      "excluded_after_cgroup_disappeared": [
+        {
+          "time": 1793919334.1890266,
+          "disk_used_bytes": 1132310528,
+          "host_free_bytes": 7385948160,
+          "memory_peak_bytes": null
+        }
+      ],
+      "exclusion_reason": "Only samples with a live cgroup memory.peak are summarized. After unmount, statvfs of the old directory can report the host filesystem."
+    }
+  },
+  "cold_cache_builder": {
+    "unit": "tdk-image-build-2412cc12eadf4661a5089487fc995192",
+    "started_at": 1793918374.964103,
+    "completed_at": 1793918951.69821,
+    "elapsed_seconds": 576.7341070175171,
+    "result": "success",
+    "journal_memory_peak": "6.0G",
+    "journal_swap_peak": "0B",
+    "note": "Unpack only; excludes network download and root publication. The selected image was resolved again for each job."
+  },
+  "failed_baselines": {
+    "paper_v1": {
+      "run_id": 42119955696,
+      "source_sha": "d1d96b2",
+      "container_initialization_seconds": 470,
+      "result": "inner-unshare UID map denied before paper checks"
+    },
+    "pre_fix_service_bootstrap": {
+      "configuration_sha256": "bcc4b147e715ca94671149e2c413be4c02de828eb2d081041229e5dce8fc340e",
+      "result": "public bootstrap metadata inaccessible under controller umask0077; jobs never accepted",
+      "cleanup_confirmed": true
+    }
+  },
+  "limitations": [
+    "Shared kernel boundary; kernel exploits and hardware side channels are excluded.",
+    "Offline paper-step mode is a workflow convention; outer proxy/network/storage/cgroup controls are host enforced.",
+    "No whole-project acceptance or controlled CI throughput comparison is claimed.",
+    "New upstream images must fit the bounded cache; no older fallback.",
+    "Paper recipe adapter is not general Dockerfile-build support.",
+    "Ordinary and publisher workflows remain hosted; hosted fallback integration belongs to the CI owner."
+  ],
+  "credential": {
+    "registration_authority": "fine-grained PAT, repository Administration write and Actions read",
+    "selected_repositories": [
+      "ftsrg-bclab-tdk/tdk-runner-isolation-pilot",
+      "ftsrg-bclab-tdk/TDK-template"
+    ],
+    "host_path": "/etc/tdk-isolation/github-token",
+    "one_use_local_transfer_copy_removed": true,
+    "validation_http_status": {
+      "TDK-template/actions/runners": 200,
+      "tdk-runner-isolation-pilot/actions/runners": 200,
+      "unselected_tdk-maintenance/actions/runners": 404
+    },
+    "registration_and_removal_proved_by_records": true
+  },
+  "independent_final_paper_verification": {
+    "run_id": 42126798775,
+    "artifact_id": 13460503589,
+    "artifact_sha256": "2b9bd775e7eeaecdec15e63d1e60139d9b01124a62c1f8d2a15d3e19d6a163ad",
+    "report_sha256": "fd5446eaef2397b4068e78c7184d2bbc0122d821a40e37a7022f3c4a95665660",
+    "config_sha256": "9a87c7ec2419ae414e01d74cb36afdb1a74b0261e691935b248faf1010350046",
+    "gate_outcome": "pass",
+    "required_components": [
+      "paper"
+    ],
+    "files_verified": 10,
+    "commands_passed": [
+      "runtime",
+      "paper",
+      "review",
+      "maintainer"
+    ]
+  }
+}

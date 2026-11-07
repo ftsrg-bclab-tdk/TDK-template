@@ -1,0 +1,10 @@
+{
+  "controller_id": "bme29136",
+  "repositories": ["ftsrg-bclab-tdk/tdk-runner-isolation-pilot"],
+  "profiles": {"bme-isolated-native-v1": 8, "bme-isolated-paper-v2": 8},
+  "disk_budget_gib": 8,
+  "runner_group_id": 1,
+  "max_sessions": 1,
+  "deadline_seconds": 2700,
+  "poll_seconds": 20
+}

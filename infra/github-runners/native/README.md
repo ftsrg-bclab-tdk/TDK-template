@@ -1,6 +1,10 @@
 # Native isolation and the running BME service
 
-Two distinct execution paths exist. They must not be confused.
+This is the November 3 prototype and hardening record. The newer
+[one-job JIT integration](../session/README.md) supersedes its unfinished integration
+list. On November 5 the persistent service was stopped and disabled after an idle
+check; it is no longer an active route. The following table describes the earlier
+state, not the current deployment.
 
 | Path | Current state | Boundary |
 | --- | --- | --- |
@@ -136,38 +140,22 @@ them, first verify no `tdk-sandbox-*` units remain, unload
 profile and `/usr/local/lib/tdk-native`. Remove the unused egress unit and reload
 systemd. No cloud resource cleanup is required.
 
-## What remains before arbitrary GitHub workflows
+## November 5 follow-up
 
-The current GitHub service does **not** invoke `sandbox.py`. Workflow authors can
-ignore an official wrapper and execute directly as `tdk-ci`; that UID can read its
-own persistent runner credential and modify its runtime/workspace. Service
-hardening therefore does not prove cross-job isolation for the registered runner.
-Cleaning `_work` with a same-UID post-job hook would not fix this.
+The [one-job JIT integration](../session/README.md) now places the entire listener
+inside the outer sandbox, adds controlled HTTPS egress and per-run image identity,
+exercises real native/container jobs and artifacts, and connects cancellation to
+root-owned cleanup. Ordinary project routing is still unchanged. The persistent
+service is stopped and disabled; no wrapper can accidentally make it a safe route.
 
-The separate offline sandbox has demonstrated the host primitives, but these
-integration requirements remain distinct and unfinished:
-
-1. A trusted controller provisions a fresh single-job JIT runner **inside** each
-   sandbox. The persistent org credential must not be copied there. Our current
-   token still gets HTTP 403 from org runner administration. Repository-scoped
-   pilot tooling exists one directory up; an actual integration target and the
-   appropriate registration authority must be settled with the CI owner.
-2. A controlled network path must support GitHub and build dependencies without
-   admitting host/private/metadata access. The current sandbox intentionally has
-   no egress. The live service's broad public-HTTPS rule is insufficient for this.
-3. A versioned toolchain/image and explicit source/artifact transfer must preserve
-   the boundary and support the required container jobs. No Docker socket or
-   arbitrary host mounts may be added as a shortcut. Current `/usr` reuse is an
-   offline prototype, not a pinned paper/proof build image.
-4. The controller must connect GitHub cancellation to the correct transient unit,
-   bound admission/concurrency, preserve external diagnostics, and still enforce
-   its independent deadline. Local controller-loss cleanup passed; end-to-end
-   GitHub cancellation has not been exercised.
-
-These are integration and authority requirements, not a claim that CIRCLE or KVM
-is required for the tested native boundary. Cross-component triggers, status
-checks and artifact policy belong to the dedicated CI design workstream. No
-routing changes were made here.
+The offline helper also received three audit repairs: systemd environment expansion
+is disabled to preserve literal dollar arguments; timeout/OOM checks require
+payload readiness and the host-recorded termination cause; an explicit unit name
+cannot make the helper stop a unit owned by another invocation. Root receipts are
+written by `result.py`. These repairs were installed and tested while the legacy
+service was still active. Its historical mount/firewall probes require that old
+service; do not re-enable it merely to repeat them. The session acceptance tests
+are the current integration checks.
 
 Technical references: [bubblewrap](https://github.com/containers/bubblewrap),
 [systemd execution controls](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html),

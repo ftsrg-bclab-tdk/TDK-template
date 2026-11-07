@@ -1,12 +1,21 @@
 # BME cloud runner pilot
 
-BME cloud is the preferred backend. The existing `bme-cloud-29136` organization
-runner is now running with [trusted-job hardening](native/README.md). Separately,
-a native offline sandbox has passed live cross-job isolation tests on that host.
-The persistent GitHub runner is **not** automatically using that sandbox and is
-not ready for arbitrary untrusted workflows. See the [measured evidence](native/evidence-2026-11-03.md).
+BME cloud is the preferred backend. The [native one-job integration](session/README.md)
+now runs fresh repository-scoped JIT runners inside host-enforced sandboxes, with
+restricted egress, private bounded storage and external cleanup. Native and OCI
+container GitHub jobs, artifact transfer, cancellation and controller-loss tests
+have been exercised on the existing VM. Automatic admission now uses a root-only,
+repository-scoped PAT. The full paper workload passed with an immutable image cache
+and private writable job layers. See the [automatic admission evidence](session/evidence-automatic-2026-11-06.md)
+and earlier [November 5 lifecycle evidence](session/evidence-2026-11-05.md).
 
-Active paper workflows remain GitHub-hosted. This directory also retains the
+The older persistent org runner has been stopped and disabled after an idle check.
+It remains registered offline because the current token cannot administer org
+runners. It must not be re-enabled for student workflows. The [November 3 native
+prototype and hardening](native/README.md) remain documented for history.
+
+Ordinary paper workflows remain GitHub-hosted; the separate BME acceptance workflow
+is opt-in. This directory also retains the
 original disposable-VM pilot below. Nothing here creates cloud resources or
 changes organization permissions. `smoke.yml.example` is deliberately outside
 `.github/workflows/` and has no effect until installed in a separate pilot repo.
