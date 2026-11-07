@@ -20,7 +20,7 @@ Skim currently degrades to criteria without scoring bands when the review sheet 
 
 | Files | Consumer |
 | --- | --- |
-| `figures/bme_logo.pdf` | All title-page variants, including active `include/titlepage-tdk.tex:4`. Required by draft and reviewer builds. |
+| `figures/bme_logo.pdf` | All title-page variants, including active `include/titlepage-tdk.tex:4`. Required by draft and final builds. |
 | `guide/figures/collage/{bpm2025,bpm2026,eurocybersec2024,tdk2023}.pdf` | Embedded by `guide/04-writing.tex:158–175`. Required by the draft's guide. |
 | `guide/figures/{google-calendar-add-by-url,neptun-calendar-export}.png` | Embedded by `guide/01-getting-started.tex:39,44`. Required by the draft's guide. |
 

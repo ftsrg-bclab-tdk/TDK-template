@@ -188,7 +188,7 @@
 %   \beat{what it establishes}{its evidence}{what the running example shows here}{what it leads to}
 \newcommand{\beat}[4]{\todo[inline, caption={Beat: #1}]{\textbf{Beat.} \textit{Establishes:} #1. \textit{Evidence:} #2. \textit{Running example:} #3. \textit{Leads to:} #4.}}
 % A heading's pointer to its instruction and example in the guide chapter "The paper, chapter by
-% chapter" (guide/05-chapter-by-chapter.tex). Prints as a student todo, so the reviewer build drops it.
+% chapter" (guide/05-chapter-by-chapter.tex). Prints as a student todo, so the final build drops it.
 %   \guidetodo{Context}{guide:chapters:context}
 % The guide's labels carry a guide: prefix; a paper started before they did still writes app:...,
 % which is read as guide:... here, so its notes keep pointing at the guide.
@@ -283,7 +283,7 @@
 % Kinds of student notes, each with its own colour, so the draft and the list of todos show at a
 % glance what is left: a proof to write, text to write, a reference to find, something to rework,
 % a formula to work into the text, an idea still to decide. Like \todo, they print inline unless
-% given [noinline], take every \todo option, and disappear in the reviewer build.
+% given [noinline], take every \todo option, and disappear in the final build.
 \colorlet{todoproof}{pink!50}\colorlet{todowrite}{magenta!30}\colorlet{todoref}{red!30!orange!45}
 \colorlet{todofix}{red!40!magenta!40}\colorlet{todoformula}{violet!30}\definecolor{todoidea}{RGB}{190,175,240}
 \newcommand{\todoproof}[2][]{\todo[color=todoproof, caption={Proof: #2}, #1]{\textbf{Proof:} #2}}
@@ -298,7 +298,7 @@
 %   \tbd{the proving time}          a value or a sentence still to write
 %   \citeneeded  \citeneeded[the 2023 survey]   a claim that still needs its source
 % Both print as coloured text in brackets in the draft, breaking across lines like the text around
-% them, and are listed with the todos. The reviewer build prints a short red [missing] or
+% them, and are listed with the todos. The final build prints a short red [missing] or
 % [citation needed] in their place, so a gap left at upload shows as a gap, not as a broken
 % sentence. Never type TBD, [CITE], [?] or XXX into the text: the markers lint fails on them,
 % and on any \tbd or \citeneeded left at the submit phase.
