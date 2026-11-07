@@ -1,0 +1,37 @@
+# Replace each research recipe with a real command before enabling it in project.json.
+# Measurement workloads live in the monorepo's benchmark/ component.
+set shell := ["bash", "-euo", "pipefail", "-c"]
+out := env("OUT", "out")
+
+default:
+    @just --list
+
+build:
+    @echo "Code build is not configured; implement this recipe first." >&2; exit 2
+
+test:
+    @echo "Code tests are not configured; implement this recipe first." >&2; exit 2
+
+evaluate: build
+    @echo "Correctness evaluation is not configured." >&2; exit 2
+
+benchmark smoke="":
+    @echo "Configure research measurements in the root benchmark/ component." >&2; exit 2
+
+robustness smoke="": build
+    @echo "Robustness evaluation is not configured." >&2; exit 2
+
+reproduce *flags: evaluate (benchmark flags) (robustness flags)
+    @echo "Research reproduction is not configured." >&2; exit 2
+
+check:
+    @echo "Research result comparison is not configured." >&2; exit 2
+
+demo: build
+    @echo "Demonstration recording is not configured." >&2; exit 2
+
+hygiene *flags:
+    python3 scripts/hygiene.py {{flags}}
+
+figures:
+    @echo "Figure generation is not configured." >&2; exit 2

@@ -1,6 +1,6 @@
 ---
 name: network-security
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the system is deployed on a network, or uses smart contracts or keys
 ---
 

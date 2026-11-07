@@ -1,0 +1,33 @@
+name: Paper build
+on:
+  workflow_run:
+    workflows: [Project checks]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: paper-build-status-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+jobs:
+  status:
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch &&
+      github.event.workflow_run.head_repository.id == github.event.repository.id
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Consumer code is the current default branch, never downloaded producer code.
+      - uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - name: Verify the exact producer attempt and recorded build result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/ci/handoff.py build

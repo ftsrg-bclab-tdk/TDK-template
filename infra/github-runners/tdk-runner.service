@@ -1,0 +1,23 @@
+[Unit]
+Description=One GitHub Actions job on a disposable pilot VM
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+ConditionPathExists=/var/lib/tdk-runner/consumed
+ConditionPathExists=/run/tdk-runner/jit
+
+[Service]
+Type=simple
+User=runner
+Group=runner
+SupplementaryGroups=docker
+WorkingDirectory=/opt/actions-runner
+ExecStart=/usr/local/lib/tdk-runner/guest.py run
+# Best effort only: job code with Docker access controls this guest.
+ExecStopPost=+/usr/bin/systemctl --no-block poweroff
+Restart=no
+RuntimeMaxSec=45min
+TimeoutStopSec=30s
+KillMode=control-group
+LimitCORE=0
+UMask=0077

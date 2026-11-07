@@ -1,0 +1,14 @@
+[Unit]
+Description=UID-scoped egress restrictions for the trusted BME runner
+After=network-online.target
+Wants=network-online.target
+Before=actions.runner.ftsrg-bclab-tdk.bme-cloud-29136.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/tdk-native/egress.py --apply
+ExecStop=/usr/local/lib/tdk-native/egress.py --apply --remove
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

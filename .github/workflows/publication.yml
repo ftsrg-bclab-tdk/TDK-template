@@ -1,0 +1,89 @@
+name: Publish reviewed research
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact checked research source SHA
+        required: true
+        type: string
+      producer_run_id:
+        description: Exact producer workflow run ID
+        required: true
+        type: string
+      producer_run_attempt:
+        description: Exact producer attempt
+        required: true
+        type: string
+      producer_artifact_id:
+        description: Exact immutable artifact ID
+        required: true
+        type: string
+      artifact_sha256:
+        description: SHA256 of producer artifact archive
+        required: true
+        type: string
+      operation_id:
+        description: Stable operation ID used for reconciliation
+        required: true
+        type: string
+      receipt_sha256:
+        description: SHA256 of exactly reviewed bundle receipt
+        required: true
+        type: string
+      phase:
+        description: Explicit publication operation
+        required: true
+        type: choice
+        options: [stage, reconcile, publish, receipt]
+        default: stage
+      environment:
+        description: Zenodo service
+        required: true
+        type: choice
+        options: [sandbox, production]
+        default: sandbox
+permissions:
+  contents: read
+concurrency:
+  group: project-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - run: python3 -m pip install --upgrade jsonschema
+      - name: Verify reviewed bytes and perform the explicit publication operation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REGISTRY_GITHUB_TOKEN: ${{ github.token }}
+          ZENODO_TOKEN: ${{ secrets[inputs.environment == 'sandbox' && 'ZENODO_SANDBOX_TOKEN' || 'ZENODO_TOKEN'] }}
+          DISPATCH_INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          pathlib.Path('.project').mkdir(exist_ok=True)
+          pathlib.Path('.project/inputs.json').write_text(os.environ['DISPATCH_INPUTS'])
+          PY
+          python3 scripts/ci/release_transport.py publish --inputs .project/inputs.json
+      - name: Preserve verified or partial operation result
+        if: always()
+        uses: actions/upload-artifact@main
+        with:
+          name: publication-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .project/publication-receipt.json
+            .project/publication-context.json
+          retention-days: 90
+          if-no-files-found: warn

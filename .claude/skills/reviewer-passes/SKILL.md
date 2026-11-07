@@ -1,7 +1,12 @@
 ---
 name: reviewer-passes
-description: Read the TDK paper the way its reviewers will, before they do, on the CI bundle of one named commit. The skim reviewer reads the skim view, and a panel of disjoint expert personas reads the reviewer PDF, each owning one slice of the paper. Answers in chat and writes nothing, unless asked to record the run as one issue. Use on the spine as the premortem, on the draft before the full draft goes to the advisors, as a hill climb in the polish phase, or when the student asks "what would the cryptographer say".
+description: Read the TDK paper the way its reviewers will, before they do, on the CI bundle of one named commit. The skim reviewer reads the skim view, and a panel of disjoint expert personas reads the final PDF, each owning one slice of the paper. Answers in chat and writes nothing, unless asked to record the run as one issue. Use on the spine as the premortem, on the draft before the full draft goes to the advisors, as a hill climb in the polish phase, or when the student asks "what would the cryptographer say".
 ---
+
+Run paper commands from `paper/` (`cd paper` from the monorepo root). Paths to
+`draft.tex`, `final.pdf`, `docs/`, `guide/` and `scripts/` below are paper-relative.
+Agent skills and personas remain in root `.claude/skills/`.
+
 
 # Reviewer passes
 
@@ -48,29 +53,31 @@ Five rules draw the borders between them.
 A persona's `reads` field lists what it may see. Hand it nothing else. All of it comes from the CI
 bundle of one commit (`scripts/review/README.md` describes the bundle).
 
-- `reviewer-pdf` is `reviewer.pdf` of the bundle, built by CI from `reviewer.tex`. The bundle also
-  holds `thesis.pdf`, the draft with the notes in it; no persona reads that.
-- `skim-view` is `skim/skim.md` and `skim/assets/` of the bundle: the reviewer PDF reduced to what a
+- `final-pdf` is `final.pdf` of the bundle, built by CI from `final.tex`. The bundle also
+  holds `draft.pdf`, the draft with the notes in it; no persona reads that.
+- `skim-view` is `skim/skim.md` and `skim/assets/` of the bundle: the final PDF reduced to what a
   skimmer sees.
-- `spine` is a file the student names, usually `notes/anchors/spine.md` in their notes repository.
+- `spine` is a file the student names, usually `scratch/notes/anchors/spine.md` from the monorepo root.
   It is optional. Overclaiming is judged against the claims and the scope agreed there, not against
   taste. Without a spine the persona judges overclaiming against the abstract and the introduction.
 
 ## Procedure
 
 1. Name the commit: the one the student names, otherwise `git rev-parse HEAD`, which must be
-   pushed. CI runs on main/master pushes, non-draft PRs and manual dispatch. Fetch its bundle, with the repository as `<owner/name>`:
+   pushed. Project checks run on default-branch pushes, ready PRs and manual dispatch. Fetch its bundle, with the repository as `<owner/name>`:
 
    ```
    python3 scripts/review/review.py fetch --repo <owner/name> --sha <sha>
    ```
 
+   For a previously selected run, pass `--run <id> --attempt <n>` and retain the sibling
+   transport receipt. A new run of the same SHA is different evidence.
    It prints the directory of the verified bundle. When it refuses, because a hash does not match,
    the run is missing or the artifact has expired, say what it printed and stop. Do not review a
    bundle that did not verify, and do not build a PDF locally in its place.
 2. Decide the mode. When the student has a spine and the chapters are still template text, this is
    the premortem: each persona predicts its likeliest objections against the spine's claims, and
-   `where` cites the claim. Once a draft exists, every finding points at a page of the reviewer PDF.
+   `where` cites the claim. Once a draft exists, every finding points at a page of the final PDF.
 3. Pick the panel: the four that always run, plus every persona whose "runs when" the paper meets,
    judged from the abstract and the table of contents. A persona the student names runs regardless.
 4. Build the inputs, one directory per persona, with the spine file when there is one. Save the
@@ -177,4 +184,4 @@ Borders: <none, or which personas overlapped>.
 - A persona names a paper or a system only after opening it and checking that it exists and says
   what is claimed. When it suspects a neighbour but cannot find one, it writes "search for <what>".
 - Do not soften a finding because the author is in the room. Only the skim persona gives scores, and
-  only for what the skim view shows; the self-score skill scores the reviewer PDF.
+  only for what the skim view shows; the self-score skill scores the final PDF.

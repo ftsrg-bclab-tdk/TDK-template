@@ -1,0 +1,18 @@
+{
+  "name": "tdk-ftsrg-presentation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone FTSRG presentation starter derived from Martin Farkas\u2019s BPM 2026 deck",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "render": "node scripts/build.mjs --images",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "@marp-team/marp-cli": "4.5.1",
+    "puppeteer-core": "24.43.1"
+  }
+}

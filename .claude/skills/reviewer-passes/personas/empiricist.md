@@ -1,6 +1,6 @@
 ---
 name: empiricist
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the paper measures anything or evaluates a tool
 ---
 

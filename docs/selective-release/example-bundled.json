@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "packages": {
+    "software": {
+      "filename": "software.zip",
+      "license_expression": "MIT",
+      "build_profile": null,
+      "files": [
+        {
+          "origin": "tracked",
+          "path": "code/src/main.py",
+          "archive_path": "src/main.py"
+        },
+        {
+          "origin": "tracked",
+          "path": "code/README.md",
+          "archive_path": "README.md"
+        },
+        {
+          "origin": "tracked",
+          "path": "code/LICENSE",
+          "archive_path": "LICENSE"
+        },
+        {
+          "origin": "tracked",
+          "path": "code/Dockerfile",
+          "archive_path": "Dockerfile"
+        }
+      ]
+    },
+    "data": {
+      "filename": "data.zip",
+      "license_expression": "MIT",
+      "build_profile": null,
+      "files": [
+        {
+          "origin": "tracked",
+          "path": "benchmark/example.csv",
+          "archive_path": "example.csv"
+        },
+        {
+          "origin": "tracked",
+          "path": "benchmark/README.md",
+          "archive_path": "README.md"
+        },
+        {
+          "origin": "tracked",
+          "path": "benchmark/LICENSE",
+          "archive_path": "LICENSE"
+        }
+      ]
+    },
+    "proof": {
+      "filename": "proof.zip",
+      "license_expression": "MIT",
+      "build_profile": null,
+      "files": [
+        {
+          "origin": "tracked",
+          "path": "proof/README.md",
+          "archive_path": "README.md"
+        },
+        {
+          "origin": "tracked",
+          "path": "proof/LICENSE",
+          "archive_path": "LICENSE"
+        }
+      ]
+    }
+  },
+  "records": {
+    "study": {
+      "packages": [
+        "software",
+        "data",
+        "proof"
+      ],
+      "metadata_file": "release/metadata/study.json",
+      "access": "public"
+    }
+  }
+}

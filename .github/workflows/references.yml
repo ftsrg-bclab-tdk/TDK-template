@@ -1,0 +1,33 @@
+name: Official reference freshness
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: official-reference-freshness
+  cancel-in-progress: true
+jobs:
+  freshness:
+    if: github.repository == 'ftsrg-bclab-tdk/TDK-template' || github.repository == 'FTSRG-BCLab-TDK/TDK-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - name: Check source bytes, gaps and recorded applicability separately
+        run: python3 scripts/external_inputs/freshness.py
+      - name: Preserve candidates and findings without accepting or overwriting sources
+        if: always()
+        uses: actions/upload-artifact@main
+        with:
+          name: reference-candidates-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/reference-freshness/
+          retention-days: 14
+          if-no-files-found: error

@@ -1,14 +1,14 @@
 lint-checks.tex
 # What CI and scripts/review/review.py bundle write next to the build: the lint's JSON, the skim
 # view and the review bundle
-/lint.json
-/skim/
-/review-bundle/
+/paper/lint.json
+/paper/skim/
+/paper/review-bundle/
 # Build output: Overleaf never commits it, and a local build should not either. CI publishes the
 # PDFs as artifacts of every run.
 *.aux
 *.bbl
-!guide/guide.bbl
+!paper/guide/guide.bbl
 *.blg
 *.fdb_latexmk
 *.fls
@@ -25,9 +25,21 @@ lint-checks.tex
 _minted/
 _minted-*/
 svg-inkscape/
-thesis.pdf
-reviewer.pdf
+draft.pdf
+final.pdf
 # Personal settings of an AI coding agent
 .claude/settings.local.json
 # Python bytecode of scripts/
 __pycache__/
+# Private resumable onboarding state; shared project.json contains no accounts.
+/.onboarding/
+
+paper-draft.pdf
+paper-final.pdf
+
+# Per-run CI evidence and resolved dependency staging.
+/.project/
+/paper/lint.json
+/paper/lint.stderr
+/paper/skim/
+/paper/review-bundle/

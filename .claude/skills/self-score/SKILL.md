@@ -1,11 +1,16 @@
 ---
 name: self-score
-description: Score the TDK paper's reviewer PDF, as built by CI for one commit, on the faculty review sheet's criteria A-E in the sheet's own words, name the weakest criterion and the cheapest fix. Use before a consultation, in the polish phase, or when the student asks "how would this score". Writes nothing to the repository.
+description: Score the TDK paper's final PDF, as built by CI for one commit, on the faculty review sheet's criteria A-E in the sheet's own words, name the weakest criterion and the cheapest fix. Use before a consultation, in the polish phase, or when the student asks "how would this score". Writes nothing to the repository.
 ---
+
+Run paper commands from `paper/` (`cd paper` from the monorepo root). Paths to
+`draft.tex`, `final.pdf`, `docs/`, `guide/` and `scripts/` below are paper-relative.
+Agent skills and personas remain in root `.claude/skills/`.
+
 
 # Self-score
 
-Score the reviewer PDF the way the TDK reviewer will, on the review sheet in
+Score the final PDF the way the TDK reviewer will, on the review sheet in
 `docs/TDK2025_biralati_pontozolap_hallgatoi.pdf`, the bundled 2025 reference. Check the current
 faculty call for the applicable sheet. The bundled sheet has five criteria and 35 points:
 A form and style 0-5, B figures and literature 0-4 (average of B/1 and B/2, or B/2 when B/1 is
@@ -16,10 +21,11 @@ quotes the top of every scale.
 
 ## Procedure
 
-1. Take the reviewer PDF from the CI bundle of one named commit, the pushed `HEAD` unless the
+1. Take the final PDF from the CI bundle of one named commit, the pushed `HEAD` unless the
    student names another: `python3 scripts/review/review.py fetch --repo <owner/name> --sha <sha>`
-   prints the bundle directory, and `reviewer.pdf` is in it. `fetch` verifies the bundle; when it
-   refuses, say why and stop. Never score `thesis.pdf`, the draft with the notes in it.
+   prints the bundle directory, and `final.pdf` is in it. For known evidence, pass
+   `--run <id> --attempt <n>` and retain its sibling transport receipt. `fetch` verifies the bundle; when it
+   refuses, say why and stop. Never score `draft.pdf`, the draft with the notes in it.
 2. Read the whole PDF once as a reader, then once per criterion.
 3. For each criterion, give the score and the sheet's own sentence that fits, then the evidence:
    page numbers, a quoted phrase, a figure or table number. No evidence, no score.

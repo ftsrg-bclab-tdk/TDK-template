@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="170" viewBox="0 0 1080 170" role="img" aria-labelledby="title desc">
+  <title id="title">From a system model to evidence</title>
+  <desc id="desc">Three boxes connected left to right: system model, candidate rule, and evidence.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#8A2432"/></marker></defs>
+  <g fill="#fff" stroke="#8A2432" stroke-width="3"><rect x="10" y="30" width="280" height="100" rx="2"/><rect x="400" y="30" width="280" height="100" rx="2"/><rect x="790" y="30" width="280" height="100" rx="2"/></g>
+  <g stroke="#8A2432" stroke-width="3" marker-end="url(#arrow)"><path d="M305 80H380"/><path d="M695 80H770"/></g>
+  <g fill="#1A1A1A" font-family="sans-serif" font-size="26" text-anchor="middle"><text x="150" y="89">System model</text><text x="540" y="89">Candidate rule</text><text x="930" y="89">Evidence</text></g>
+</svg>

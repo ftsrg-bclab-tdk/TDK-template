@@ -1,0 +1,580 @@
+{
+  "schema": "official-references/v1",
+  "context": {
+    "faculty": "BME VIK",
+    "faculty_year": 2026,
+    "otdk_number": 38,
+    "otdk_year": 2027
+  },
+  "reviewed_at": "2026-11-03T23:21:44.037299+00:00",
+  "sources": [
+    {
+      "id": "otdk-central-1",
+      "title": "38. OTDK központi felhívás",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti_felhivas.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-1.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:56.609782+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti_felhivas.pdf",
+        "http_status": 200,
+        "sha256": "fd40877ab59b5a96f0bea89217402929ad839ca9ac0cbc9e1fb708eea7c3800a",
+        "size": 141473,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-2",
+      "title": "38. OTDK központi felhívás: 1. melléklet, szekciók",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/10/38OTDK-kozponti-felhivas_1.-sz.-melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-2.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:56.695885+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/10/38OTDK-kozponti-felhivas_1.-sz.-melleklet.pdf",
+        "http_status": 200,
+        "sha256": "2753ac3cbad6ecd518aae705d5d3d1758766e589d2680c0b89e266184a7a99d7",
+        "size": 244379,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-3",
+      "title": "38. OTDK központi felhívás: 2. melléklet, részvételi feltételek",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/05/38_OTDK_kozponti_felhivas_2_sz_melleklet_v2.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-3.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:56.793842+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/05/38_OTDK_kozponti_felhivas_2_sz_melleklet_v2.pdf",
+        "http_status": 200,
+        "sha256": "51bbdbd17e6854cf7c20298d3c0bf02772bebe41c7458030ea3bbd720a957715",
+        "size": 284000,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-4",
+      "title": "38. OTDK központi felhívás: 3. melléklet, szakmai elismerés",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK-kozponti-felhivas_3_sz_melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-4.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:56.907957+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK-kozponti-felhivas_3_sz_melleklet.pdf",
+        "http_status": 200,
+        "sha256": "1238713c19d3633e4cbc7ab369658290dfd26c7281362f5ae73e3a789bd443e9",
+        "size": 141351,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-5",
+      "title": "38. OTDK központi felhívás: 4. melléklet, középiskolai delegálás",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": false,
+      "url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti_felhivas_4_sz_melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-5.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:56.984700+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti_felhivas_4_sz_melleklet.pdf",
+        "http_status": 200,
+        "sha256": "141b65b161a326f3be42c00a121706b870289fe94a977f6bee07eaae9e5b0dfe",
+        "size": 157177,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-6",
+      "title": "38. OTDK központi felhívás: 5. melléklet, kitüntetések",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": false,
+      "url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti-felhivas_5_sz_melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-6.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:57.074443+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK_kozponti-felhivas_5_sz_melleklet.pdf",
+        "http_status": 200,
+        "sha256": "1c5307fd908b7fabde49de71ad6612589e2fba3908a672948fb1b1361ea5dd6f",
+        "size": 174417,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-central-7",
+      "title": "38. OTDK központi felhívás: 6. melléklet, MI etikus használata",
+      "publisher": "OTDT",
+      "category": "ethics",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK-kozponti-felhivas_6.-sz.-melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+      ],
+      "package_path": "official-references/otdk-central-7.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:57.159771+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/04/38_OTDK-kozponti-felhivas_6.-sz.-melleklet.pdf",
+        "http_status": 200,
+        "sha256": "cba226b1c38e4f2f174bfcdcb38885de32daca98e6d0d9b150b4dfbd842ba48c",
+        "size": 152808,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/kozponti-felhivas-2027/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-informatics-1",
+      "title": "MTA Tudományetikai Kódex (2010), a szekció által hivatkozott változat",
+      "publisher": "MTA",
+      "category": "ethics",
+      "required": true,
+      "url": "https://mta.hu/data/dokumentumok/hatteranyagok/tudomanyetikai_bizottsag/tudomanyetikai_kodex_kgy_20100504.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+      ],
+      "package_path": "official-references/otdk-informatics-1.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:58.920480+00:00",
+        "final_url": "https://mta.hu/data/dokumentumok/hatteranyagok/tudomanyetikai_bizottsag/tudomanyetikai_kodex_kgy_20100504.pdf",
+        "http_status": 200,
+        "sha256": "8cd36f9665b789d2c6cab9b85d7ef29c4215b4a14338f8696014a26ae0363c8b",
+        "size": 150919,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+        ],
+        "note": "Explicitly linked by the current 38. OTDK Informatics call; this identifies the cited 2010 edition, not the latest MTA code generally."
+      }
+    },
+    {
+      "id": "otdk-informatics-2",
+      "title": "38. OTDK Informatikatudományi Szekció felhívás",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/05/38OTDK_Informatikatudomanyi_Szekcio_felhivas.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+      ],
+      "package_path": "official-references/otdk-informatics-2.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:59.049702+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/05/38OTDK_Informatikatudomanyi_Szekcio_felhivas.pdf",
+        "http_status": 200,
+        "sha256": "803f82216734d713339fceac013bdc68cf319839febdeb3255984bde2b2e5163",
+        "size": 237317,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdk-informatics-3",
+      "title": "38. OTDK Informatikatudományi Szekció: 1. melléklet",
+      "publisher": "OTDT",
+      "category": "otdk",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2026/05/38OTDK_Informatikatudomanyi_Szekcio_felhivas_1_sz_melleklet.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+      ],
+      "package_path": "official-references/otdk-informatics-3.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:20:59.142397+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2026/05/38OTDK_Informatikatudomanyi_Szekcio_felhivas_1_sz_melleklet.pdf",
+        "http_status": 200,
+        "sha256": "7fa878288f5d7f90283fa1c8060b70e87c0165ed9981346ead4a583124c875a7",
+        "size": 170201,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "38. OTDK (2027), Informatikatudományi Szekció",
+        "evidence_urls": [
+          "https://otdk.hu/kezdolap/otdk-2027/szekciok-felhivasai/informatikatudomanyi-szekcio-2/"
+        ],
+        "note": "Official 38. OTDK landing page links this document; PDF title identifies the same cycle. Eligibility still depends on the individual project."
+      }
+    },
+    {
+      "id": "otdt-ethics-1",
+      "title": "OTDT Etikai Kódex (2020)",
+      "publisher": "OTDT",
+      "category": "ethics",
+      "required": true,
+      "url": "https://otdk.hu/wp-content/uploads/2025/09/OTDT-Etikai-Kodex_20200622.pdf",
+      "discovery_urls": [
+        "https://otdk.hu/otdt/etikai-kodex/"
+      ],
+      "package_path": "official-references/otdt-ethics-1.pdf",
+      "retrieval": {
+        "status": "retrieved",
+        "checked_at": "2026-11-03T23:21:00.854373+00:00",
+        "final_url": "https://otdk.hu/wp-content/uploads/2025/09/OTDT-Etikai-Kodex_20200622.pdf",
+        "http_status": 200,
+        "sha256": "487abaa905de391a0fd1e4c5ab55a2233bd57ad757a0a474ce42d77edbe13e10",
+        "size": 246933,
+        "media_type": "application/pdf",
+        "note": "PDF magic and extracted title checked; downloaded to temporary research staging, not an accepted package."
+      },
+      "applicability": {
+        "status": "confirmed",
+        "scope": "TDK/OTDK ethics",
+        "evidence_urls": [
+          "https://otdk.hu/otdt/etikai-kodex/"
+        ],
+        "note": "Current OTDT ethics landing page links this edition; upload directory year is not the adoption year."
+      }
+    },
+    {
+      "id": "faculty-call",
+      "title": "Aktuális BME VIK kari TDK-kiírás (2026)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": true,
+      "url": null,
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download",
+        "https://tdk.bme.hu/conference/VIK/2026",
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "2026 portal GET returned HTTP 200 Blazor application shell, without documents. Official search did not locate current VIK documents. Legacy download page contains 2011 forms and older materials; not evidence for 2026."
+      },
+      "applicability": {
+        "status": "needs_review",
+        "scope": "BME VIK TDK 2026",
+        "evidence_urls": [],
+        "note": "Required current faculty document remains missing. Obtain the actual faculty call/download and verify its year and authority; diploma regulations and another faculty call are not substitutes."
+      }
+    },
+    {
+      "id": "faculty-format",
+      "title": "BME VIK TDK formai követelmények (2026)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": true,
+      "url": null,
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download",
+        "https://tdk.bme.hu/conference/VIK/2026",
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "2026 portal GET returned HTTP 200 Blazor application shell, without documents. Official search did not locate current VIK documents. Legacy download page contains 2011 forms and older materials; not evidence for 2026."
+      },
+      "applicability": {
+        "status": "needs_review",
+        "scope": "BME VIK TDK 2026",
+        "evidence_urls": [],
+        "note": "Required current faculty document remains missing. Obtain the actual faculty call/download and verify its year and authority; diploma regulations and another faculty call are not substitutes."
+      }
+    },
+    {
+      "id": "faculty-declaration",
+      "title": "BME VIK TDK hallgatói nyilatkozat (2026)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": true,
+      "url": null,
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download",
+        "https://tdk.bme.hu/conference/VIK/2026",
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "2026 portal GET returned HTTP 200 Blazor application shell, without documents. Official search did not locate current VIK documents. Legacy download page contains 2011 forms and older materials; not evidence for 2026."
+      },
+      "applicability": {
+        "status": "needs_review",
+        "scope": "BME VIK TDK 2026",
+        "evidence_urls": [],
+        "note": "Required current faculty document remains missing. Obtain the actual faculty call/download and verify its year and authority; diploma regulations and another faculty call are not substitutes."
+      }
+    },
+    {
+      "id": "faculty-review-form",
+      "title": "BME VIK TDK bírálólap (2026)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": true,
+      "url": null,
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download",
+        "https://tdk.bme.hu/conference/VIK/2026",
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "2026 portal GET returned HTTP 200 Blazor application shell, without documents. Official search did not locate current VIK documents. Legacy download page contains 2011 forms and older materials; not evidence for 2026."
+      },
+      "applicability": {
+        "status": "needs_review",
+        "scope": "BME VIK TDK 2026",
+        "evidence_urls": [],
+        "note": "Required current faculty document remains missing. Obtain the actual faculty call/download and verify its year and authority; diploma regulations and another faculty call are not substitutes."
+      }
+    },
+    {
+      "id": "faculty-scoring",
+      "title": "BME VIK TDK pontozási útmutató (2026)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": true,
+      "url": null,
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download",
+        "https://tdk.bme.hu/conference/VIK/2026",
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "2026 portal GET returned HTTP 200 Blazor application shell, without documents. Official search did not locate current VIK documents. Legacy download page contains 2011 forms and older materials; not evidence for 2026."
+      },
+      "applicability": {
+        "status": "needs_review",
+        "scope": "BME VIK TDK 2026",
+        "evidence_urls": [],
+        "note": "Required current faculty document remains missing. Obtain the actual faculty call/download and verify its year and authority; diploma regulations and another faculty call are not substitutes."
+      }
+    },
+    {
+      "id": "legacy-faculty-paper-scoring",
+      "title": "Legacy VIK paper review criteria",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": false,
+      "url": "https://www.vik.bme.hu/files/00000051.pdf",
+      "discovery_urls": [
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unavailable",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": 403,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "HTTP Error 403: Forbidden"
+      },
+      "applicability": {
+        "status": "historical",
+        "scope": "Legacy faculty guidance, year not established",
+        "evidence_urls": [
+          "https://www.vik.bme.hu/szabalyzatok/210.html"
+        ],
+        "note": "Not accepted for the 2026 requirement. Linked from a page with 2011 review forms and 2007/2010 materials."
+      }
+    },
+    {
+      "id": "legacy-faculty-talk-scoring",
+      "title": "Legacy VIK presentation review criteria",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": false,
+      "url": "https://www.vik.bme.hu/files/00000053.pdf",
+      "discovery_urls": [
+        "https://www.vik.bme.hu/szabalyzatok/210.html"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unavailable",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": 403,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "HTTP Error 403: Forbidden"
+      },
+      "applicability": {
+        "status": "historical",
+        "scope": "Legacy faculty guidance, year not established",
+        "evidence_urls": [
+          "https://www.vik.bme.hu/szabalyzatok/210.html"
+        ],
+        "note": "Not accepted for the 2026 requirement. Linked from a page with 2011 review forms and 2007/2010 materials."
+      }
+    },
+    {
+      "id": "faculty-review-2025",
+      "title": "TDK2025 bírálati pontozólap hallgatói (existing historical copy)",
+      "publisher": "BME VIK",
+      "category": "faculty",
+      "required": false,
+      "url": "https://tdk.bme.hu/upload/conference/VIK/TDK2025_biralati_pontozolap_hallgat%C3%B3i_20251003-092357.pdf",
+      "discovery_urls": [
+        "https://tdk.bme.hu/conference/VIK/2026/Download"
+      ],
+      "package_path": null,
+      "retrieval": {
+        "status": "unresolved",
+        "checked_at": "2026-11-03T23:21:44.037299+00:00",
+        "final_url": null,
+        "http_status": null,
+        "sha256": null,
+        "size": null,
+        "media_type": null,
+        "note": "Existing tracked copy docs/TDK2025_biralati_pontozolap_hallgatoi.pdf; local SHA256 96e4a2be36234bd82f4b3d98ebf630d4065183eb2b93de591b80a3f046aa9850. Not a successful current-source retrieval."
+      },
+      "applicability": {
+        "status": "historical",
+        "scope": "BME VIK TDK 2025",
+        "evidence_urls": [],
+        "note": "Filename identifies 2025. Same bytes cannot establish 2026 adoption. Keep existing consumer working until an accepted replacement and delivery are verified."
+      }
+    }
+  ]
+}

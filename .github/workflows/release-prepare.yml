@@ -1,0 +1,81 @@
+name: Prepare research release
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact checked research source SHA
+        required: true
+        type: string
+      producer_run_id:
+        description: Exact producer workflow run ID
+        required: true
+        type: string
+      producer_run_attempt:
+        description: Exact producer attempt
+        required: true
+        type: string
+      producer_artifact_id:
+        description: Exact immutable artifact ID
+        required: true
+        type: string
+      artifact_sha256:
+        description: SHA256 of producer artifact archive
+        required: true
+        type: string
+      manifest:
+        description: Tracked selection manifest path
+        required: true
+        type: string
+        default: release/manifest.json
+permissions:
+  contents: read
+  actions: read
+jobs:
+  prepare:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@main
+        with:
+          ref: ${{ inputs.source_sha }}
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-python@main
+        with:
+          python-version: '3.x'
+          check-latest: true
+      - run: python3 -m pip install --upgrade jsonschema
+      - name: Verify completed checks and package their existing bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          pathlib.Path('.project').mkdir(exist_ok=True)
+          pathlib.Path('.project/inputs.json').write_text(os.environ['DISPATCH_INPUTS'])
+          PY
+          python3 scripts/ci/release_transport.py prepare --inputs .project/inputs.json
+      - uses: actions/upload-artifact@main
+        id: candidate
+        with:
+          name: release-bundle-${{ inputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .project/bundle/
+          retention-days: 90
+          if-no-files-found: error
+      - name: Record candidate identity for deliberate review
+        env:
+          ARTIFACT_ID: ${{ steps.candidate.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.candidate.outputs.artifact-digest }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib
+          receipt = pathlib.Path('.project/bundle/receipt.json').read_bytes()
+          value = {'artifact_id':os.environ['ARTIFACT_ID'],'artifact_sha256':os.environ['ARTIFACT_DIGEST'],'receipt_sha256':hashlib.sha256(receipt).hexdigest(),'run_id':os.environ['GITHUB_RUN_ID'],'run_attempt':os.environ['GITHUB_RUN_ATTEMPT']}
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('Reviewed candidate identity:\n```json\n'+json.dumps(value,indent=2)+'\n```\n')
+          PY

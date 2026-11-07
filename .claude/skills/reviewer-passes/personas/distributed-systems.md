@@ -1,6 +1,6 @@
 ---
 name: distributed-systems
-reads: [reviewer-pdf, spine]
+reads: [final-pdf, spine]
 runs-when: the system has more than one node: a ledger, consensus, replication or clocks
 ---
 

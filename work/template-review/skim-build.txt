@@ -1,2 +1,0 @@
-Installed 12 packages in 42ms
-t3-3bd95abb: 18 pages, main 8; figure 3/3, table 2/2, box 8/8, tag item 7/7, theorem-like 3/3, tag-list label in the .aux 7/7; unsure 0; placeholders 40; unclassified lines 0; -> /home/blacklight/.t3/worktrees/tdk-template/t3-3bd95abb/work/template-review/skim/skim.html
