@@ -51,6 +51,26 @@ Edit paper files in Overleaf and other components in their usual tools. This
 convention does not preserve executable modes or symlinks automatically; verify
 code execution after the round trip. There is no custom synchronization bridge.
 
+### Bringing a paper from the faculty template
+
+A student who began in the faculty's LaTeX thesis template (the `Letöltések`
+download on the [faculty TDK page](https://tdk.bme.hu/conference/VIK/2026/Download))
+imports it once from a folder or an Overleaf zip:
+
+```sh
+python3 scripts/setup.py student --import-faculty ~/Downloads/paper.zip --dry-run
+python3 scripts/setup.py student --import-faculty ~/Downloads/paper.zip
+```
+
+The import copies chapters, abstract, bibliography and figures into `paper/`
+byte for byte and fills the title-page values in `paper/draft.tex`. It never
+overwrites a file that already holds the student's text. Chapter role labels,
+`\printlists` and preamble definitions are only listed until confirmed with
+`--label SOURCE=ROLE` or `--accept-suggestions`. The guide section
+"Bringing a paper from the faculty template" (`paper/guide/01-getting-started.tex`)
+describes the mapping; `scripts/onboarding/faculty.py` records the faculty
+archive it was analysed against.
+
 ## Build and check the paper
 
 From the repository root:

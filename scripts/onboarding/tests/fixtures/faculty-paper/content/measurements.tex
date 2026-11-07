@@ -1,0 +1,20 @@
+%----------------------------------------------------------------------------
+\chapter{Measurements}\label{chap:measurements}
+%----------------------------------------------------------------------------
+
+A revocation check takes \SI{2}{\milli\second} with the \registry and \SI{40}{\milli\second}
+with the full list, as \autoref{tab:times} shows.
+
+\begin{table}[!ht]
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Method & Time \\
+    \midrule
+    Full list & \SI{40}{\milli\second} \\
+    \registry & \SI{2}{\milli\second} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Median time of one revocation check.}
+  \label{tab:times}
+\end{table}

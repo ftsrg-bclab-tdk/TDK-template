@@ -1,0 +1,13 @@
+%----------------------------------------------------------------------------
+\chapter{Design of the registry}\label{chap:design}
+%----------------------------------------------------------------------------
+
+The issuer publishes a summary $S_t$ of the revoked identifiers, and a credential $c$ is valid at
+time $t$ when $\revoked(c, S_t)$ is false. \Cref{fig:flow} shows who reads the summary.
+
+\begin{figure}[!ht]
+  \centering
+  \input{figures/flow}
+  \caption{The issuer writes the summary; the verifier reads it.}
+  \label{fig:flow}
+\end{figure}

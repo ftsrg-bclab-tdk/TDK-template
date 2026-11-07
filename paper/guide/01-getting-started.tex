@@ -70,3 +70,23 @@ Import the library through Overleaf's Zotero integration, included in our Pro su
 \paragraph{Workspace layout.} Keep one clone of the project repository on your machine or VM. Open the generated \texttt{tdk.code-workspace} in VS Code. The paper, code, proofs, benchmarks, scratch notes and presentation share one commit history. After a consultation, commit its summary in \texttt{scratch/notes/consultations/} together with any agreed source changes. Keep generated outputs and local credentials out of Git.
 
 \paragraph{Do not overdo it.} Limit the time you spend setting up your environment. We learned this the hard way.
+
+%----------------------------------------------------------------------------
+\section{Bringing a paper from the faculty template}\label{guide:start:faculty}
+If you started writing in the faculty's thesis template, the \LaTeX{} template under \emph{Letöltések} on the \href{https://tdk.bme.hu/conference/VIK/2026/Download}{faculty's TDK page} (\cref{guide:tdk:form}), import it once instead of copying files by hand. The source is the project folder or the zip that Overleaf's \emph{Download} gives you. Preview first, from the repository root:
+
+\texttt{python3 scripts/setup.py student --import-faculty \textasciitilde/Downloads/paper.zip --dry-run}
+
+The preview lists every file it would write and writes nothing. Run the same command without \texttt{--dry-run} to import. The import moves your files and writes nothing over your own text:
+\begin{itemize}
+  \item \textbf{Chapters} are copied byte for byte into \path{content/} and renamed \texttt{NN-name.tex} in reading order, the file names the lint expects. The chapter list in \texttt{draft.tex} becomes yours.
+  \item \textbf{The abstract, the acknowledgements and the appendices} become \path{content/00-abstract.tex}, \path{content/08-acknowledgement.tex} and \path{content/10-appendices.tex}. Your \texttt{.bib} file becomes \path{bib/references.bib}; add your Zenodo artifact entry to it later (\cref{guide:zenodo}). Figures and your other folders keep their paths.
+  \item \textbf{The title page values} (title, author, advisors) go into \texttt{draft.tex} where it still has the template's values, and \path{include/tdk-variables.tex} is taken over if you changed it.
+  \item \textbf{Left out:} the faculty's own sample text and figures, its \path{include/} frame, which this template replaces, the thesis declaration, which the TDK does not have, and build output.
+\end{itemize}
+
+\paragraph{What you confirm.} Three things change your files beyond a copy, so the preview lists them and the import adds them only when you confirm: the chapter role labels (\texttt{\textbackslash label\{ch:intro\}} and the others, \cref{guide:chapters}), which the import guesses from the chapter titles; \texttt{\textbackslash printlists} in the appendix, which prints the glossary lists; and the definitions from your preamble that this template lacks, which go to \path{include/macros.tex}. Confirm one role with \texttt{--label content/measurements.tex=evaluation}, refuse a guess with \texttt{=none}, and confirm everything listed with \texttt{--accept-suggestions}. Preamble lines that change the page layout, such as \texttt{\textbackslash linespread}, are not carried over: the template's layout is the call's (\cref{guide:tdk:form}).
+
+\paragraph{When it refuses.} If a file the import would write already holds your text, for example an abstract you started here, it lists the file and writes nothing at all. Move your text aside or merge it by hand, then run the import again.
+
+\paragraph{After the import.} Build with \texttt{make -C paper draft} and read the Checks page. The preview already names what the lint will flag: \texttt{\textbackslash autoref} and bare \texttt{\textbackslash ref} where the template uses \texttt{\textbackslash cref}, typed abbreviations instead of \texttt{\textbackslash gls}, typed TODOs instead of \texttt{\textbackslash tbd}, and the essentials (\cref{guide:writing:essentials}) that a paper written elsewhere does not have yet. The import never rewrites your prose; those changes are yours, or an agent's whose diff you review. This template builds English papers. If your paper is in Hungarian, talk to us before importing. Commit the result, push, and pull in Overleaf before you edit there.

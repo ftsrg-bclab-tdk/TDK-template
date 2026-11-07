@@ -63,6 +63,10 @@ and their steps are in `guide/02-lifecycle.tex` (`guide:tab:lifecycle`).
   `reviewer.tex`. In `include/macros.tex` and `content/`, replace `\reviewermode` with `\finalmode`
   and `thesis.tex` with `draft.tex`. The student then sets root `paper-draft.tex` as the main document in
   Overleaf's menu.
+- When the student brings a paper written in the faculty's LaTeX thesis template, import it with
+  root `python3 scripts/setup.py student --import-faculty PATH_OR_ZIP --dry-run`, show them the
+  preview, and run it without `--dry-run` only after they agree. Confirm role labels with
+  `--label SOURCE=ROLE` or `--accept-suggestions` only when they ask; never copy the files by hand.
 - Keep the notes. `\todo` (orange) is for the student, `\advisortodo` (blue) for the advisors, and
   `\atodo` (green) is an advisor's review comment that the student resolves and then deletes.
 - Mark a gap with `\tbd{...}` or `\citeneeded[...]`, never with a typed TBD, [CITE] or XXX.
